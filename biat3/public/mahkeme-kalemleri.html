@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahkeme Kalemleri - BIAT</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Toggle Theme -->
+    <button class="toggle-theme">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Toggle Sidebar -->
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+                <span>Menü Küçült</span>
+            </button>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-laptop"></i>
+                            <span>Cihazlar</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="mahkeme-kalemleri.html" class="active">
+                                    <i class="fas fa-building"></i>
+                                    <span>Mahkeme Kalemleri</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="durusma-salonlari.html">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Duruşma Salonları</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="hakim-odalari.html">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Hakim Odaları</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-tools"></i>
+                            <span>Arıza Takip</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="ariza-bildir.html">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Arıza Bildir</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ariza-listesi.html">
+                                    <i class="fas fa-list"></i>
+                                    <span>Arıza Listesi</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="raporlar.html">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profil.html">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <img src="img/user.jpg" alt="User Avatar">
+                <div class="user-info">
+                    <h3>Hoş Geldiniz</h3>
+                    <p>Kenan Bey</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h1>Mahkeme Kalemleri</h1>
+                    <div class="header-actions">
+                        <div class="search-box">
+                            <input type="text" id="courtOfficeSearch" placeholder="Mahkeme kalemi ara...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <button class="btn-primary" id="addNewOfficeBtn">
+                            <i class="fas fa-plus"></i> Yeni Kalem Ekle
+                        </button>
+                    </div>
+                </div>
+                <div class="court-offices-grid"></div>
+            </div>
+        </main>
+
+        <!-- New Details Panel -->
+        <div class="details-panel" id="detailsPanel">
+            <div class="details-header">
+                <h2 class="details-title"></h2>
+                <div class="details-actions">
+                    <button class="btn-icon" id="editOfficeBtn">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon" id="closeDetailsBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="details-content">
+                <div class="details-tabs">
+                    <button class="tab-btn active" data-tab="overview">Genel Bakış</button>
+                    <button class="tab-btn" data-tab="devices">Cihazlar</button>
+                    <button class="tab-btn" data-tab="issues">Arızalar</button>
+                    <button class="tab-btn" data-tab="history">Geçmiş</button>
+                </div>
+
+                <div class="tab-content">
+                    <!-- Overview Tab -->
+                    <div class="tab-pane active" id="overview">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <i class="fas fa-laptop"></i>
+                                <h3>Toplam Cihaz</h3>
+                                <p class="total-devices">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-check-circle"></i>
+                                <h3>Aktif Cihaz</h3>
+                                <p class="active-devices">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-tools"></i>
+                                <h3>Arızalı Cihaz</h3>
+                                <p class="repair-devices">0</p>
+                            </div>
+                            <div class="stat-card">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <h3>Pasif Cihaz</h3>
+                                <p class="inactive-devices">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Devices Tab -->
+                    <div class="tab-pane" id="devices">
+                        <div class="table-actions">
+                            <button class="btn-primary" id="addDeviceBtn">
+                                <i class="fas fa-plus"></i> Yeni Cihaz Ekle
+                            </button>
+                            <div class="filter-group">
+                                <select id="deviceTypeFilter">
+                                    <option value="">Tüm Cihazlar</option>
+                                    <option value="computer">Bilgisayar</option>
+                                    <option value="printer">Yazıcı</option>
+                                    <option value="scanner">Tarayıcı</option>
+                                </select>
+                                <select id="deviceStatusFilter">
+                                    <option value="">Tüm Durumlar</option>
+                                    <option value="active">Aktif</option>
+                                    <option value="repair">Arızalı</option>
+                                    <option value="inactive">Pasif</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="devices-table-container">
+                            <table class="devices-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cihaz Adı</th>
+                                        <th>Tür</th>
+                                        <th>Seri No</th>
+                                        <th>Durum</th>
+                                        <th>Son Güncelleme</th>
+                                        <th>İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="devicesList"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Issues Tab -->
+                    <div class="tab-pane" id="issues">
+                        <div class="issues-timeline"></div>
+                    </div>
+
+                    <!-- History Tab -->
+                    <div class="tab-pane" id="history">
+                        <div class="history-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay"></div>
+    <script src="js/main.js"></script>
+</body>
+</html> 

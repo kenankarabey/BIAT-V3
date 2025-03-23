@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raporlar - BIAT</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Toggle Theme -->
+    <button class="toggle-theme">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Toggle Sidebar -->
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+                <span>Menü Küçült</span>
+            </button>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-laptop"></i>
+                            <span>Cihazlar</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="mahkeme-kalemleri.html">
+                                    <i class="fas fa-building"></i>
+                                    <span>Mahkeme Kalemleri</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="durusma-salonlari.html">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Duruşma Salonları</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="hakim-odalari.html">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Hakim Odaları</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-tools"></i>
+                            <span>Arıza Takip</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="ariza-bildir.html">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Arıza Bildir</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ariza-listesi.html">
+                                    <i class="fas fa-list"></i>
+                                    <span>Arıza Listesi</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="raporlar.html" class="active">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profil.html">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <img src="img/user.jpg" alt="User Avatar">
+                <div class="user-info">
+                    <h3>Hoş Geldiniz</h3>
+                    <p>Kenan Bey</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-header">
+                <h1>Raporlar</h1>
+                <div class="header-actions">
+                    <div class="date-range">
+                        <button class="btn btn-secondary active">Günlük</button>
+                        <button class="btn btn-secondary">Haftalık</button>
+                        <button class="btn btn-secondary">Aylık</button>
+                    </div>
+                    <button class="btn btn-primary refresh-data">
+                        <i class="fas fa-sync-alt"></i>
+                        Verileri Güncelle
+                    </button>
+                </div>
+            </div>
+
+            <div class="reports-grid">
+                <!-- Summary Cards -->
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Toplam Arıza</h3>
+                        <p>248</p>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>12% artış</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Çözülen Arıza</h3>
+                        <p>195</p>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>8% artış</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Ortalama Çözüm</h3>
+                        <p>4.2 saat</p>
+                        <div class="stat-trend negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>5% azalış</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Aktif Cihaz</h3>
+                        <p>342</p>
+                        <div class="stat-trend positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>3% artış</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h2>Arıza Trendi</h2>
+                        <div class="chart-actions">
+                            <button class="btn btn-secondary active">Günlük</button>
+                            <button class="btn btn-secondary">Haftalık</button>
+                            <button class="btn btn-secondary">Aylık</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="issuesTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h2>Arıza Dağılımı</h2>
+                        <div class="chart-actions">
+                            <button class="btn btn-secondary active">Konum</button>
+                            <button class="btn btn-secondary">Cihaz</button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="issuesDistributionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Tables -->
+                <div class="table-card">
+                    <div class="card-header">
+                        <h2>En Çok Arıza Bildirilen Cihazlar</h2>
+                        <button class="btn btn-secondary btn-download">
+                            <i class="fas fa-download"></i>
+                            CSV İndir
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Cihaz</th>
+                                    <th>Konum</th>
+                                    <th>Arıza Sayısı</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="table-card">
+                    <div class="card-header">
+                        <h2>Son Arıza Kayıtları</h2>
+                        <button class="btn btn-secondary btn-download">
+                            <i class="fas fa-download"></i>
+                            CSV İndir
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Tarih</th>
+                                    <th>Başlık</th>
+                                    <th>Konum</th>
+                                    <th>Durum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table rows will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="sidebar-overlay"></div>
+    <script src="js/main.js"></script>
+</body>
+</html> 
