@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahkeme Kalemleri - BIAT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -101,127 +103,58 @@
             </div>
         </div>
 
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-wrapper">
                 <div class="page-header">
                     <h1>Mahkeme Kalemleri</h1>
                     <div class="header-actions">
+                        <div class="filter-group">
+                            <select id="typeFilter" class="form-select">
+                                <option value="">Tüm Türler</option>
+                                <option value="Ağır Ceza">Ağır Ceza Mahkemesi</option>
+                                <option value="Asliye Ceza">Asliye Ceza Mahkemesi</option>
+                                <option value="Asliye Hukuk">Asliye Hukuk Mahkemesi</option>
+                                <option value="İcra">İcra Dairesi</option>
+                            </select>
+                            <select id="locationFilter" class="form-select">
+                                <option value="">Tüm Konumlar</option>
+                            </select>
+                            <select id="statusFilter" class="form-select">
+                                <option value="">Tüm Durumlar</option>
+                                <option value="active">Aktif</option>
+                                <option value="issue">Arızalı</option>
+                                <option value="maintenance">Bakımda</option>
+                            </select>
+                        </div>
                         <div class="search-box">
                             <input type="text" id="courtOfficeSearch" placeholder="Mahkeme kalemi ara...">
                             <i class="fas fa-search"></i>
                         </div>
-                        <button class="btn-primary" id="addNewOfficeBtn">
-                            <i class="fas fa-plus"></i> Yeni Kalem Ekle
-                        </button>
+                        <div class="action-buttons">
+                            <button class="btn btn-secondary" id="bulkActionBtn">
+                                <i class="fas fa-tasks"></i>
+                                Toplu İşlem
+                            </button>
+                            <button class="btn btn-primary" id="addNewOfficeBtn">
+                                <i class="fas fa-plus"></i>
+                                Yeni Kalem Ekle
+                            </button>
+                        </div>
                     </div>
                 </div>
-                <div class="court-offices-grid"></div>
+
+                <!-- Court Offices Grid -->
+                <div class="court-offices-grid">
+                    <!-- Cards will be dynamically added here -->
+                </div>
             </div>
         </main>
-
-        <!-- New Details Panel -->
-        <div class="details-panel" id="detailsPanel">
-            <div class="details-header">
-                <h2 class="details-title"></h2>
-                <div class="details-actions">
-                    <button class="btn-icon" id="editOfficeBtn">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon" id="closeDetailsBtn">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <div class="details-content">
-                <div class="details-tabs">
-                    <button class="tab-btn active" data-tab="overview">Genel Bakış</button>
-                    <button class="tab-btn" data-tab="devices">Cihazlar</button>
-                    <button class="tab-btn" data-tab="issues">Arızalar</button>
-                    <button class="tab-btn" data-tab="history">Geçmiş</button>
-                </div>
-
-                <div class="tab-content">
-                    <!-- Overview Tab -->
-                    <div class="tab-pane active" id="overview">
-                        <div class="stats-grid">
-                            <div class="stat-card">
-                                <i class="fas fa-laptop"></i>
-                                <h3>Toplam Cihaz</h3>
-                                <p class="total-devices">0</p>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-check-circle"></i>
-                                <h3>Aktif Cihaz</h3>
-                                <p class="active-devices">0</p>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-tools"></i>
-                                <h3>Arızalı Cihaz</h3>
-                                <p class="repair-devices">0</p>
-                            </div>
-                            <div class="stat-card">
-                                <i class="fas fa-exclamation-circle"></i>
-                                <h3>Pasif Cihaz</h3>
-                                <p class="inactive-devices">0</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Devices Tab -->
-                    <div class="tab-pane" id="devices">
-                        <div class="table-actions">
-                            <button class="btn-primary" id="addDeviceBtn">
-                                <i class="fas fa-plus"></i> Yeni Cihaz Ekle
-                            </button>
-                            <div class="filter-group">
-                                <select id="deviceTypeFilter">
-                                    <option value="">Tüm Cihazlar</option>
-                                    <option value="computer">Bilgisayar</option>
-                                    <option value="printer">Yazıcı</option>
-                                    <option value="scanner">Tarayıcı</option>
-                                </select>
-                                <select id="deviceStatusFilter">
-                                    <option value="">Tüm Durumlar</option>
-                                    <option value="active">Aktif</option>
-                                    <option value="repair">Arızalı</option>
-                                    <option value="inactive">Pasif</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="devices-table-container">
-                            <table class="devices-table">
-                                <thead>
-                                    <tr>
-                                        <th>Cihaz Adı</th>
-                                        <th>Tür</th>
-                                        <th>Seri No</th>
-                                        <th>Durum</th>
-                                        <th>Son Güncelleme</th>
-                                        <th>İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="devicesList"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Issues Tab -->
-                    <div class="tab-pane" id="issues">
-                        <div class="issues-timeline"></div>
-                    </div>
-
-                    <!-- History Tab -->
-                    <div class="tab-pane" id="history">
-                        <div class="history-list"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
-    <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
 </body>
 </html> 

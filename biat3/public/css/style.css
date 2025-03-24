@@ -15,6 +15,8 @@
     --transition: all 0.3s ease;
     --sidebar-width: 280px;
     --sidebar-collapsed-width: 70px;
+    --transition-transform: transform 0.3s ease;
+    --transition-all: all 0.3s ease;
 }
 
 /* Dark Theme Variables */
@@ -1231,15 +1233,146 @@ body {
 }
 
 /* Animations */
+@keyframes countUp {
+    from {
+        transform: translateY(10px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
-        transform: translateY(10px);
     }
     to {
         opacity: 1;
-        transform: translateY(0);
     }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Stats Overview */
+.stats-overview {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--card-shadow);
+    transition: var(--transition-all);
+    animation: slideIn 0.5s ease-out;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow-hover);
+}
+
+.stat-card i {
+    font-size: 2rem;
+    color: var(--primary);
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-light);
+    border-radius: var(--border-radius);
+}
+
+.stat-info h3 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.stat-info p {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+    margin: 0.25rem 0 0 0;
+}
+
+/* Quick Access Cards */
+.quick-access-grid {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.quick-access-card {
+    transition: var(--transition-transform);
+    animation: slideIn 0.5s ease-out;
+    animation-fill-mode: both;
+}
+
+.quick-access-card:nth-child(1) { animation-delay: 0.1s; }
+.quick-access-card:nth-child(2) { animation-delay: 0.2s; }
+.quick-access-card:nth-child(3) { animation-delay: 0.3s; }
+.quick-access-card:nth-child(4) { animation-delay: 0.4s; }
+
+.quick-access-card:hover {
+    transform: translateY(-5px);
+}
+
+.quick-access-card:active {
+    transform: scale(0.95);
+}
+
+.quick-access-card .card-icon {
+    transition: var(--transition-all);
+}
+
+.quick-access-card:hover .card-icon {
+    transform: scale(1.1);
+    background: var(--primary);
+}
+
+.quick-access-card:hover .card-icon i {
+    color: var(--bg-secondary);
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.status-issue .status-badge {
+    background: var(--warning-light);
+    color: var(--warning);
+}
+
+.status-maintenance .status-badge {
+    background: var(--danger-light);
+    color: var(--danger);
 }
 
 /* Responsive Design */

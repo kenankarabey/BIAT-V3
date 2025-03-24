@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mahkeme Detay - BIAT</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- QR Code and Barcode Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <img src="img/logo.png" alt="BIAT Logo">
+                <span>BIAT</span>
+            </div>
+            <button class="toggle-sidebar">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <nav>
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="mahkeme-kalemleri.html" class="active">
+                            <i class="fas fa-building"></i>
+                            <span>Mahkeme Kalemleri</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="hakim-odalari.html">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Hakim Odaları</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="durusma-salonlari.html">
+                            <i class="fas fa-gavel"></i>
+                            <span>Duruşma Salonları</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <button class="menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="mahkemeAdi">Mahkeme Detay</h1>
+            </div>
+            <div class="header-right">
+                <button class="toggle-theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <div class="user-profile">
+                    <img src="img/user-avatar.png" alt="User Avatar">
+                    <span>Admin</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="content">
+            <!-- Mahkeme Detay -->
+            <div class="mahkeme-detay">
+                <!-- Genel Bilgiler -->
+                <div class="detay-card">
+                    <div class="card-header">
+                        <h2>Genel Bilgiler</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="info-group">
+                            <label>Mahkeme Adı</label>
+                            <p id="detayMahkemeAdi"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Konum</label>
+                            <p id="detayKonum"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>Telefon</label>
+                            <p id="detayTelefon"></p>
+                        </div>
+                        <div class="info-group">
+                            <label>E-posta</label>
+                            <p id="detayEposta"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Personel Bilgileri -->
+                <div class="detay-card">
+                    <div class="card-header">
+                        <h2>Personel Bilgileri</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="personel-grid">
+                            <!-- Hakim -->
+                            <div class="personel-card">
+                                <div class="personel-avatar">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div class="personel-info">
+                                    <h3>Hakim</h3>
+                                    <p id="hakimAdSoyad"></p>
+                                    <small id="hakimSicil"></small>
+                                </div>
+                            </div>
+                            <!-- Katip -->
+                            <div class="personel-card">
+                                <div class="personel-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="personel-info">
+                                    <h3>Katip</h3>
+                                    <p id="katipAdSoyad"></p>
+                                    <small id="katipSicil"></small>
+                                </div>
+                            </div>
+                            <!-- Mübaşir -->
+                            <div class="personel-card">
+                                <div class="personel-avatar">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="personel-info">
+                                    <h3>Mübaşir</h3>
+                                    <p id="mubasirAdSoyad"></p>
+                                    <small id="mubasirSicil"></small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QR Kod ve Barkod -->
+                <div class="detay-card">
+                    <div class="card-header">
+                        <h2>QR Kod ve Barkod</h2>
+                    </div>
+                    <div class="card-content">
+                        <div class="code-grid">
+                            <div class="code-container">
+                                <h3>QR Kod</h3>
+                                <div id="qrCode"></div>
+                            </div>
+                            <div class="code-container">
+                                <h3>Barkod</h3>
+                                <svg id="barCode"></svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="js/main.js"></script>
+</body>
+</html> 

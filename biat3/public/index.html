@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIAT - Ana Sayfa</title>
+    <title>Ana Sayfa - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -103,12 +103,84 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
-                <h1>Ana Sayfa</h1>
-            </div>
+            <div class="content-wrapper">
+                <div class="page-header">
+                    <h1>Ana Sayfa</h1>
+                </div>
 
-            <div class="dashboard-grid">
-                <!-- Dashboard content will be added dynamically via JavaScript -->
+                <!-- Statistics Section -->
+                <div class="stats-overview">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <i class="fas fa-building"></i>
+                            <div class="stat-info">
+                                <h3>Toplam Kalem</h3>
+                                <p>12</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-gavel"></i>
+                            <div class="stat-info">
+                                <h3>Duruşma Salonu</h3>
+                                <p>8</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-user-tie"></i>
+                            <div class="stat-info">
+                                <h3>Hakim Odası</h3>
+                                <p>15</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-laptop"></i>
+                            <div class="stat-info">
+                                <h3>Toplam Cihaz</h3>
+                                <p>156</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Access Cards -->
+                <div class="quick-access-grid">
+                    <div class="quick-access-card" onclick="window.location.href='mahkeme-kalemleri.html'">
+                        <div class="card-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Mahkeme Kalemleri</h3>
+                            <p>Mahkeme kalemlerini görüntüle ve yönet</p>
+                        </div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='durusma-salonlari.html'">
+                        <div class="card-icon">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Duruşma Salonları</h3>
+                            <p>Duruşma salonlarını görüntüle ve yönet</p>
+                        </div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='hakim-odalari.html'">
+                        <div class="card-icon">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Hakim Odaları</h3>
+                            <p>Hakim odalarını görüntüle ve yönet</p>
+                        </div>
+                    </div>
+                    <div class="quick-access-card" onclick="window.location.href='ariza-bildir.html'">
+                        <div class="card-icon">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Arıza Bildir</h3>
+                            <p>Yeni arıza kaydı oluştur</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
