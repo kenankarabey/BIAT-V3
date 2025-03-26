@@ -109,8 +109,8 @@ function setupTheme() {
     
     if (toggleThemeButton) {
         // Kaydedilmiş tema varsa uygula
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-theme', savedTheme);
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', savedTheme);
         toggleThemeButton.querySelector('i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
 
         // Tema değiştirme olayı
@@ -157,7 +157,7 @@ function setupSidebar() {
             const link = item.querySelector('a');
             if (link) {
                 link.addEventListener('click', (e) => {
-                    e.preventDefault();
+            e.preventDefault();
                     item.classList.toggle('active');
                     
                     // Alt menü ikonunu döndür
@@ -174,9 +174,9 @@ function setupSidebar() {
                         
                         // Animasyon tamamlandıktan sonra height: auto yap
                         if (!isExpanding) {
-                            setTimeout(() => {
+                setTimeout(() => {
                                 submenu.style.height = 'auto';
-                            }, 300);
+                }, 300);
                         }
                     }
                 });
@@ -186,7 +186,7 @@ function setupSidebar() {
         // Overlay tıklama olayı
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
+            sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
@@ -217,7 +217,7 @@ function handleResize() {
             sidebarOverlay?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-    } else {
+            } else {
         sidebarOverlay?.classList.remove('active');
         document.body.style.overflow = '';
         
@@ -230,18 +230,145 @@ function handleResize() {
     }
 }
 
+// İstatistikleri güncelle
+function updateStatistics() {
+    // Toplam mahkeme sayısı
+    const totalCourts = state.courtOffices.length;
+    document.getElementById('totalCourts').textContent = totalCourts;
+
+    // Aktif arıza sayısı
+    const activeIssues = state.arizalar.filter(ariza => ariza.durum === 'beklemede' || ariza.durum === 'işlemde').length;
+    document.getElementById('activeIssues').textContent = activeIssues;
+
+    // Bakımda olan cihaz sayısı
+    const maintenanceCount = state.courtOffices.reduce((total, office) => {
+        return total + office.cihazlar.filter(cihaz => cihaz.durum === 'maintenance').length;
+    }, 0);
+    document.getElementById('maintenanceCount').textContent = maintenanceCount;
+
+    // Aktif cihaz sayısı
+    const activeDevices = state.courtOffices.reduce((total, office) => {
+        return total + office.cihazlar.filter(cihaz => cihaz.durum === 'active').length;
+    }, 0);
+    document.getElementById('activeDevices').textContent = activeDevices;
+}
+
+// Arıza dağılımı grafiği
+function createIssueDistributionChart() {
+    const ctx = document.getElementById('issueDistribution');
+    if (!ctx) return;
+
+    const issuesByType = {};
+    state.arizalar.forEach(ariza => {
+        issuesByType[ariza.cihaz] = (issuesByType[ariza.cihaz] || 0) + 1;
+    });
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(issuesByType),
+            datasets: [{
+                data: Object.values(issuesByType),
+                backgroundColor: [
+                    '#FF6384',
+                    '#36A2EB',
+                    '#FFCE56',
+                    '#4BC0C0',
+                    '#9966FF'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'right'
+                },
+                title: {
+                    display: true,
+                    text: 'Cihaz Türüne Göre Arıza Dağılımı'
+                }
+            }
+        }
+    });
+}
+
+// Cihaz durumları grafiği
+function createDeviceStatusChart() {
+    const ctx = document.getElementById('deviceStatus');
+    if (!ctx) return;
+
+    const deviceStatus = {
+        active: 0,
+        issue: 0,
+        maintenance: 0
+    };
+
+    state.courtOffices.forEach(office => {
+        office.cihazlar.forEach(cihaz => {
+            deviceStatus[cihaz.durum]++;
+        });
+    });
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Aktif', 'Arızalı', 'Bakımda'],
+            datasets: [{
+                label: 'Cihaz Sayısı',
+                data: [
+                    deviceStatus.active,
+                    deviceStatus.issue,
+                    deviceStatus.maintenance
+                ],
+                backgroundColor: [
+                    '#4CAF50',
+                    '#F44336',
+                    '#FFC107'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                title: {
+                    display: true,
+                    text: 'Cihaz Durumları'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
 // Sayfa içeriğini yükle
 function setupContent() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const mahkemeId = urlParams.get('id');
-
-    if (window.location.pathname.includes('mahkeme-detay.html')) {
+    const path = window.location.pathname;
+    
+    if (path.includes('mahkeme-detay.html')) {
         // Detay sayfasındayız
+        const urlParams = new URLSearchParams(window.location.search);
+        const mahkemeId = urlParams.get('id');
         loadMahkemeDetay(mahkemeId);
-    } else {
-        // Ana sayfadayız
+    } else if (path.includes('mahkeme-kalemleri.html')) {
+        // Mahkeme kalemleri sayfasındayız
         loadCourtOfficesContent();
         setupFilters();
+    } else if (path.includes('index.html') || path === '/') {
+        // Ana sayfadayız
+        updateStatistics();
+        createIssueDistributionChart();
+        createDeviceStatusChart();
     }
 }
 
@@ -275,34 +402,234 @@ function loadMahkemeDetay(mahkemeId) {
         if (element) element.textContent = value;
     });
 
+    // Cihazları listele
+    loadDevices(mahkeme.cihazlar || []);
+
+    // Arıza geçmişini listele
+    loadIssueHistory(mahkemeId);
+
     // QR Kod ve Barkod oluştur
-    generateQRCode(window.location.href);
-    generateBarCode(mahkemeId);
+    const qrData = {
+        id: mahkeme.id,
+        ad: mahkeme.ad,
+        konum: mahkeme.konum
+    };
+    
+    generateQRCode(qrData);
+    generateBarCode(mahkeme.id);
+
+    // Event listeners ekle
+    setupDetailPageListeners(mahkemeId);
+}
+
+// Cihazları listele
+function loadDevices(devices) {
+    const deviceList = document.getElementById('deviceList');
+    if (!deviceList) return;
+
+    const deviceIcons = {
+        'Bilgisayar': 'fa-laptop',
+        'Yazıcı': 'fa-print',
+        'Tarayıcı': 'fa-scanner',
+        'Telefon': 'fa-phone'
+    };
+
+    const deviceStatusClasses = {
+        'active': 'status-active',
+        'issue': 'status-issue',
+        'maintenance': 'status-maintenance'
+    };
+
+    const deviceStatusText = {
+        'active': 'Aktif',
+        'issue': 'Arızalı',
+        'maintenance': 'Bakımda'
+    };
+
+    deviceList.innerHTML = devices.map(device => `
+        <div class="device-item ${deviceStatusClasses[device.durum] || ''}">
+            <div class="device-info">
+                <div class="device-icon">
+                    <i class="fas ${deviceIcons[device.tip] || 'fa-laptop'}"></i>
+                </div>
+                <div class="device-details">
+                    <h3>${device.tip}</h3>
+                    <p>${deviceStatusText[device.durum] || 'Bilinmiyor'}</p>
+                </div>
+            </div>
+            <div class="device-actions">
+                <button class="btn btn-icon" onclick="reportDeviceIssue('${device.tip}')">
+                    <i class="fas fa-exclamation-circle"></i>
+                </button>
+                <button class="btn btn-icon" onclick="viewDeviceHistory('${device.tip}')">
+                    <i class="fas fa-history"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Arıza geçmişini listele
+function loadIssueHistory(mahkemeId) {
+    const issueList = document.getElementById('issueList');
+    if (!issueList) return;
+
+    const issues = state.arizalar.filter(ariza => ariza.birim.includes(mahkemeId));
+    
+    const statusIcons = {
+        'beklemede': 'fa-clock',
+        'işlemde': 'fa-tools',
+        'tamamlandı': 'fa-check'
+    };
+
+    const statusClasses = {
+        'beklemede': 'pending',
+        'işlemde': 'in-progress',
+        'tamamlandı': 'resolved'
+    };
+
+    issueList.innerHTML = issues.map(issue => `
+        <div class="issue-item">
+            <div class="issue-status ${statusClasses[issue.durum]}">
+                <i class="fas ${statusIcons[issue.durum]}"></i>
+            </div>
+            <div class="issue-info">
+                <h3>${issue.cihaz}</h3>
+                <p>${issue.durum.charAt(0).toUpperCase() + issue.durum.slice(1)}</p>
+            </div>
+            <div class="issue-date">
+                ${new Date(issue.tarih).toLocaleDateString('tr-TR')}
+            </div>
+        </div>
+    `).join('');
+}
+
+// Event listeners ekle
+function setupDetailPageListeners(mahkemeId) {
+    // Düzenleme butonları
+    const editGeneralInfo = document.getElementById('editGeneralInfo');
+    const editPersonnel = document.getElementById('editPersonnel');
+    const addDevice = document.getElementById('addDevice');
+    const reportIssue = document.getElementById('reportIssue');
+    const downloadQR = document.getElementById('downloadQR');
+    const printCodes = document.getElementById('printCodes');
+
+    editGeneralInfo?.addEventListener('click', () => {
+        // TODO: Genel bilgileri düzenleme modalını aç
+        console.log('Genel bilgileri düzenle');
+    });
+
+    editPersonnel?.addEventListener('click', () => {
+        // TODO: Personel bilgilerini düzenleme modalını aç
+        console.log('Personel bilgilerini düzenle');
+    });
+
+    addDevice?.addEventListener('click', () => {
+        // TODO: Yeni cihaz ekleme modalını aç
+        console.log('Yeni cihaz ekle');
+    });
+
+    reportIssue?.addEventListener('click', () => {
+        // TODO: Arıza bildirme modalını aç
+        console.log('Arıza bildir');
+    });
+
+    downloadQR?.addEventListener('click', () => {
+        // QR kodu indir
+        const qrCanvas = document.querySelector('#qrCode canvas');
+        if (qrCanvas) {
+            const link = document.createElement('a');
+            link.download = `qr-${mahkemeId}.png`;
+            link.href = qrCanvas.toDataURL();
+            link.click();
+        }
+    });
+
+    printCodes?.addEventListener('click', () => {
+        // QR kod ve barkodu yazdır
+        const printWindow = window.open('', '', 'width=800,height=600');
+        const qrCanvas = document.querySelector('#qrCode canvas');
+        const barcode = document.getElementById('barCode');
+
+        if (printWindow && qrCanvas && barcode) {
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Kodlar - ${mahkemeId}</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .print-container { text-align: center; margin-bottom: 30px; }
+                        h2 { color: #333; margin-bottom: 15px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-container">
+                        <h2>QR Kod</h2>
+                        <img src="${qrCanvas.toDataURL()}" />
+                    </div>
+                    <div class="print-container">
+                        <h2>Barkod</h2>
+                        ${barcode.outerHTML}
+                    </div>
+                    <script>
+                        window.onload = () => window.print();
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    });
 }
 
 // QR Kod oluştur
 function generateQRCode(text) {
     const element = document.getElementById('qrCode');
-    if (element) {
-        element.innerHTML = '';
+    if (!element) return;
+
+    // Önceki QR kodu temizle
+    element.innerHTML = '';
+    
+    try {
+        // JSON string'i URL-safe formata çevir
+        const qrText = typeof text === 'object' ? 
+            `https://biat.adalet.gov.tr/mahkeme/${text.id}?ad=${encodeURIComponent(text.ad)}&konum=${encodeURIComponent(text.konum)}` : 
+            text;
+
         new QRCode(element, {
-            text: text,
-            width: 128,
-            height: 128
+            text: qrText,
+            width: 200,
+            height: 200,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
         });
+    } catch (error) {
+        console.error('QR kod oluşturma hatası:', error);
+        element.innerHTML = '<p class="error-text">QR kod oluşturulamadı</p>';
     }
 }
 
 // Barkod oluştur
 function generateBarCode(text) {
     const element = document.getElementById('barCode');
-    if (element) {
+    if (!element) return;
+
+    try {
         JsBarcode(element, text, {
             format: "CODE128",
-            width: 2,
+            width: 3,
             height: 100,
-            displayValue: true
+            displayValue: true,
+            fontSize: 20,
+            margin: 10,
+            background: "#ffffff",
+            lineColor: "#000000",
+            text: text // Barkodun altındaki metin
         });
+    } catch (error) {
+        console.error('Barkod oluşturma hatası:', error);
+        element.innerHTML = '<text x="50%" y="50%" text-anchor="middle" class="error-text">Barkod oluşturulamadı</text>';
     }
 }
 
@@ -382,7 +709,7 @@ function createMahkemeCard(mahkeme) {
             <div class="card-header">
                 <div class="card-icon">
                     <i class="fas fa-building"></i>
-                </div>
+            </div>
                 <div class="card-title">
                     <h2>${mahkeme.ad}</h2>
                     <p>${mahkeme.konum}</p>
@@ -390,20 +717,20 @@ function createMahkemeCard(mahkeme) {
                 <div class="card-status">
                     <span class="status-badge">${statusText}</span>
                 </div>
-            </div>
-            <div class="card-content">
+        </div>
+        <div class="card-content">
                 <div class="info-row">
                     <i class="fas fa-user"></i>
                     <span>${mahkeme.personel.hakim.adSoyad}</span>
-                </div>
+            </div>
                 <div class="info-row">
                     <i class="fas fa-phone"></i>
                     <span>${mahkeme.telefon}</span>
-                </div>
+        </div>
                 <div class="info-row">
                     <i class="fas fa-envelope"></i>
                     <span>${mahkeme.eposta}</span>
-                </div>
+        </div>
             </div>
         </div>
     `;

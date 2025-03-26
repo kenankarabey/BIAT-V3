@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahkeme Kalemleri - BIAT</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -32,7 +30,7 @@
                             <span>Ana Sayfa</span>
                         </a>
                     </li>
-                    <li class="has-submenu">
+                    <li class="has-submenu active">
                         <a href="#">
                             <i class="fas fa-laptop"></i>
                             <span>Cihazlar</span>
@@ -103,58 +101,49 @@
             </div>
         </div>
 
-        <!-- Sidebar Overlay -->
-        <div class="sidebar-overlay"></div>
-
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-wrapper">
                 <div class="page-header">
                     <h1>Mahkeme Kalemleri</h1>
-                    <div class="header-actions">
-                        <div class="filter-group">
-                            <select id="typeFilter" class="form-select">
-                                <option value="">Tüm Türler</option>
-                                <option value="Ağır Ceza">Ağır Ceza Mahkemesi</option>
-                                <option value="Asliye Ceza">Asliye Ceza Mahkemesi</option>
-                                <option value="Asliye Hukuk">Asliye Hukuk Mahkemesi</option>
-                                <option value="İcra">İcra Dairesi</option>
-                            </select>
-                            <select id="locationFilter" class="form-select">
-                                <option value="">Tüm Konumlar</option>
-                            </select>
-                            <select id="statusFilter" class="form-select">
-                                <option value="">Tüm Durumlar</option>
-                                <option value="active">Aktif</option>
-                                <option value="issue">Arızalı</option>
-                                <option value="maintenance">Bakımda</option>
-                            </select>
-                        </div>
-                        <div class="search-box">
-                            <input type="text" id="courtOfficeSearch" placeholder="Mahkeme kalemi ara...">
-                            <i class="fas fa-search"></i>
-                        </div>
-                        <div class="action-buttons">
-                            <button class="btn btn-secondary" id="bulkActionBtn">
-                                <i class="fas fa-tasks"></i>
-                                Toplu İşlem
-                            </button>
-                            <button class="btn btn-primary" id="addNewOfficeBtn">
-                                <i class="fas fa-plus"></i>
-                                Yeni Kalem Ekle
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Court Offices Grid -->
-                <div class="court-offices-grid">
-                    <!-- Cards will be dynamically added here -->
+                <!-- Filtreler -->
+                <div class="filters-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="courtOfficeSearch" placeholder="Mahkeme ara...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="typeFilter">
+                            <option value="">Tüm Türler</option>
+                            <option value="Ağır Ceza">Ağır Ceza</option>
+                            <option value="Asliye Hukuk">Asliye Hukuk</option>
+                            <option value="Tüketici">Tüketici</option>
+                        </select>
+                        <select id="locationFilter">
+                            <option value="">Tüm Konumlar</option>
+                        </select>
+                        <select id="statusFilter">
+                            <option value="">Tüm Durumlar</option>
+                            <option value="active">Aktif</option>
+                            <option value="issue">Arızalı</option>
+                            <option value="maintenance">Bakımda</option>
+                        </select>
+                    </div>
+                    <button id="addNewOfficeBtn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Yeni Kalem Ekle
+                    </button>
                 </div>
+
+                <!-- Mahkeme Kartları -->
+                <div class="court-offices-grid"></div>
             </div>
         </main>
     </div>
 
+    <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
 </body>
 </html> 

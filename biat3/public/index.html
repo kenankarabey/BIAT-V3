@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ana Sayfa - BIAT</title>
+    <title>BIAT - Bilişim İşlemleri Arıza Takip</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -108,76 +109,197 @@
                     <h1>Ana Sayfa</h1>
                 </div>
 
-                <!-- Statistics Section -->
-                <div class="stats-overview">
-                    <div class="stats-grid">
-                        <div class="stat-card">
+                <!-- İstatistik Kartları -->
+                <div class="stats-grid">
+                    <!-- Toplam Mahkeme -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
                             <i class="fas fa-building"></i>
-                            <div class="stat-info">
-                                <h3>Toplam Kalem</h3>
-                                <p>12</p>
-                            </div>
                         </div>
-                        <div class="stat-card">
-                            <i class="fas fa-gavel"></i>
-                            <div class="stat-info">
-                                <h3>Duruşma Salonu</h3>
-                                <p>8</p>
-                            </div>
+                        <div class="stat-info">
+                            <h3>Toplam Mahkeme</h3>
+                            <p class="stat-number">24</p>
+                            <span class="stat-text">Aktif Mahkeme</span>
                         </div>
-                        <div class="stat-card">
-                            <i class="fas fa-user-tie"></i>
-                            <div class="stat-info">
-                                <h3>Hakim Odası</h3>
-                                <p>15</p>
-                            </div>
+                    </div>
+                    <!-- Aktif Arıza -->
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-exclamation-triangle"></i>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-info">
+                            <h3>Aktif Arıza</h3>
+                            <p class="stat-number">5</p>
+                            <span class="stat-text">Bekleyen Arıza</span>
+                        </div>
+                    </div>
+                    <!-- Bakım Sayısı -->
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bakım Sayısı</h3>
+                            <p class="stat-number">12</p>
+                            <span class="stat-text">Bu Ay</span>
+                        </div>
+                    </div>
+                    <!-- Aktif Cihaz -->
+                    <div class="stat-card">
+                        <div class="stat-icon success">
                             <i class="fas fa-laptop"></i>
-                            <div class="stat-info">
-                                <h3>Toplam Cihaz</h3>
-                                <p>156</p>
-                            </div>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktif Cihaz</h3>
+                            <p class="stat-number">85</p>
+                            <span class="stat-text">Çalışır Durumda</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Quick Access Cards -->
-                <div class="quick-access-grid">
-                    <div class="quick-access-card" onclick="window.location.href='mahkeme-kalemleri.html'">
-                        <div class="card-icon">
-                            <i class="fas fa-building"></i>
+                <!-- İstatistik Detay Grid -->
+                <div class="stats-detail-grid">
+                    <!-- Arıza Dağılımı -->
+                    <div class="stat-detail-item">
+                        <div class="stat-detail-header">
+                            <h3>Arıza Dağılımı</h3>
+                            <span class="date-range">Son 30 Gün</span>
                         </div>
-                        <div class="card-content">
-                            <h3>Mahkeme Kalemleri</h3>
-                            <p>Mahkeme kalemlerini görüntüle ve yönet</p>
+                        <div class="stat-numbers">
+                            <div class="stat-row">
+                                <div class="stat-icon printer">
+                                    <i class="fas fa-print"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Yazıcı</span>
+                                    <span class="stat-value">15</span>
+                                    <span class="stat-change increase">+12.5%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 45%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-row">
+                                <div class="stat-icon computer">
+                                    <i class="fas fa-desktop"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Bilgisayar</span>
+                                    <span class="stat-value">8</span>
+                                    <span class="stat-change decrease">-5.3%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 25%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-row">
+                                <div class="stat-icon network">
+                                    <i class="fas fa-network-wired"></i>
+                                </div>
+                                <div class="stat-info">
+                                    <span class="stat-label">Network</span>
+                                    <span class="stat-value">12</span>
+                                    <span class="stat-change increase">+8.7%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress" style="width: 35%"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="quick-access-card" onclick="window.location.href='durusma-salonlari.html'">
-                        <div class="card-icon">
-                            <i class="fas fa-gavel"></i>
+
+                    <!-- Performans Metrikleri -->
+                    <div class="stat-detail-item">
+                        <div class="stat-detail-header">
+                            <h3>Performans Metrikleri</h3>
+                            <span class="date-range">Bu Ay</span>
                         </div>
-                        <div class="card-content">
-                            <h3>Duruşma Salonları</h3>
-                            <p>Duruşma salonlarını görüntüle ve yönet</p>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <h4>Ortalama Çözüm Süresi</h4>
+                                <div class="metric-value">
+                                    <span>2.5 Saat</span>
+                                    <div class="trend-indicator positive">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>12%</span>
+                                    </div>
+                                </div>
+                                <div class="mini-chart">
+                                    <!-- Mini bar graph will be added here -->
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <h4>Yanıt Hızı</h4>
+                                <div class="metric-value">
+                                    <span>15 Dakika</span>
+                                    <div class="trend-indicator positive">
+                                        <i class="fas fa-arrow-down"></i>
+                                        <span>8%</span>
+                                    </div>
+                                </div>
+                                <div class="mini-chart">
+                                    <!-- Mini bar graph will be added here -->
+                                </div>
+                            </div>
+                            <div class="metric-card">
+                                <h4>Memnuniyet Oranı</h4>
+                                <div class="metric-value">
+                                    <span>94%</span>
+                                    <div class="trend-indicator positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>3%</span>
+                                    </div>
+                                </div>
+                                <div class="mini-chart">
+                                    <!-- Mini bar graph will be added here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="quick-access-card" onclick="window.location.href='hakim-odalari.html'">
-                        <div class="card-icon">
-                            <i class="fas fa-user-tie"></i>
+
+                    <!-- Aylık Özet -->
+                    <div class="stat-detail-item">
+                        <div class="stat-detail-header">
+                            <h3>Aylık Özet</h3>
+                            <span class="date-range">Aralık 2023</span>
                         </div>
-                        <div class="card-content">
-                            <h3>Hakim Odaları</h3>
-                            <p>Hakim odalarını görüntüle ve yönet</p>
-                        </div>
-                    </div>
-                    <div class="quick-access-card" onclick="window.location.href='ariza-bildir.html'">
-                        <div class="card-icon">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <div class="card-content">
-                            <h3>Arıza Bildir</h3>
-                            <p>Yeni arıza kaydı oluştur</p>
+                        <div class="monthly-stats">
+                            <div class="monthly-stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-label">Toplam Kayıt</span>
+                                    <span class="stat-value">156</span>
+                                </div>
+                                <div class="stat-trend">
+                                    <div class="trend-line">
+                                        <!-- Trend line will be added here -->
+                                    </div>
+                                    <span class="trend-value increase">+12.5%</span>
+                                </div>
+                            </div>
+                            <div class="monthly-stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-label">Çözülen</span>
+                                    <span class="stat-value">142</span>
+                                </div>
+                                <div class="stat-trend">
+                                    <div class="trend-line">
+                                        <!-- Trend line will be added here -->
+                                    </div>
+                                    <span class="trend-value increase">+15.2%</span>
+                                </div>
+                            </div>
+                            <div class="monthly-stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-label">Bekleyen</span>
+                                    <span class="stat-value">14</span>
+                                </div>
+                                <div class="stat-trend">
+                                    <div class="trend-line">
+                                        <!-- Trend line will be added here -->
+                                    </div>
+                                    <span class="trend-value decrease">-8.3%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
