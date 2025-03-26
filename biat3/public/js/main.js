@@ -426,8 +426,8 @@ function updateDetailHeader(data) {
             <div class="status-indicator">
                 <span class="status-dot"></span>
                 <span class="status-text">${data.status}</span>
-            </div>
-        `;
+        </div>
+    `;
     }
 }
 
@@ -439,35 +439,35 @@ function updateInfoCards(data) {
             <div class="info-card">
                 <div class="info-icon">
                     <i class="fas fa-exclamation-circle"></i>
-                </div>
+                    </div>
                 <div class="info-details">
                     <span class="info-label">Toplam Arıza</span>
                     <span class="info-value">${stats.totalIssues}</span>
                     <div class="info-trend positive">
                         <i class="fas fa-arrow-up"></i>
                         <span>${stats.trend}%</span>
-                    </div>
                 </div>
             </div>
+                    </div>
             <div class="info-card">
                 <div class="info-icon">
                     <i class="fas fa-clock"></i>
-                </div>
+                    </div>
                 <div class="info-details">
                     <span class="info-label">Ortalama Çözüm Süresi</span>
                     <span class="info-value">${stats.avgResolutionTime}</span>
                 </div>
-            </div>
+                    </div>
             <div class="info-card">
                 <div class="info-icon">
                     <i class="fas fa-check-circle"></i>
-                </div>
+                                    </div>
                 <div class="info-details">
                     <span class="info-label">Çözüm Oranı</span>
                     <span class="info-value">%${stats.resolutionRate}</span>
-                </div>
             </div>
-        `;
+        </div>
+    `;
     }
 }
 
@@ -480,8 +480,8 @@ function updatePersonnel(personnel) {
                 <div class="personnel-info">
                     <h3>${person.name}</h3>
                     <span>${person.role}</span>
-                </div>
-            </div>
+        </div>
+                    </div>
         `).join('');
     }
 }
@@ -492,15 +492,15 @@ function updateDevices(devices) {
         devicesGrid.innerHTML = devices.map(device => `
             <div class="device-card">
                 <div class="device-icon">
-                    <i class="fas ${getDeviceIcon(device.type)}"></i>
-                </div>
-                <div class="device-info">
+                                <i class="fas ${getDeviceIcon(device.type)}"></i>
+                            </div>
+                                    <div class="device-info">
                     <h3>${device.name}</h3>
                     <span class="device-type">${device.type}</span>
                     <span class="device-status ${device.status.toLowerCase()}">${device.status}</span>
                     <span class="device-maintenance">Son Bakım: ${formatDate(device.lastMaintenance)}</span>
-                </div>
-            </div>
+                                    </div>
+                                </div>
         `).join('');
     }
 }
@@ -512,13 +512,13 @@ function updateActivityTimeline(activities) {
             <div class="timeline-item ${activity.type}">
                 <div class="timeline-icon">
                     <i class="fas ${getActivityIcon(activity.type)}"></i>
-                </div>
+            </div>
                 <div class="timeline-content">
                     <h3>${activity.title}</h3>
                     <span class="timeline-date">${formatDate(activity.date)}</span>
                     <span class="timeline-status">${activity.status}</span>
-                </div>
-            </div>
+                    </div>
+                    </div>
         `).join('');
     }
 }
@@ -605,29 +605,29 @@ function createMahkemeCard(mahkeme) {
             <div class="card-header">
                 <div class="card-icon">
                     <i class="fas fa-building"></i>
-            </div>
+                        </div>
                 <div class="card-title">
                     <h2>${mahkeme.ad}</h2>
                     <p>${mahkeme.konum}</p>
-            </div>
+                        </div>
                 <div class="card-status">
                     <span class="status-badge">${statusText}</span>
-            </div>
-        </div>
+                    </div>
+                            </div>
         <div class="card-content">
                 <div class="info-row">
                     <i class="fas fa-user"></i>
                     <span>${mahkeme.personel.hakim.adSoyad}</span>
-            </div>
+                    </div>
                 <div class="info-row">
                     <i class="fas fa-phone"></i>
                     <span>${mahkeme.telefon}</span>
-        </div>
+                                    </div>
                 <div class="info-row">
                     <i class="fas fa-envelope"></i>
                     <span>${mahkeme.eposta}</span>
-        </div>
-            </div>
+                                </div>
+                    </div>
         </div>
     `;
 }
@@ -993,21 +993,21 @@ function createCourtroomCard(salon) {
                 <div class="courtroom-title">
                     <div class="courtroom-icon">
                         <i class="fas fa-gavel"></i>
-                    </div>
+            </div>
                     <h2 class="courtroom-name">${salon.ad}</h2>
                 </div>
                 <span class="courtroom-status ${salon.durum}">${statusText}</span>
-            </div>
+                </div>
             <div class="courtroom-content">
                 <div class="courtroom-info">
                     <div class="info-item">
                         <i class="fas fa-map-marker-alt"></i>
                         <span>${salon.konum}</span>
-                    </div>
+                </div>
                     <div class="info-item">
                         <i class="fas fa-users"></i>
                         <span>Kapasite: ${getCapacityValue(salon.ad)} Kişi</span>
-                    </div>
+            </div>
                     <div class="info-item">
                         <i class="fas fa-microphone"></i>
                         <span>Ses Sistemi: ${salon.durum === 'active' ? 'Çalışıyor' : 'Kontrol Gerekli'}</span>
@@ -1157,21 +1157,21 @@ function createTimelineItem(item) {
     timelineItem.innerHTML = `
         <div class="timeline-icon ${item.type === 'issue' ? 'issue' : ''}">
             <i class="fas fa-${item.type === 'issue' ? 'exclamation-circle' : 'wrench'}"></i>
-        </div>
+                </div>
         <div class="timeline-content">
             <div class="timeline-header">
                 <h3>${item.title}</h3>
                 <span class="date">${item.date}</span>
-            </div>
+                </div>
             <p>${item.description}</p>
             <div class="timeline-footer">
                 <span class="technician">
                     <i class="fas fa-user"></i>
                     ${item.technician}
                 </span>
+                </div>
             </div>
-        </div>
-    `;
+        `;
     return timelineItem;
 }
 

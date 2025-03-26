@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tüm Cihazlar - BIAT</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <!-- Toggle Sidebar -->
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+                <span>Menü Küçült</span>
+            </button>
+
+            <!-- Toggle Theme -->
+            <button class="toggle-theme">
+                <i class="fas fa-sun"></i>
+            </button>
+            
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-laptop"></i>
+                            <span>Cihazlar</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="tum-cihazlar.html" class="active">
+                                    <i class="fas fa-list"></i>
+                                    <span>Tüm Cihazlar</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="mahkeme-kalemleri.html">
+                                    <i class="fas fa-building"></i>
+                                    <span>Mahkeme Kalemleri</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="durusma-salonlari.html">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Duruşma Salonları</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="hakim-odalari.html">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Hakim Odaları</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-tools"></i>
+                            <span>Arıza Takip</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="ariza-bildir.html">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Arıza Bildir</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ariza-listesi.html">
+                                    <i class="fas fa-list"></i>
+                                    <span>Arıza Listesi</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="raporlar.html">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>Raporlar</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profil.html">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <img src="img/user.jpg" alt="User Avatar">
+                <div class="user-info">
+                    <h3>Hoş Geldiniz</h3>
+                    <p>Kenan Bey</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Device Statistics -->
+            <section class="device-stats-section">
+                <div class="device-stats-grid">
+                    <div class="device-stat-card computer">
+                        <i class="fas fa-desktop"></i>
+                        <h3>Bilgisayar</h3>
+                        <span class="stat-number" id="computerCount">0</span>
+                    </div>
+                    <div class="device-stat-card screen">
+                        <i class="fas fa-desktop"></i>
+                        <h3>Ekran</h3>
+                        <span class="stat-number" id="screenCount">0</span>
+                    </div>
+                    <div class="device-stat-card printer">
+                        <i class="fas fa-print"></i>
+                        <h3>Yazıcı</h3>
+                        <span class="stat-number" id="printerCount">0</span>
+                    </div>
+                    <div class="device-stat-card scanner">
+                        <i class="fas fa-scanner"></i>
+                        <h3>Tarayıcı</h3>
+                        <span class="stat-number" id="scannerCount">0</span>
+                    </div>
+                    <div class="device-stat-card tv">
+                        <i class="fas fa-tv"></i>
+                        <h3>Televizyon</h3>
+                        <span class="stat-number" id="tvCount">0</span>
+                    </div>
+                    <div class="device-stat-card camera">
+                        <i class="fas fa-video"></i>
+                        <h3>Kamera</h3>
+                        <span class="stat-number" id="cameraCount">0</span>
+                    </div>
+                    <div class="device-stat-card segbis">
+                        <i class="fas fa-video-plus"></i>
+                        <h3>SEGBIS</h3>
+                        <span class="stat-number" id="segbisCount">0</span>
+                    </div>
+                    <div class="device-stat-card ehearing">
+                        <i class="fas fa-gavel"></i>
+                        <h3>E-Duruşma</h3>
+                        <span class="stat-number" id="ehearingCount">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Device Management Section -->
+            <section class="device-management">
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="add-btn" onclick="showAddModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Cihaz Ekle</span>
+                    </button>
+                    <button class="filter-btn" onclick="toggleFilter()">
+                        <i class="fas fa-filter"></i>
+                        <span>Filtrele</span>
+                    </button>
+                </div>
+
+                <div class="device-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" data-tab="computer">
+                            <i class="fas fa-desktop"></i> Bilgisayar
+                        </button>
+                        <button class="tab-button" data-tab="screen">
+                            <i class="fas fa-desktop"></i> Ekran
+                        </button>
+                        <button class="tab-button" data-tab="printer">
+                            <i class="fas fa-print"></i> Yazıcı
+                        </button>
+                        <button class="tab-button" data-tab="scanner">
+                            <i class="fas fa-scanner"></i> Tarayıcı
+                        </button>
+                        <button class="tab-button" data-tab="tv">
+                            <i class="fas fa-tv"></i> Televizyon
+                        </button>
+                        <button class="tab-button" data-tab="camera">
+                            <i class="fas fa-video"></i> Kamera
+                        </button>
+                        <button class="tab-button" data-tab="segbis">
+                            <i class="fas fa-video-plus"></i> SEGBIS
+                        </button>
+                        <button class="tab-button" data-tab="ehearing">
+                            <i class="fas fa-gavel"></i> E-Duruşma
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Computer Tab -->
+                        <div class="tab-pane active" id="computerTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Unvan</th>
+                                            <th>Adı Soyadı</th>
+                                            <th>Sicil No</th>
+                                            <th>Kasa Marka</th>
+                                            <th>Kasa Model</th>
+                                            <th>Kasa Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="computerTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Screen Tab -->
+                        <div class="tab-pane" id="screenTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Ekran Marka</th>
+                                            <th>Ekran Model</th>
+                                            <th>Ekran Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="screenTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Printer Tab -->
+                        <div class="tab-pane" id="printerTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Yazıcı Marka</th>
+                                            <th>Yazıcı Model</th>
+                                            <th>Yazıcı Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="printerTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Scanner Tab -->
+                        <div class="tab-pane" id="scannerTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Tarayıcı Marka</th>
+                                            <th>Tarayıcı Model</th>
+                                            <th>Tarayıcı Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scannerTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- TV Tab -->
+                        <div class="tab-pane" id="tvTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>TV Marka</th>
+                                            <th>TV Model</th>
+                                            <th>TV Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tvTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Camera Tab -->
+                        <div class="tab-pane" id="cameraTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Kamera Marka</th>
+                                            <th>Kamera Model</th>
+                                            <th>Kamera Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="cameraTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- SEGBIS Tab -->
+                        <div class="tab-pane" id="segbisTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>SEGBIS Marka</th>
+                                            <th>SEGBIS Model</th>
+                                            <th>SEGBIS Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="segbisTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- E-Duruşma Tab -->
+                        <div class="tab-pane" id="ehearingTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>E-Duruşma Marka</th>
+                                            <th>E-Duruşma Model</th>
+                                            <th>E-Duruşma Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="ehearingTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/devices.js"></script>
+    <script src="js/theme.js"></script>
+    <script src="js/sidebar.js"></script>
+</body>
+</html> 

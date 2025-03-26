@@ -527,52 +527,170 @@ body {
 }
 
 .table-responsive {
-    overflow-x: auto;
-    margin: -0.5rem;
+    overflow-x: hidden;
+    max-width: 100%;
+    margin-bottom: 1rem;
 }
 
-.mini-table {
+.table-section {
+    width: 100%;
+    overflow-x: hidden;
+    margin-bottom: 1rem;
+}
+
+.devices-table {
     width: 100%;
     border-collapse: collapse;
+    white-space: normal;
 }
 
-.mini-table th,
-.mini-table td {
-    padding: 1rem;
+.devices-table th,
+.devices-table td {
+    padding: 0.75rem;
     text-align: left;
-    font-size: 0.875rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
-.mini-table th {
-    background: var(--background-color);
-    color: var(--text-color);
+.devices-table th {
+    background-color: #f8fafc;
     font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.mini-table td {
-    border-bottom: 1px solid var(--border-color);
+.devices-table tbody tr:hover {
+    background-color: #f1f5f9;
 }
 
-.status-badge {
-    padding: 0.25rem 0.5rem;
-    border-radius: 12px;
-    font-size: 0.75rem;
-    font-weight: 500;
+/* Device Stats Grid */
+.device-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1rem;
+    margin-bottom: 2rem;
 }
 
-.status-badge.çözüldü {
-    background: rgba(46, 204, 113, 0.1);
-    color: #2ecc71;
+.device-stat-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
 }
 
-.status-badge.beklemede {
-    background: rgba(241, 196, 15, 0.1);
-    color: #f1c40f;
+.device-stat-card:hover {
+    transform: translateY(-5px);
 }
 
-.status-badge.işlemde {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
+.device-stat-card i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.device-stat-card h3 {
+    margin: 0.5rem 0;
+    font-size: 1.1rem;
+    color: #4a5568;
+}
+
+.device-stat-card .stat-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #2d3748;
+}
+
+/* Device type specific colors */
+.device-stat-card.computer i { color: #3182ce; }
+.device-stat-card.printer i { color: #38a169; }
+.device-stat-card.scanner i { color: #805ad5; }
+.device-stat-card.tv i { color: #e53e3e; }
+.device-stat-card.camera i { color: #d69e2e; }
+.device-stat-card.segbis i { color: #319795; }
+
+/* Device Tabs */
+.device-tabs {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 1rem;
+}
+
+.tab-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    background: none;
+    color: #4a5568;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-button i {
+    font-size: 1.1rem;
+}
+
+.tab-button:hover {
+    background: #edf2f7;
+}
+
+.tab-button.active {
+    background: #161a4a;
+    color: white;
+}
+
+.tab-content {
+    padding: 1rem;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .device-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .device-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .tab-buttons {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .device-stats-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 @media (min-width: 1024px) {
@@ -1920,7 +2038,7 @@ body {
     .page-header {
         flex-direction: row;
         align-items: center;
-        padding: 1rem;
+    padding: 1rem;
         gap: 1rem;
         position: relative;
     }
@@ -4565,7 +4683,7 @@ input:checked + .slider:before {
     background: #161a4a;
     padding: 3rem 2rem;
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     align-items: center;
     justify-content: space-between;
     color: white;
