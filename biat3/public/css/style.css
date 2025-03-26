@@ -2329,7 +2329,7 @@ body {
 .list-view .courtroom-content {
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
 }
 
@@ -2632,5 +2632,1280 @@ a.courtroom-card:hover {
 @media (max-width: 480px) {
     .hardware-status-grid {
         grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* Chambers Grid */
+.chambers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.chamber-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease;
+    text-decoration: none;
+    color: inherit;
+}
+
+.chamber-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.chamber-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.chamber-title {
+    display: flex;
+    gap: 1rem;
+}
+
+.chamber-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.chamber-info h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0 0 0.25rem 0;
+}
+
+.chamber-info p {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.chamber-status {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.chamber-status.active {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+.chamber-status.issue {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.chamber-status.maintenance {
+    background: rgba(255, 168, 1, 0.15);
+    color: #ffa801;
+}
+
+.chamber-content {
+    padding: 1.5rem;
+}
+
+/* Hardware Status Grid for Chambers */
+.chamber-content .hardware-status-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.chamber-content .hardware-status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    transition: all 0.3s ease;
+}
+
+.chamber-content .hardware-status-item.active {
+    background: rgba(46, 213, 115, 0.1);
+    color: #2ed573;
+}
+
+.chamber-content .hardware-status-item.inactive {
+    background: var(--background-color);
+    color: var(--text-light);
+    opacity: 0.7;
+}
+
+.chamber-content .hardware-status-item i {
+    font-size: 1.5rem;
+}
+
+.chamber-content .hardware-status-item span {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Chamber Details */
+.chamber-details {
+    display: grid;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-color);
+}
+
+.detail-item i {
+    width: 16px;
+    color: var(--text-light);
+}
+
+/* List View */
+.chambers-grid.list-view {
+    grid-template-columns: 1fr;
+}
+
+.list-view .chamber-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.list-view .chamber-header {
+    padding: 0;
+    border: none;
+}
+
+.list-view .chamber-content {
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chambers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .list-view .chamber-card {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .list-view .chamber-content {
+        grid-template-columns: 1fr;
+    }
+
+    .chamber-content .hardware-status-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .chamber-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .chamber-status {
+        align-self: flex-start;
+    }
+}
+
+/* Chamber Detail Page */
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-title h1 {
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.header-title p {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Hardware Details Section */
+.hardware-details {
+    margin-top: 2rem;
+}
+
+.hardware-details h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.hardware-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.hardware-card.active {
+    border-top: 3px solid #2ed573;
+}
+
+.hardware-card.issue {
+    border-top: 3px solid #ff4757;
+}
+
+.hardware-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.hardware-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.hardware-info {
+    flex: 1;
+}
+
+.hardware-info h3 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.125rem;
+}
+
+.hardware-info .status {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #2ed573;
+}
+
+.hardware-card.issue .hardware-info .status {
+    color: #ff4757;
+}
+
+.hardware-specs {
+    display: grid;
+    gap: 1rem;
+}
+
+.spec-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+}
+
+.spec-label {
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.spec-value {
+    font-weight: 500;
+    font-size: 0.875rem;
+}
+
+/* Maintenance History Section */
+.maintenance-history {
+    margin-top: 3rem;
+}
+
+.maintenance-history h2 {
+    font-size: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.timeline {
+    display: grid;
+    gap: 2rem;
+}
+
+.timeline-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 1.5rem;
+}
+
+.timeline-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.timeline-icon.issue {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.timeline-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.timeline-header h3 {
+    margin: 0;
+    font-size: 1.125rem;
+}
+
+.timeline-header .date {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.timeline-content p {
+    margin: 0 0 1rem 0;
+    color: var(--text-color);
+    line-height: 1.5;
+}
+
+.timeline-footer {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.technician {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .header-actions {
+        width: 100%;
+    }
+
+    .header-actions .btn {
+        flex: 1;
+    }
+
+    .hardware-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .timeline-icon {
+        display: none;
+    }
+}
+
+/* Judge Detail Page Styles */
+.judge-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.judge-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.judge-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--primary-color);
+}
+
+.judge-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.judge-title {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.location-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.status-badges {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background: var(--surface-secondary);
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.status-badge.active {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.status-badge i {
+    font-size: 1rem;
+}
+
+/* Overview Section */
+.overview-section {
+    background: var(--surface-primary);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: var(--surface-secondary);
+    border-radius: var(--border-radius);
+    transition: transform 0.2s;
+}
+
+.stat-item:hover {
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Hardware Section */
+.hardware-section {
+    background: var(--surface-primary);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.section-header.with-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+}
+
+.section-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.hardware-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.status.active {
+    color: var(--success);
+}
+
+.uptime, .printer-status, .monitor-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hardware-footer {
+    display: flex;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.btn-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    background: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.btn-text:hover {
+    color: var(--primary-color);
+}
+
+.btn-text.warning:hover {
+    color: var(--danger);
+}
+
+/* History Section */
+.history-section {
+    background: var(--surface-primary);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+}
+
+.history-filter {
+    padding: 0.5rem 2rem 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    background: var(--surface-secondary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    background: var(--surface-secondary);
+    border-radius: var(--border-radius);
+    transition: transform 0.2s;
+}
+
+.timeline-item:hover {
+    transform: translateX(4px);
+}
+
+.timeline-item.maintenance {
+    border-left: 4px solid var(--success);
+}
+
+.timeline-item.issue {
+    border-left: 4px solid var(--danger);
+}
+
+.timeline-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.timeline-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+}
+
+.badge.maintenance {
+    background: var(--success-light);
+    color: var(--success);
+}
+
+.badge.issue {
+    background: var(--danger-light);
+    color: var(--danger);
+}
+
+.timeline-body {
+    margin-bottom: 1rem;
+}
+
+.device-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.device-tag {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.75rem;
+    background: var(--surface-primary);
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.technician {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.technician-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .judge-header {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: center;
+    }
+
+    .judge-avatar {
+        width: 60px;
+        height: 60px;
+    }
+
+    .status-badges {
+        flex-direction: column;
+    }
+
+    .overview-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .hardware-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .spec-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hardware-footer {
+        flex-wrap: wrap;
+    }
+
+    .timeline-header {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Judge Chamber Detail Page */
+.page-header {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.back-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--surface-hover);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: var(--primary-color);
+    color: white;
+}
+
+.header-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.header-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.header-title h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.header-subtitle {
+    color: var(--text-color-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+}
+
+.separator {
+    color: var(--surface-border);
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-icon.success {
+    background: var(--green-50);
+    color: var(--green-500);
+}
+
+.stat-icon.warning {
+    background: var(--yellow-50);
+    color: var(--yellow-500);
+}
+
+.stat-icon.info {
+    background: var(--blue-50);
+    color: var(--blue-500);
+}
+
+.stat-info h3 {
+    font-size: 0.875rem;
+    color: var(--text-color-secondary);
+    margin: 0 0 0.25rem 0;
+}
+
+.stat-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+/* Hardware Section */
+.hardware-section {
+    background: var(--surface-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.hardware-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1rem;
+}
+
+.device-card {
+    background: var(--surface-section);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+}
+
+.device-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.device-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.device-type {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.device-type i {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
+.device-type h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.device-status {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+}
+
+.device-status.success {
+    background: var(--green-50);
+    color: var(--green-500);
+}
+
+.device-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.info-label {
+    color: var(--text-color-secondary);
+}
+
+.info-value {
+    font-weight: 500;
+}
+
+.info-value.success {
+    color: var(--green-500);
+}
+
+.device-actions {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--surface-border);
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: var(--primary-600);
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid var(--surface-border);
+    color: var(--text-color);
+}
+
+.btn-outline:hover {
+    background: var(--surface-hover);
+}
+
+.btn-warning {
+    background: var(--yellow-500);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: var(--yellow-600);
+}
+
+.btn-text {
+    background: transparent;
+    color: var(--text-color);
+    padding: 0.5rem;
+}
+
+.btn-text:hover {
+    background: var(--surface-hover);
+}
+
+.btn-text.warning {
+    color: var(--yellow-500);
+}
+
+.btn-text.warning:hover {
+    background: var(--yellow-50);
+}
+
+.btn-icon {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-color);
+    border: 1px solid var(--surface-border);
+}
+
+.btn-icon:hover {
+    background: var(--surface-hover);
+}
+
+/* Badge */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.badge.success {
+    background: var(--green-50);
+    color: var(--green-500);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+
+    .header-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hardware-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .device-card {
+        margin-bottom: 1rem;
+    }
+
+    .device-actions {
+        flex-wrap: wrap;
+    }
+}
+
+/* Dark Theme Adjustments */
+[data-theme="dark"] .stat-icon.success {
+    background: rgba(var(--green-rgb), 0.2);
+}
+
+[data-theme="dark"] .stat-icon.warning {
+    background: rgba(var(--yellow-rgb), 0.2);
+}
+
+[data-theme="dark"] .stat-icon.info {
+    background: rgba(var(--blue-rgb), 0.2);
+}
+
+[data-theme="dark"] .device-status.success {
+    background: rgba(var(--green-rgb), 0.2);
+}
+
+[data-theme="dark"] .btn-text.warning:hover {
+    background: rgba(var(--yellow-rgb), 0.2);
+}
+
+/* Page Header */
+.page-header {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.back-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--background-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+/* Quick Stats Bar */
+.quick-stats-bar {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--card-shadow);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.quick-stats-bar .stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem;
+    flex: 1;
+}
+
+.quick-stats-bar .stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.quick-stats-bar .stat-icon.success {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+.quick-stats-bar .stat-icon.warning {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.quick-stats-bar .stat-icon.info {
+    background: rgba(52, 152, 219, 0.15);
+    color: #3498db;
+}
+
+.quick-stats-bar .stat-icon.primary {
+    background: rgba(45, 152, 218, 0.15);
+    color: #2d98da;
+}
+
+.quick-stats-bar .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.quick-stats-bar .stat-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.quick-stats-bar .stat-label {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    white-space: nowrap;
+}
+
+.stat-divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border-color);
+    margin: 0 0.5rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .quick-stats-bar {
+        flex-wrap: wrap;
+        padding: 1rem;
+    }
+
+    .quick-stats-bar .stat-item {
+        flex: 1 1 calc(50% - 1rem);
+        min-width: 150px;
+    }
+
+    .stat-divider {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .quick-stats-bar .stat-item {
+        flex: 1 1 100%;
     }
 }

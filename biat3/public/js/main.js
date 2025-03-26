@@ -368,6 +368,10 @@ function setupContent() {
         updateStatistics();
         createIssueDistributionChart();
         createDeviceStatusChart();
+    } else if (path.includes('hakim-odalari.html')) {
+        setupChambersPage();
+    } else if (path.includes('hakim-odasi-detay.html')) {
+        setupChamberDetailPage();
     }
 }
 
@@ -1048,4 +1052,151 @@ function getHearingsForCourtroom(salonId) {
     ];
 }
 
-// ... rest of the existing code ... 
+// Judges' Chambers Page Functions
+function setupChambersPage() {
+    updateChamberStats();
+    setupViewToggle();
+    setupChamberFilters();
+    loadChamberCards();
+}
+
+function updateChamberStats() {
+    // Example stats - In a real application, these would come from an API
+    const stats = {
+        totalChambers: 24,
+        withLaptops: 20,
+        withPrinters: 12,
+        issueCount: 3
+    };
+
+    // Update stats in the DOM
+    document.querySelectorAll('.stat-card p').forEach((stat, index) => {
+        switch(index) {
+            case 0: stat.textContent = stats.totalChambers; break;
+            case 1: stat.textContent = stats.withLaptops; break;
+            case 2: stat.textContent = stats.withPrinters; break;
+            case 3: stat.textContent = stats.issueCount; break;
+        }
+    });
+}
+
+function setupChamberFilters() {
+    const searchInput = document.querySelector('.search-box input');
+    const locationFilter = document.querySelector('select[name="location"]');
+    const equipmentFilter = document.querySelector('select[name="equipment"]');
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterChambers);
+    }
+
+    if (locationFilter) {
+        locationFilter.addEventListener('change', filterChambers);
+    }
+
+    if (equipmentFilter) {
+        equipmentFilter.addEventListener('change', filterChambers);
+    }
+}
+
+function filterChambers() {
+    const searchTerm = document.querySelector('.search-box input')?.value.toLowerCase() || '';
+    const location = document.querySelector('select[name="location"]')?.value || '';
+    const equipment = document.querySelector('select[name="equipment"]')?.value || '';
+
+    const chambers = document.querySelectorAll('.chamber-card');
+    chambers.forEach(chamber => {
+        const chamberName = chamber.querySelector('.chamber-info h2').textContent.toLowerCase();
+        const chamberLocation = chamber.querySelector('.chamber-info p').textContent.toLowerCase();
+        const hasEquipment = equipment === '' || chamber.querySelector(`.hardware-status-item i.fa-${equipment}`);
+
+        const matchesSearch = chamberName.includes(searchTerm) || chamberLocation.includes(searchTerm);
+        const matchesLocation = location === '' || chamberLocation.includes(location.toLowerCase());
+        const matchesEquipment = equipment === '' || hasEquipment;
+
+        chamber.style.display = matchesSearch && matchesLocation && matchesEquipment ? 'block' : 'none';
+    });
+}
+
+// Chamber Detail Page Functions
+function setupChamberDetailPage() {
+    setupMaintenanceHistory();
+    setupHardwareActions();
+}
+
+function setupMaintenanceHistory() {
+    // Example maintenance history - In a real application, this would come from an API
+    const maintenanceHistory = [
+        {
+            type: 'maintenance',
+            title: 'Rutin Bakım',
+            date: '15.03.2024',
+            description: 'Dizüstü bilgisayar ve yazıcı bakımı yapıldı. Tüm cihazlar test edildi.',
+            technician: 'Mehmet Tekniker'
+        },
+        {
+            type: 'issue',
+            title: 'Yazıcı Arızası',
+            date: '01.02.2024',
+            description: 'Kağıt sıkışması sorunu giderildi. Yazıcı kafası temizlendi.',
+            technician: 'Ali Tekniker'
+        }
+    ];
+
+    const timeline = document.querySelector('.timeline');
+    if (timeline) {
+        maintenanceHistory.forEach(item => {
+            const timelineItem = createTimelineItem(item);
+            timeline.appendChild(timelineItem);
+        });
+    }
+}
+
+function createTimelineItem(item) {
+    const timelineItem = document.createElement('div');
+    timelineItem.className = 'timeline-item';
+    timelineItem.innerHTML = `
+        <div class="timeline-icon ${item.type === 'issue' ? 'issue' : ''}">
+            <i class="fas fa-${item.type === 'issue' ? 'exclamation-circle' : 'wrench'}"></i>
+        </div>
+        <div class="timeline-content">
+            <div class="timeline-header">
+                <h3>${item.title}</h3>
+                <span class="date">${item.date}</span>
+            </div>
+            <p>${item.description}</p>
+            <div class="timeline-footer">
+                <span class="technician">
+                    <i class="fas fa-user"></i>
+                    ${item.technician}
+                </span>
+            </div>
+        </div>
+    `;
+    return timelineItem;
+}
+
+function setupHardwareActions() {
+    const actionButtons = document.querySelectorAll('.hardware-card .btn-icon');
+    actionButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Example action menu - In a real application, this would show a dropdown menu
+            const hardwareCard = button.closest('.hardware-card');
+            const hardwareName = hardwareCard.querySelector('.hardware-info h3').textContent;
+            console.log(`Showing actions for ${hardwareName}`);
+        });
+    });
+}
+
+// Initialize pages based on current URL
+document.addEventListener('DOMContentLoaded', () => {
+    const currentPath = window.location.pathname;
+    
+    if (currentPath.includes('hakim-odalari.html')) {
+        setupChambersPage();
+    } else if (currentPath.includes('hakim-odasi-detay.html')) {
+        setupChamberDetailPage();
+    }
+});
+
+/* ... existing code ... */ 

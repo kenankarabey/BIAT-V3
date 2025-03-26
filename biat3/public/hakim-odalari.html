@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hakim Odaları - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body class="with-sidebar">
     <!-- Toggle Theme -->
     <button class="toggle-theme">
         <i class="fas fa-moon"></i>
@@ -101,19 +101,182 @@
             </div>
         </div>
 
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
+            <!-- Page Header -->
+            <div class="page-header">
                 <h1>Hakim Odaları</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" id="addNewChamber">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Oda Ekle</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="judges-chambers-grid">
-                <!-- Judge Chamber Cards will be added dynamically via JavaScript -->
+            <!-- Quick Stats -->
+            <section class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Toplam Oda</h3>
+                        <p>24</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Dizüstü Bilgisayar</h3>
+                        <p>20</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Yazıcı</h3>
+                        <p>12</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon issue">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Arıza Bildirimi</h3>
+                        <p>3</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Search and Filter Section -->
+            <div class="search-filter-section">
+                <div class="search-row">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="chamberSearch" placeholder="Hakim adı veya oda numarası ara...">
+                    </div>
+                    <div class="view-options">
+                        <button class="btn-view active" data-view="grid">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="btn-view" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Konum</label>
+                        <select id="locationFilter">
+                            <option value="">Tümü</option>
+                            <option value="A Blok">A Blok</option>
+                            <option value="B Blok">B Blok</option>
+                            <option value="C Blok">C Blok</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-group">
+                        <label>Donanım</label>
+                        <select id="equipmentFilter">
+                            <option value="">Tümü</option>
+                            <option value="laptop">Dizüstü Bilgisayar</option>
+                            <option value="printer">Yazıcı</option>
+                            <option value="monitor">Monitör</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn-reset" id="resetFilters">
+                            <i class="fas fa-undo"></i>
+                            <span>Sıfırla</span>
+                        </button>
+                        <button class="btn-apply" id="applyFilters">
+                            <i class="fas fa-filter"></i>
+                            <span>Uygula</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="active-filters" id="activeFilters"></div>
+            </div>
+
+            <!-- Chambers Grid -->
+            <div class="chambers-grid" id="chambersContainer">
+                <!-- Chamber Card 1 -->
+                <a href="hakim-odasi-detay.html?id=1" class="chamber-card">
+                    <div class="chamber-header">
+                        <div class="chamber-title">
+                            <div class="chamber-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="chamber-info">
+                                <h2>Ahmet Yılmaz</h2>
+                                <p>Oda 101 - A Blok, 1. Kat</p>
+                            </div>
+                        </div>
+                        <span class="chamber-status active">Aktif</span>
+                    </div>
+                    <div class="chamber-content">
+                        <div class="hardware-status-grid">
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-laptop"></i>
+                                <span>Dizüstü PC</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-print"></i>
+                                <span>Yazıcı</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-desktop"></i>
+                                <span>Monitör</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Chamber Card 2 -->
+                <a href="hakim-odasi-detay.html?id=2" class="chamber-card">
+                    <div class="chamber-header">
+                        <div class="chamber-title">
+                            <div class="chamber-icon">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div class="chamber-info">
+                                <h2>Ayşe Demir</h2>
+                                <p>Oda 102 - A Blok, 1. Kat</p>
+                            </div>
+                        </div>
+                        <span class="chamber-status issue">Arıza Var</span>
+                    </div>
+                    <div class="chamber-content">
+                        <div class="hardware-status-grid">
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-laptop"></i>
+                                <span>Dizüstü PC</span>
+                            </div>
+                            <div class="hardware-status-item inactive">
+                                <i class="fas fa-print"></i>
+                                <span>Yazıcı</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-desktop"></i>
+                                <span>Monitör</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
         </main>
     </div>
 
-    <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
 </body>
 </html> 
