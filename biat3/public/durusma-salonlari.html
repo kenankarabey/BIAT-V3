@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Duruşma Salonları - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body class="with-sidebar">
     <!-- Toggle Theme -->
     <button class="toggle-theme">
         <i class="fas fa-moon"></i>
@@ -101,19 +101,230 @@
             </div>
         </div>
 
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
+            <!-- Page Header -->
+            <div class="page-header">
                 <h1>Duruşma Salonları</h1>
+                <div class="header-actions">
+                    <button class="btn-primary" id="addNewCourtroom">
+                        <i class="fas fa-plus"></i>
+                        <span>Yeni Salon Ekle</span>
+                    </button>
+                </div>
             </div>
 
-            <div class="courtrooms-grid">
-                <!-- Courtroom Cards will be added dynamically via JavaScript -->
+            <!-- Quick Stats -->
+            <div class="quick-stats">
+                <div class="stat-card">
+                    <div class="stat-icon active">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Aktif Salonlar</h3>
+                        <p id="activeCourtroomsCount">6</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon issue">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Arızalı Salonlar</h3>
+                        <p id="issuesCourtroomsCount">2</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon maintenance">
+                        <i class="fas fa-wrench"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Bakımdaki Salonlar</h3>
+                        <p id="maintenanceCourtroomsCount">1</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>Toplam Donanım</h3>
+                        <p id="totalDevicesCount">54</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="search-filter-section">
+                <div class="search-row">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="courtroomSearch" placeholder="Salon adı veya konum ara...">
+                    </div>
+                    <div class="view-options">
+                        <button class="btn-view active" data-view="grid">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="btn-view" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Konum</label>
+                        <select id="locationFilter">
+                            <option value="">Tümü</option>
+                            <option value="A Blok">A Blok</option>
+                            <option value="B Blok">B Blok</option>
+                            <option value="C Blok">C Blok</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-group">
+                        <label>Durum</label>
+                        <select id="statusFilter">
+                            <option value="">Tümü</option>
+                            <option value="active">Aktif</option>
+                            <option value="issue">Arızalı</option>
+                            <option value="maintenance">Bakımda</option>
+                        </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-actions">
+                        <button class="btn-reset" id="resetFilters">
+                            <i class="fas fa-undo"></i>
+                            <span>Sıfırla</span>
+                        </button>
+                        <button class="btn-apply" id="applyFilters">
+                            <i class="fas fa-filter"></i>
+                            <span>Uygula</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="active-filters" id="activeFilters">
+                    <!-- Active filters will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Courtrooms Grid -->
+            <div class="courtrooms-grid" id="courtroomsContainer">
+                <!-- 1 Nolu Salon -->
+                <a href="durusma-salonu-detay.html?id=1" class="courtroom-card">
+                    <div class="courtroom-header">
+                        <div class="courtroom-title">
+                            <div class="courtroom-icon">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <h2 class="courtroom-name">1 Nolu Salon</h2>
+                        </div>
+                        <span class="courtroom-status active">Aktif</span>
+                    </div>
+                    <div class="courtroom-content">
+                        <div class="courtroom-info">
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>A Blok, Zemin Kat</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-desktop"></i>
+                                <span>Tüm Cihazlar Aktif</span>
+                            </div>
+                        </div>
+                        <div class="hardware-status-grid">
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-desktop"></i>
+                                <span>PC</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Katip</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Hakim</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Avukat 1</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Avukat 2</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>TV</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-microphone"></i>
+                                <span>Ses</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- 2 Nolu Salon -->
+                <a href="durusma-salonu-detay.html?id=2" class="courtroom-card">
+                    <div class="courtroom-header">
+                        <div class="courtroom-title">
+                            <div class="courtroom-icon">
+                                <i class="fas fa-gavel"></i>
+                            </div>
+                            <h2 class="courtroom-name">2 Nolu Salon</h2>
+                        </div>
+                        <span class="courtroom-status issue">Arızalı</span>
+                    </div>
+                    <div class="courtroom-content">
+                        <div class="courtroom-info">
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>A Blok, 1. Kat</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>2 Cihaz Arızalı</span>
+                            </div>
+                        </div>
+                        <div class="hardware-status-grid">
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-desktop"></i>
+                                <span>PC</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Katip</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Hakim</span>
+                            </div>
+                            <div class="hardware-status-item issue">
+                                <i class="fas fa-tv"></i>
+                                <span>Avukat 1</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>Avukat 2</span>
+                            </div>
+                            <div class="hardware-status-item active">
+                                <i class="fas fa-tv"></i>
+                                <span>TV</span>
+                            </div>
+                            <div class="hardware-status-item issue">
+                                <i class="fas fa-microphone"></i>
+                                <span>Ses</span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
             </div>
         </main>
     </div>
 
-    <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
 </body>
 </html> 

@@ -355,17 +355,16 @@ function createDeviceStatusChart() {
 function setupContent() {
     const path = window.location.pathname;
     
-    if (path.includes('mahkeme-detay.html')) {
-        // Detay sayfasındayız
+    if (path.includes('durusma-salonlari.html')) {
+        setupCourtroomsPage();
+    } else if (path.includes('mahkeme-detay.html')) {
         const urlParams = new URLSearchParams(window.location.search);
         const mahkemeId = urlParams.get('id');
         loadMahkemeDetay(mahkemeId);
     } else if (path.includes('mahkeme-kalemleri.html')) {
-        // Mahkeme kalemleri sayfasındayız
-    loadCourtOfficesContent();
+        loadCourtOfficesContent();
         setupFilters();
     } else if (path.includes('index.html') || path === '/') {
-        // Ana sayfadayız
         updateStatistics();
         createIssueDistributionChart();
         createDeviceStatusChart();
@@ -775,4 +774,278 @@ function setupFilters() {
 
     // İlk yükleme
     filterCourts();
-} 
+}
+
+// Duruşma Salonları Sayfası
+function setupCourtroomsPage() {
+    updateCourtroomStats();
+    setupViewToggle();
+    setupCourtroomFilters();
+    loadCourtroomCards();
+}
+
+// İstatistikleri güncelle
+function updateCourtroomStats() {
+    const stats = {
+        active: state.durusmaSalonlari.filter(salon => salon.durum === 'active').length,
+        issue: state.durusmaSalonlari.filter(salon => salon.durum === 'issue').length,
+        maintenance: state.durusmaSalonlari.filter(salon => salon.durum === 'maintenance').length,
+        todayHearings: 12 // Örnek veri
+    };
+
+    document.getElementById('activeCourtroomsCount').textContent = stats.active;
+    document.getElementById('issuesCourtroomsCount').textContent = stats.issue;
+    document.getElementById('maintenanceCourtroomsCount').textContent = stats.maintenance;
+    document.getElementById('todayHearingsCount').textContent = stats.todayHearings;
+}
+
+// Grid/List görünüm değiştirme
+function setupViewToggle() {
+    const viewButtons = document.querySelectorAll('.btn-view');
+    const courtroomsContainer = document.getElementById('courtroomsContainer');
+
+    viewButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const view = button.dataset.view;
+            
+            // Aktif buton stilini güncelle
+            viewButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            // Container sınıfını güncelle
+            courtroomsContainer.classList.remove('grid-view', 'list-view');
+            courtroomsContainer.classList.add(`${view}-view`);
+
+            // Görünüm tercihini kaydet
+            localStorage.setItem('courtroomsView', view);
+        });
+    });
+
+    // Kaydedilmiş görünüm tercihini uygula
+    const savedView = localStorage.getItem('courtroomsView') || 'grid';
+    const activeViewButton = document.querySelector(`[data-view="${savedView}"]`);
+    if (activeViewButton) {
+        activeViewButton.click();
+    }
+}
+
+// Filtreleme işlevleri
+function setupCourtroomFilters() {
+    const searchInput = document.getElementById('courtroomSearch');
+    const locationFilter = document.getElementById('locationFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const capacityFilter = document.getElementById('capacityFilter');
+    const resetButton = document.getElementById('resetFilters');
+    const applyButton = document.getElementById('applyFilters');
+    const activeFiltersContainer = document.getElementById('activeFilters');
+
+    // Aktif filtreleri göster
+    function updateActiveFilters() {
+        if (!activeFiltersContainer) return;
+
+        activeFiltersContainer.innerHTML = '';
+        let hasActiveFilters = false;
+
+        // Arama filtresi
+        if (searchInput?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Arama', searchInput.value);
+        }
+
+        // Konum filtresi
+        if (locationFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Konum', locationFilter.options[locationFilter.selectedIndex].text);
+        }
+
+        // Durum filtresi
+        if (statusFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Durum', statusFilter.options[statusFilter.selectedIndex].text);
+        }
+
+        // Kapasite filtresi
+        if (capacityFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Kapasite', capacityFilter.options[capacityFilter.selectedIndex].text);
+        }
+
+        // Aktif filtre yoksa container'ı gizle
+        activeFiltersContainer.style.display = hasActiveFilters ? 'flex' : 'none';
+    }
+
+    // Filtre etiketi ekle
+    function addFilterTag(label, value) {
+        const tag = document.createElement('div');
+        tag.className = 'filter-tag';
+        tag.innerHTML = `
+            <span>${label}: ${value}</span>
+            <i class="fas fa-times" data-filter="${label.toLowerCase()}"></i>
+        `;
+
+        // Filtre kaldırma işlevi
+        tag.querySelector('i').addEventListener('click', (e) => {
+            const filterType = e.target.dataset.filter;
+            switch (filterType) {
+                case 'arama':
+                    if (searchInput) searchInput.value = '';
+                    break;
+                case 'konum':
+                    if (locationFilter) locationFilter.value = '';
+                    break;
+                case 'durum':
+                    if (statusFilter) statusFilter.value = '';
+                    break;
+                case 'kapasite':
+                    if (capacityFilter) capacityFilter.value = '';
+                    break;
+            }
+            filterCourtrooms();
+        });
+
+        activeFiltersContainer.appendChild(tag);
+    }
+
+    // Filtreleme fonksiyonu
+    function filterCourtrooms() {
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        const selectedLocation = locationFilter?.value || '';
+        const selectedStatus = statusFilter?.value || '';
+        const selectedCapacity = capacityFilter?.value || '';
+
+        const filteredCourtrooms = state.durusmaSalonlari.filter(salon => {
+            const matchesSearch = !searchTerm || 
+                salon.ad.toLowerCase().includes(searchTerm) ||
+                salon.konum.toLowerCase().includes(searchTerm);
+            
+            const matchesLocation = !selectedLocation || salon.konum.includes(selectedLocation);
+            const matchesStatus = !selectedStatus || salon.durum === selectedStatus;
+            
+            // Kapasite filtresi için örnek kontrol
+            let matchesCapacity = true;
+            if (selectedCapacity) {
+                const capacity = getCapacityValue(salon.ad); // Örnek fonksiyon
+                switch (selectedCapacity) {
+                    case 'small':
+                        matchesCapacity = capacity <= 30;
+                        break;
+                    case 'medium':
+                        matchesCapacity = capacity > 30 && capacity <= 60;
+                        break;
+                    case 'large':
+                        matchesCapacity = capacity > 60;
+                        break;
+                }
+            }
+
+            return matchesSearch && matchesLocation && matchesStatus && matchesCapacity;
+        });
+
+        const container = document.getElementById('courtroomsContainer');
+        if (container) {
+            container.innerHTML = filteredCourtrooms.map(createCourtroomCard).join('');
+        }
+
+        // Aktif filtreleri güncelle
+        updateActiveFilters();
+    }
+
+    // Event listeners
+    searchInput?.addEventListener('input', filterCourtrooms);
+    locationFilter?.addEventListener('change', filterCourtrooms);
+    statusFilter?.addEventListener('change', filterCourtrooms);
+    capacityFilter?.addEventListener('change', filterCourtrooms);
+
+    // Filtreleri sıfırla
+    resetButton?.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (locationFilter) locationFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        if (capacityFilter) capacityFilter.value = '';
+        filterCourtrooms();
+    });
+
+    // Filtreleri uygula
+    applyButton?.addEventListener('click', filterCourtrooms);
+
+    // İlk yükleme
+    filterCourtrooms();
+}
+
+// Duruşma salonu kartı oluştur
+function createCourtroomCard(salon) {
+    const statusText = {
+        active: 'Aktif',
+        issue: 'Arızalı',
+        maintenance: 'Bakımda'
+    }[salon.durum] || 'Bilinmiyor';
+
+    // Örnek duruşma programı
+    const hearings = getHearingsForCourtroom(salon.id);
+
+    return `
+        <div class="courtroom-card">
+            <div class="courtroom-header">
+                <div class="courtroom-title">
+                    <div class="courtroom-icon">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <h2 class="courtroom-name">${salon.ad}</h2>
+                </div>
+                <span class="courtroom-status ${salon.durum}">${statusText}</span>
+            </div>
+            <div class="courtroom-content">
+                <div class="courtroom-info">
+                    <div class="info-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${salon.konum}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-users"></i>
+                        <span>Kapasite: ${getCapacityValue(salon.ad)} Kişi</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-microphone"></i>
+                        <span>Ses Sistemi: ${salon.durum === 'active' ? 'Çalışıyor' : 'Kontrol Gerekli'}</span>
+                    </div>
+                </div>
+                ${hearings.length > 0 ? `
+                    <div class="courtroom-schedule">
+                        <div class="schedule-title">
+                            <span>Bugünkü Duruşmalar</span>
+                            <span>${hearings.length} Duruşma</span>
+                        </div>
+                        <div class="schedule-list">
+                            ${hearings.map(hearing => `
+                                <div class="schedule-item">
+                                    <span class="schedule-time">${hearing.time}</span>
+                                    <span class="schedule-case">${hearing.case}</span>
+                                    <span class="schedule-status">${hearing.status}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            </div>
+        </div>
+    `;
+}
+
+// Yardımcı fonksiyonlar
+function getCapacityValue(salonAdi) {
+    // Örnek kapasite değerleri
+    const match = salonAdi.match(/\d+/);
+    const salonNo = match ? parseInt(match[0]) : 0;
+    return 30 + (salonNo * 5); // Örnek hesaplama
+}
+
+function getHearingsForCourtroom(salonId) {
+    // Örnek duruşma verileri
+    return [
+        { time: '09:30', case: '2024/123 E.', status: 'Bekliyor' },
+        { time: '11:00', case: '2024/456 E.', status: 'Tamamlandı' },
+        { time: '14:30', case: '2024/789 E.', status: 'Bekliyor' }
+    ];
+}
+
+// ... rest of the existing code ... 

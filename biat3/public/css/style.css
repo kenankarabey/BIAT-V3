@@ -2067,3 +2067,570 @@ body {
         flex: 1;
     }
 }
+
+/* Quick Stats */
+.quick-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.quick-stats .stat-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease;
+}
+
+.quick-stats .stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.quick-stats .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.quick-stats .stat-icon.active {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+.quick-stats .stat-icon.issue {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.quick-stats .stat-icon.maintenance {
+    background: rgba(255, 168, 1, 0.15);
+    color: #ffa801;
+}
+
+.quick-stats .stat-icon.scheduled {
+    background: rgba(48, 51, 107, 0.15);
+    color: #30336b;
+}
+
+.quick-stats .stat-info h3 {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.quick-stats .stat-info p {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-color);
+    margin: 0;
+}
+
+/* View Options */
+.view-options {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-view {
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    color: var(--text-light);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-view:hover {
+    background: var(--border-color);
+}
+
+.btn-view.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Courtrooms Grid */
+.courtrooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.courtroom-card {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: transform 0.3s ease;
+    cursor: pointer;
+}
+
+.courtroom-card:hover {
+    transform: translateY(-5px);
+}
+
+.courtroom-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.courtroom-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.courtroom-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.courtroom-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.courtroom-status {
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.courtroom-status.active {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+.courtroom-status.issue {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.courtroom-status.maintenance {
+    background: rgba(255, 168, 1, 0.15);
+    color: #ffa801;
+}
+
+.courtroom-content {
+    padding: 1.5rem;
+}
+
+.courtroom-info {
+    display: grid;
+    gap: 1rem;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--text-color);
+}
+
+.info-item i {
+    width: 20px;
+    color: var(--text-light);
+}
+
+.courtroom-schedule {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.schedule-title {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schedule-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.schedule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem;
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+}
+
+.schedule-time {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.schedule-case {
+    color: var(--text-color);
+    flex: 1;
+    margin: 0 1rem;
+}
+
+.schedule-status {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+/* List View */
+.courtrooms-grid.list-view {
+    grid-template-columns: 1fr;
+}
+
+.list-view .courtroom-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    padding: 1.5rem;
+}
+
+.list-view .courtroom-header {
+    padding: 0;
+    border: none;
+}
+
+.list-view .courtroom-content {
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.list-view .courtroom-schedule {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+/* Header Actions */
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: var(--background-color);
+    color: var(--text-color);
+    border: none;
+    border-radius: var(--border-radius);
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 42px;
+}
+
+.btn-secondary:hover {
+    background: var(--border-color);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .quick-stats {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    }
+
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .list-view .courtroom-card {
+        grid-template-columns: 1fr;
+    }
+
+    .list-view .courtroom-content {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Hardware Section Styles */
+.hardware-section {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--card-shadow);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    color: var(--text-color);
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.hardware-card {
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    display: flex;
+    gap: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hardware-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--card-shadow);
+}
+
+.hardware-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.hardware-info {
+    flex: 1;
+}
+
+.hardware-info h3 {
+    font-size: 1.125rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+}
+
+.hardware-status {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+.hardware-status.active {
+    background: rgba(46, 213, 115, 0.15);
+    color: #2ed573;
+}
+
+.hardware-status.issue {
+    background: rgba(255, 71, 87, 0.15);
+    color: #ff4757;
+}
+
+.hardware-status.maintenance {
+    background: rgba(255, 168, 1, 0.15);
+    color: #ffa801;
+}
+
+.hardware-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.hardware-details span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
+}
+
+.hardware-details i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Maintenance Section */
+.maintenance-section {
+    background: var(--card-bg);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--card-shadow);
+}
+
+.maintenance-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 0;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--background-color);
+    border-radius: var(--border-radius);
+}
+
+.timeline-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.timeline-content {
+    flex: 1;
+}
+
+.timeline-content h4 {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 0.25rem;
+}
+
+.timeline-content p {
+    font-size: 0.875rem;
+    color: var(--text-light);
+    margin-bottom: 0.5rem;
+}
+
+.timeline-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--text-light);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hardware-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .hardware-card {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .hardware-details {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    .hardware-details span {
+        min-width: 150px;
+    }
+}
+
+/* Hardware Status Grid Update */
+.hardware-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Courtroom Card Link */
+a.courtroom-card {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+a.courtroom-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Hardware Status Item Update */
+.hardware-status-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: var(--border-radius);
+    background: var(--background-color);
+    transition: all 0.3s ease;
+}
+
+.hardware-status-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.hardware-status-item i {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.hardware-status-item:hover i {
+    transform: scale(1.1);
+}
+
+.hardware-status-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-align: center;
+    line-height: 1.2;
+}
+
+/* Responsive Updates */
+@media (max-width: 768px) {
+    .hardware-status-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .hardware-status-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
