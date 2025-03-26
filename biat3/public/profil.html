@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profil - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body class="with-sidebar">
     <!-- Toggle Theme -->
     <button class="toggle-theme">
         <i class="fas fa-moon"></i>
@@ -101,19 +101,315 @@
             </div>
         </div>
 
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
-                <h1>Profil</h1>
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-cover">
+                    <div class="profile-avatar-wrapper">
+                        <img src="img/user.jpg" alt="Profil Fotoğrafı" class="profile-avatar">
+                        <button class="btn-change-avatar">
+                            <i class="fas fa-camera"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="profile-info">
+                    <div class="profile-name">
+                        <h1>Kenan Bey</h1>
+                        <span class="profile-role">Bilgi İşlem Sorumlusu</span>
+                    </div>
+                    <div class="profile-meta">
+                        <div class="meta-item">
+                            <i class="fas fa-building"></i>
+                            <span>Ankara Adliyesi</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-envelope"></i>
+                            <span>kenan.bey@adalet.gov.tr</span>
+                        </div>
+                        <div class="meta-item">
+                            <i class="fas fa-phone"></i>
+                            <span>+90 (312) 123 45 67</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="profile-grid">
-                <!-- Profile content will be added dynamically via JavaScript -->
+            <!-- Profile Content -->
+            <div class="profile-content">
+                <!-- Profile Navigation -->
+                <div class="profile-nav">
+                    <button class="nav-item active" data-section="profile">
+                        <i class="fas fa-user"></i>
+                        <span>Profil Bilgileri</span>
+                    </button>
+                    <button class="nav-item" data-section="security">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Güvenlik</span>
+                    </button>
+                    <button class="nav-item" data-section="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Bildirimler</span>
+                    </button>
+                    <button class="nav-item" data-section="activity">
+                        <i class="fas fa-history"></i>
+                        <span>Aktivite</span>
+                    </button>
+                </div>
+
+                <!-- Profile Sections -->
+                <div class="profile-sections">
+                    <!-- Profile Info Section -->
+                    <div class="profile-section active" id="profile">
+                        <div class="section-header">
+                            <h2>Profil Bilgileri</h2>
+                            <div class="section-actions">
+                                <button class="btn btn-primary btn-edit-profile" onclick="enableProfileEdit()">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Düzenle</span>
+                                </button>
+                                <button class="btn btn-primary btn-save-profile" onclick="saveProfileChanges()" style="display: none;">
+                                    <i class="fas fa-save"></i>
+                                    <span>Kaydet</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="profile-form">
+                            <div class="form-group">
+                                <label>Ad Soyad</label>
+                                <input type="text" value="Kenan Bey" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>E-posta</label>
+                                <input type="email" value="kenan.bey@adalet.gov.tr" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Telefon</label>
+                                <input type="tel" value="+90 (312) 123 45 67" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Departman</label>
+                                <input type="text" value="Bilgi İşlem" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Konum</label>
+                                <input type="text" value="Ankara Adliyesi" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="profile-section" id="security">
+                        <div class="section-header">
+                            <h2>Güvenlik Ayarları</h2>
+                        </div>
+                        <div class="security-settings">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>Şifre Değiştir</h3>
+                                    <p>En son şifre değişikliği: 3 ay önce</p>
+                                </div>
+                                <button class="btn btn-outline" onclick="showPasswordDialog()">
+                                    <i class="fas fa-key"></i>
+                                    <span>Değiştir</span>
+                                </button>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>İki Faktörlü Doğrulama</h3>
+                                    <p>Hesabınızı daha güvenli hale getirin</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="twoFactorAuth" onchange="toggleNotification('twoFactorAuth')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>Oturum Geçmişi</h3>
+                                    <p>Son giriş yapılan cihazları görüntüleyin</p>
+                                </div>
+                                <button class="btn btn-outline" onclick="viewSessions()">
+                                    <i class="fas fa-desktop"></i>
+                                    <span>Görüntüle</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Section -->
+                    <div class="profile-section" id="notifications">
+                        <div class="section-header">
+                            <h2>Bildirim Ayarları</h2>
+                        </div>
+                        <div class="notification-settings">
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>E-posta Bildirimleri</h3>
+                                    <p>Yeni arıza bildirimleri ve güncellemeler</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="emailNotifications" onchange="toggleNotification('emailNotifications')" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>Masaüstü Bildirimleri</h3>
+                                    <p>Anlık bildirimler ve uyarılar</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="desktopNotifications" onchange="toggleNotification('desktopNotifications')" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                            <div class="setting-item">
+                                <div class="setting-info">
+                                    <h3>SMS Bildirimleri</h3>
+                                    <p>Acil durumlar ve önemli güncellemeler</p>
+                                </div>
+                                <label class="switch">
+                                    <input type="checkbox" id="smsNotifications" onchange="toggleNotification('smsNotifications')">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Activity Section -->
+                    <div class="profile-section" id="activity">
+                        <div class="section-header">
+                            <h2>Son Aktiviteler</h2>
+                            <div class="activity-filter">
+                                <select onchange="filterActivity(this.value)">
+                                    <option value="all">Tüm Aktiviteler</option>
+                                    <option value="issue">Arıza Bildirimleri</option>
+                                    <option value="maintenance">Bakım İşlemleri</option>
+                                    <option value="system">Sistem Güncellemeleri</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="activity-timeline">
+                            <div class="timeline-item" data-type="issue">
+                                <div class="timeline-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h3>Arıza Çözüldü</h3>
+                                        <span class="timeline-time">2 saat önce</span>
+                                    </div>
+                                    <p>3 Nolu Duruşma Salonu yazıcı arızası giderildi.</p>
+                                    <div class="timeline-meta">
+                                        <span class="meta-item">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            3 Nolu Duruşma Salonu
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="fas fa-print"></i>
+                                            HP LaserJet Pro
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon info">
+                                    <i class="fas fa-tools"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h3>Bakım Yapıldı</h3>
+                                        <span class="timeline-time">1 gün önce</span>
+                                    </div>
+                                    <p>Hakim odaları rutin bakım işlemleri tamamlandı.</p>
+                                    <div class="timeline-meta">
+                                        <span class="meta-item">
+                                            <i class="fas fa-user-tie"></i>
+                                            5 Hakim Odası
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="fas fa-clock"></i>
+                                            2 saat sürdü
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon warning">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <h3>Arıza Bildirimi</h3>
+                                        <span class="timeline-time">2 gün önce</span>
+                                    </div>
+                                    <p>2 Nolu Mahkeme Kalemi monitör arızası bildirildi.</p>
+                                    <div class="timeline-meta">
+                                        <span class="meta-item">
+                                            <i class="fas fa-building"></i>
+                                            2 Nolu Mahkeme Kalemi
+                                        </span>
+                                        <span class="meta-item">
+                                            <i class="fas fa-desktop"></i>
+                                            Dell P2419H
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <div class="sidebar-overlay"></div>
+    <!-- Password Change Dialog -->
+    <div id="passwordDialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Şifre Değiştir</h2>
+                <button class="close-modal" onclick="closePasswordDialog()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="currentPassword">Mevcut Şifre</label>
+                    <input type="password" id="currentPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="newPassword">Yeni Şifre</label>
+                    <input type="password" id="newPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closePasswordDialog()">İptal</button>
+                <button class="btn btn-primary" onclick="changePassword()">Değiştir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sessions Dialog -->
+    <div id="sessionsDialog" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Oturum Geçmişi</h2>
+                <button class="close-modal" onclick="closeSessionsDialog()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="sessions-list">
+                    <!-- Sessions will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/main.js"></script>
+    <script src="js/profile.js"></script>
 </body>
 </html> 
