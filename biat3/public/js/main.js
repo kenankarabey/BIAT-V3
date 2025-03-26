@@ -362,7 +362,7 @@ function setupContent() {
         loadMahkemeDetay(mahkemeId);
     } else if (path.includes('mahkeme-kalemleri.html')) {
         // Mahkeme kalemleri sayfasındayız
-        loadCourtOfficesContent();
+    loadCourtOfficesContent();
         setupFilters();
     } else if (path.includes('index.html') || path === '/') {
         // Ana sayfadayız
@@ -372,322 +372,215 @@ function setupContent() {
     }
 }
 
-// Mahkeme detaylarını yükle
-function loadMahkemeDetay(mahkemeId) {
-    const mahkeme = state.courtOffices.find(m => m.id === mahkemeId);
-    if (!mahkeme) {
-        console.error('Mahkeme bulunamadı:', mahkemeId);
-        return;
+// Mahkeme detay sayfası için yeni fonksiyonlar
+async function loadMahkemeDetay(mahkemeId) {
+    // Simüle edilmiş veri
+    const mahkemeData = {
+        id: mahkemeId,
+        name: "Ankara 1. Asliye Hukuk Mahkemesi",
+        type: "Asliye Hukuk Mahkemesi",
+        location: "Ankara Adliyesi",
+        status: "Aktif",
+        lastUpdate: "2024-03-15T10:30:00",
+        stats: {
+            totalIssues: 156,
+            resolvedIssues: 142,
+            avgResolutionTime: "2.5 gün",
+            resolutionRate: 91,
+            trend: 5.2
+        },
+        personnel: [
+            { id: 1, name: "Ahmet Yılmaz", role: "Hakim", avatar: "avatars/1.jpg" },
+            { id: 2, name: "Ayşe Demir", role: "Yazı İşleri Müdürü", avatar: "avatars/2.jpg" },
+            { id: 3, name: "Mehmet Kaya", role: "Zabıt Katibi", avatar: "avatars/3.jpg" }
+        ],
+        devices: [
+            { id: 1, name: "Yazıcı HP-1", type: "Yazıcı", status: "Aktif", lastMaintenance: "2024-02-20" },
+            { id: 2, name: "Tarayıcı-1", type: "Tarayıcı", status: "Bakımda", lastMaintenance: "2024-03-10" },
+            { id: 3, name: "Bilgisayar-1", type: "Bilgisayar", status: "Aktif", lastMaintenance: "2024-01-15" }
+        ],
+        activities: [
+            { id: 1, type: "issue", title: "Yazıcı arızası giderildi", date: "2024-03-14T15:20:00", status: "Çözüldü" },
+            { id: 2, type: "maintenance", title: "Rutin bakım yapıldı", date: "2024-03-10T09:00:00", status: "Tamamlandı" },
+            { id: 3, type: "issue", title: "Network sorunu", date: "2024-03-05T11:30:00", status: "Çözüldü" }
+        ]
+    };
+
+    updateDetailHeader(mahkemeData);
+    updateInfoCards(mahkemeData);
+    updatePersonnel(mahkemeData.personnel);
+    updateDevices(mahkemeData.devices);
+    updateActivityTimeline(mahkemeData.activities);
+    generateQRCode(mahkemeData);
+    generateBarcode(mahkemeData);
+}
+
+function updateDetailHeader(data) {
+    const header = document.querySelector('.quick-info');
+    if (header) {
+        header.innerHTML = `
+            <h1>${data.name}</h1>
+            <div class="status-indicator">
+                <span class="status-dot"></span>
+                <span class="status-text">${data.status}</span>
+            </div>
+        `;
     }
-
-    document.title = `${mahkeme.ad} - BIAT`;
-
-    // Mahkeme bilgilerini doldur
-    const elements = {
-        mahkemeAdi: mahkeme.ad,
-        detayMahkemeAdi: mahkeme.ad,
-        detayKonum: mahkeme.konum,
-        detayTelefon: mahkeme.telefon,
-        detayEposta: mahkeme.eposta,
-        hakimAdSoyad: mahkeme.personel.hakim.adSoyad,
-        hakimSicil: mahkeme.personel.hakim.sicilNo,
-        katipAdSoyad: mahkeme.personel.katip.adSoyad,
-        katipSicil: mahkeme.personel.katip.sicilNo,
-        mubasirAdSoyad: mahkeme.personel.mubasir.adSoyad,
-        mubasirSicil: mahkeme.personel.mubasir.sicilNo
-    };
-
-    Object.entries(elements).forEach(([id, value]) => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value;
-    });
-
-    // Cihazları listele
-    loadDevices(mahkeme.cihazlar || []);
-
-    // Arıza geçmişini listele
-    loadIssueHistory(mahkemeId);
-
-    // QR Kod ve Barkod oluştur
-    const qrData = {
-        id: mahkeme.id,
-        ad: mahkeme.ad,
-        konum: mahkeme.konum
-    };
-    
-    generateQRCode(qrData);
-    generateBarCode(mahkeme.id);
-
-    // Event listeners ekle
-    setupDetailPageListeners(mahkemeId);
 }
 
-// Cihazları listele
-function loadDevices(devices) {
-    const deviceList = document.getElementById('deviceList');
-    if (!deviceList) return;
-
-    const deviceIcons = {
-        'Bilgisayar': 'fa-laptop',
-        'Yazıcı': 'fa-print',
-        'Tarayıcı': 'fa-scanner',
-        'Telefon': 'fa-phone'
-    };
-
-    const deviceStatusClasses = {
-        'active': 'status-active',
-        'issue': 'status-issue',
-        'maintenance': 'status-maintenance'
-    };
-
-    const deviceStatusText = {
-        'active': 'Aktif',
-        'issue': 'Arızalı',
-        'maintenance': 'Bakımda'
-    };
-
-    deviceList.innerHTML = devices.map(device => `
-        <div class="device-item ${deviceStatusClasses[device.durum] || ''}">
-            <div class="device-info">
-                <div class="device-icon">
-                    <i class="fas ${deviceIcons[device.tip] || 'fa-laptop'}"></i>
-                </div>
-                <div class="device-details">
-                    <h3>${device.tip}</h3>
-                    <p>${deviceStatusText[device.durum] || 'Bilinmiyor'}</p>
-                </div>
-            </div>
-            <div class="device-actions">
-                <button class="btn btn-icon" onclick="reportDeviceIssue('${device.tip}')">
+function updateInfoCards(data) {
+    const { stats } = data;
+    const infoCardsRow = document.querySelector('.info-cards-row');
+    if (infoCardsRow) {
+        infoCardsRow.innerHTML = `
+            <div class="info-card">
+                <div class="info-icon">
                     <i class="fas fa-exclamation-circle"></i>
-                </button>
-                <button class="btn btn-icon" onclick="viewDeviceHistory('${device.tip}')">
-                    <i class="fas fa-history"></i>
-                </button>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Arıza geçmişini listele
-function loadIssueHistory(mahkemeId) {
-    const issueList = document.getElementById('issueList');
-    if (!issueList) return;
-
-    const issues = state.arizalar.filter(ariza => ariza.birim.includes(mahkemeId));
-    
-    const statusIcons = {
-        'beklemede': 'fa-clock',
-        'işlemde': 'fa-tools',
-        'tamamlandı': 'fa-check'
-    };
-
-    const statusClasses = {
-        'beklemede': 'pending',
-        'işlemde': 'in-progress',
-        'tamamlandı': 'resolved'
-    };
-
-    issueList.innerHTML = issues.map(issue => `
-        <div class="issue-item">
-            <div class="issue-status ${statusClasses[issue.durum]}">
-                <i class="fas ${statusIcons[issue.durum]}"></i>
-            </div>
-            <div class="issue-info">
-                <h3>${issue.cihaz}</h3>
-                <p>${issue.durum.charAt(0).toUpperCase() + issue.durum.slice(1)}</p>
-            </div>
-            <div class="issue-date">
-                ${new Date(issue.tarih).toLocaleDateString('tr-TR')}
-            </div>
-        </div>
-    `).join('');
-}
-
-// Event listeners ekle
-function setupDetailPageListeners(mahkemeId) {
-    // Düzenleme butonları
-    const editGeneralInfo = document.getElementById('editGeneralInfo');
-    const editPersonnel = document.getElementById('editPersonnel');
-    const addDevice = document.getElementById('addDevice');
-    const reportIssue = document.getElementById('reportIssue');
-    const downloadQR = document.getElementById('downloadQR');
-    const printCodes = document.getElementById('printCodes');
-
-    editGeneralInfo?.addEventListener('click', () => {
-        // TODO: Genel bilgileri düzenleme modalını aç
-        console.log('Genel bilgileri düzenle');
-    });
-
-    editPersonnel?.addEventListener('click', () => {
-        // TODO: Personel bilgilerini düzenleme modalını aç
-        console.log('Personel bilgilerini düzenle');
-    });
-
-    addDevice?.addEventListener('click', () => {
-        // TODO: Yeni cihaz ekleme modalını aç
-        console.log('Yeni cihaz ekle');
-    });
-
-    reportIssue?.addEventListener('click', () => {
-        // TODO: Arıza bildirme modalını aç
-        console.log('Arıza bildir');
-    });
-
-    downloadQR?.addEventListener('click', () => {
-        // QR kodu indir
-        const qrCanvas = document.querySelector('#qrCode canvas');
-        if (qrCanvas) {
-            const link = document.createElement('a');
-            link.download = `qr-${mahkemeId}.png`;
-            link.href = qrCanvas.toDataURL();
-            link.click();
-        }
-    });
-
-    printCodes?.addEventListener('click', () => {
-        // QR kod ve barkodu yazdır
-        const printWindow = window.open('', '', 'width=800,height=600');
-        const qrCanvas = document.querySelector('#qrCode canvas');
-        const barcode = document.getElementById('barCode');
-
-        if (printWindow && qrCanvas && barcode) {
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Kodlar - ${mahkemeId}</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 20px; }
-                        .print-container { text-align: center; margin-bottom: 30px; }
-                        h2 { color: #333; margin-bottom: 15px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="print-container">
-                        <h2>QR Kod</h2>
-                        <img src="${qrCanvas.toDataURL()}" />
+                </div>
+                <div class="info-details">
+                    <span class="info-label">Toplam Arıza</span>
+                    <span class="info-value">${stats.totalIssues}</span>
+                    <div class="info-trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>${stats.trend}%</span>
                     </div>
-                    <div class="print-container">
-                        <h2>Barkod</h2>
-                        ${barcode.outerHTML}
-                    </div>
-                    <script>
-                        window.onload = () => window.print();
-                    </script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        }
-    });
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="info-details">
+                    <span class="info-label">Ortalama Çözüm Süresi</span>
+                    <span class="info-value">${stats.avgResolutionTime}</span>
+                </div>
+            </div>
+            <div class="info-card">
+                <div class="info-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="info-details">
+                    <span class="info-label">Çözüm Oranı</span>
+                    <span class="info-value">%${stats.resolutionRate}</span>
+                </div>
+            </div>
+        `;
+    }
 }
 
-// QR Kod oluştur
-function generateQRCode(text) {
-    const element = document.getElementById('qrCode');
-    if (!element) return;
+function updatePersonnel(personnel) {
+    const personnelGrid = document.querySelector('.personnel-grid');
+    if (personnelGrid) {
+        personnelGrid.innerHTML = personnel.map(person => `
+            <div class="personnel-card">
+                <img src="${person.avatar}" alt="${person.name}" class="personnel-avatar">
+                <div class="personnel-info">
+                    <h3>${person.name}</h3>
+                    <span>${person.role}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+}
 
-    // Önceki QR kodu temizle
-    element.innerHTML = '';
-    
-    try {
-        // JSON string'i URL-safe formata çevir
-        const qrText = typeof text === 'object' ? 
-            `https://biat.adalet.gov.tr/mahkeme/${text.id}?ad=${encodeURIComponent(text.ad)}&konum=${encodeURIComponent(text.konum)}` : 
-            text;
+function updateDevices(devices) {
+    const devicesGrid = document.querySelector('.devices-grid');
+    if (devicesGrid) {
+        devicesGrid.innerHTML = devices.map(device => `
+            <div class="device-card">
+                <div class="device-icon">
+                    <i class="fas ${getDeviceIcon(device.type)}"></i>
+                </div>
+                <div class="device-info">
+                    <h3>${device.name}</h3>
+                    <span class="device-type">${device.type}</span>
+                    <span class="device-status ${device.status.toLowerCase()}">${device.status}</span>
+                    <span class="device-maintenance">Son Bakım: ${formatDate(device.lastMaintenance)}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+}
 
-        new QRCode(element, {
-            text: qrText,
-            width: 200,
-            height: 200,
+function updateActivityTimeline(activities) {
+    const timeline = document.querySelector('.timeline');
+    if (timeline) {
+        timeline.innerHTML = activities.map(activity => `
+            <div class="timeline-item ${activity.type}">
+                <div class="timeline-icon">
+                    <i class="fas ${getActivityIcon(activity.type)}"></i>
+                </div>
+                <div class="timeline-content">
+                    <h3>${activity.title}</h3>
+                    <span class="timeline-date">${formatDate(activity.date)}</span>
+                    <span class="timeline-status">${activity.status}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+async function generateQRCode(data) {
+    const qrContainer = document.getElementById('qrCode');
+    if (qrContainer) {
+        // Clear previous QR code if exists
+        qrContainer.innerHTML = '';
+        
+        new QRCode(qrContainer, {
+            text: `https://biat.adalet.gov.tr/mahkeme/${data.id}`,
+            width: 180,
+            height: 180,
             colorDark: "#000000",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.H
         });
-    } catch (error) {
-        console.error('QR kod oluşturma hatası:', error);
-        element.innerHTML = '<p class="error-text">QR kod oluşturulamadı</p>';
     }
 }
 
-// Barkod oluştur
-function generateBarCode(text) {
-    const element = document.getElementById('barCode');
-    if (!element) return;
-
-    try {
-        JsBarcode(element, text, {
+async function generateBarcode(data) {
+    const barcodeContainer = document.getElementById('barcode');
+    if (barcodeContainer) {
+        JsBarcode("#barcode", data.id, {
             format: "CODE128",
-            width: 3,
-            height: 100,
+            width: 2.5,
+            height: 80,
             displayValue: true,
-            fontSize: 20,
+            fontSize: 16,
             margin: 10,
             background: "#ffffff",
-            lineColor: "#000000",
-            text: text // Barkodun altındaki metin
+            lineColor: "#000000"
         });
-    } catch (error) {
-        console.error('Barkod oluşturma hatası:', error);
-        element.innerHTML = '<text x="50%" y="50%" text-anchor="middle" class="error-text">Barkod oluşturulamadı</text>';
     }
 }
 
-// Filtreleri ayarla
-function setupFilters() {
-    // Konum filtresi için seçenekleri doldur
-    const locationFilter = document.getElementById('locationFilter');
-    if (locationFilter) {
-        const locations = [...new Set(state.courtOffices.map(office => office.konum))];
-        locations.forEach(location => {
-            const option = document.createElement('option');
-            option.value = location;
-            option.textContent = location;
-            locationFilter.appendChild(option);
-        });
-    }
-
-    // Arama ve filtreleme işlevleri
-    const searchInput = document.getElementById('courtOfficeSearch');
-    const typeFilter = document.getElementById('typeFilter');
-    const statusFilter = document.getElementById('statusFilter');
-
-    const filterCourts = () => {
-        const searchTerm = searchInput?.value.toLowerCase() || '';
-        const selectedType = typeFilter?.value || '';
-        const selectedLocation = locationFilter?.value || '';
-        const selectedStatus = statusFilter?.value || '';
-
-        const filteredCourts = state.courtOffices.filter(office => {
-            const matchesSearch = office.ad.toLowerCase().includes(searchTerm) ||
-                                office.konum.toLowerCase().includes(searchTerm) ||
-                                office.personel.hakim.adSoyad.toLowerCase().includes(searchTerm);
-            
-            const matchesType = !selectedType || office.ad.includes(selectedType);
-            const matchesLocation = !selectedLocation || office.konum === selectedLocation;
-            const matchesStatus = !selectedStatus || office.durum === selectedStatus;
-
-            return matchesSearch && matchesType && matchesLocation && matchesStatus;
-        });
-
-        const grid = document.querySelector('.court-offices-grid');
-        if (grid) {
-            grid.innerHTML = filteredCourts.map(createMahkemeCard).join('');
-        }
+// Yardımcı fonksiyonlar
+function getDeviceIcon(type) {
+    const icons = {
+        'Yazıcı': 'fa-print',
+        'Tarayıcı': 'fa-scanner',
+        'Bilgisayar': 'fa-desktop'
     };
+    return icons[type] || 'fa-cube';
+}
 
-    // Event listeners
-    searchInput?.addEventListener('input', filterCourts);
-    typeFilter?.addEventListener('change', filterCourts);
-    locationFilter?.addEventListener('change', filterCourts);
-    statusFilter?.addEventListener('change', filterCourts);
+function getActivityIcon(type) {
+    const icons = {
+        'issue': 'fa-exclamation-circle',
+        'maintenance': 'fa-wrench',
+        'update': 'fa-sync'
+    };
+    return icons[type] || 'fa-info-circle';
+}
 
-    // Yeni kalem ekleme butonu
-    const addNewOfficeBtn = document.getElementById('addNewOfficeBtn');
-    addNewOfficeBtn?.addEventListener('click', () => {
-        // TODO: Yeni kalem ekleme modalını aç
-        console.log('Yeni kalem ekleme modalı açılacak');
-    });
+function formatDate(dateString) {
+    const options = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString('tr-TR', options);
 }
 
 // Mahkeme kartı HTML'i oluştur
@@ -713,10 +606,10 @@ function createMahkemeCard(mahkeme) {
                 <div class="card-title">
                     <h2>${mahkeme.ad}</h2>
                     <p>${mahkeme.konum}</p>
-                </div>
+            </div>
                 <div class="card-status">
                     <span class="status-badge">${statusText}</span>
-                </div>
+            </div>
         </div>
         <div class="card-content">
                 <div class="info-row">
@@ -742,4 +635,144 @@ function loadCourtOfficesContent() {
     if (grid) {
         grid.innerHTML = state.courtOffices.map(createMahkemeCard).join('');
     }
+}
+
+// Filtreleri ayarla
+function setupFilters() {
+    // DOM elementlerini seç
+    const searchInput = document.getElementById('courtOfficeSearch');
+    const typeFilter = document.getElementById('typeFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    const resetButton = document.getElementById('resetFilters');
+    const applyButton = document.getElementById('applyFilters');
+    const activeFiltersContainer = document.getElementById('activeFilters');
+
+    // Konum filtresi için seçenekleri doldur
+    if (locationFilter) {
+        const locations = [...new Set(state.courtOffices.map(office => office.konum))];
+        locations.forEach(location => {
+            const option = document.createElement('option');
+            option.value = location;
+            option.textContent = location;
+            locationFilter.appendChild(option);
+        });
+    }
+
+    // Aktif filtreleri göster
+    function updateActiveFilters() {
+        if (!activeFiltersContainer) return;
+
+        activeFiltersContainer.innerHTML = '';
+        let hasActiveFilters = false;
+
+        // Arama filtresi
+        if (searchInput?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Arama', searchInput.value);
+        }
+
+        // Tür filtresi
+        if (typeFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Tür', typeFilter.options[typeFilter.selectedIndex].text);
+        }
+
+        // Konum filtresi
+        if (locationFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Konum', locationFilter.options[locationFilter.selectedIndex].text);
+        }
+
+        // Durum filtresi
+        if (statusFilter?.value) {
+            hasActiveFilters = true;
+            addFilterTag('Durum', statusFilter.options[statusFilter.selectedIndex].text);
+        }
+
+        // Aktif filtre yoksa container'ı gizle
+        activeFiltersContainer.style.display = hasActiveFilters ? 'flex' : 'none';
+    }
+
+    // Filtre etiketi ekle
+    function addFilterTag(label, value) {
+        const tag = document.createElement('div');
+        tag.className = 'filter-tag';
+        tag.innerHTML = `
+            <span>${label}: ${value}</span>
+            <i class="fas fa-times" data-filter="${label.toLowerCase()}"></i>
+        `;
+
+        // Filtre kaldırma işlevi
+        tag.querySelector('i').addEventListener('click', (e) => {
+            const filterType = e.target.dataset.filter;
+            switch (filterType) {
+                case 'arama':
+                    if (searchInput) searchInput.value = '';
+                    break;
+                case 'tür':
+                    if (typeFilter) typeFilter.value = '';
+                    break;
+                case 'konum':
+                    if (locationFilter) locationFilter.value = '';
+                    break;
+                case 'durum':
+                    if (statusFilter) statusFilter.value = '';
+                    break;
+            }
+            filterCourts();
+        });
+
+        activeFiltersContainer.appendChild(tag);
+    }
+
+    // Filtreleme fonksiyonu
+    function filterCourts() {
+        const searchTerm = searchInput?.value.toLowerCase() || '';
+        const selectedType = typeFilter?.value || '';
+        const selectedLocation = locationFilter?.value || '';
+        const selectedStatus = statusFilter?.value || '';
+
+        const filteredCourts = state.courtOffices.filter(office => {
+            const matchesSearch = !searchTerm || 
+                office.ad.toLowerCase().includes(searchTerm) ||
+                office.konum.toLowerCase().includes(searchTerm) ||
+                office.personel.hakim.adSoyad.toLowerCase().includes(searchTerm);
+            
+            const matchesType = !selectedType || office.ad.includes(selectedType);
+            const matchesLocation = !selectedLocation || office.konum === selectedLocation;
+            const matchesStatus = !selectedStatus || office.durum === selectedStatus;
+
+            return matchesSearch && matchesType && matchesLocation && matchesStatus;
+        });
+
+        const grid = document.querySelector('.court-offices-grid');
+        if (grid) {
+            grid.innerHTML = filteredCourts.map(createMahkemeCard).join('');
+        }
+
+        // Aktif filtreleri güncelle
+        updateActiveFilters();
+    }
+
+    // Event listeners
+    searchInput?.addEventListener('input', filterCourts);
+    typeFilter?.addEventListener('change', filterCourts);
+    locationFilter?.addEventListener('change', filterCourts);
+    statusFilter?.addEventListener('change', filterCourts);
+
+    // Filtreleri sıfırla
+    resetButton?.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (typeFilter) typeFilter.value = '';
+        if (locationFilter) locationFilter.value = '';
+        if (statusFilter) statusFilter.value = '';
+        filterCourts();
+    });
+
+    // Filtreleri uygula
+    applyButton?.addEventListener('click', filterCourts);
+
+    // İlk yükleme
+    filterCourts();
 } 

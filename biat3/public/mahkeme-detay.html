@@ -12,6 +12,7 @@
     <!-- QR Code and Barcode Libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         .code-container {
@@ -20,13 +21,18 @@
             border-radius: 12px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 200px;
         }
         
         #qrCode {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 200px;
+            min-height: 150px;
         }
         
         #qrCode img {
@@ -34,7 +40,7 @@
             height: auto;
         }
         
-        #barCode {
+        #barcode {
             width: 100%;
             max-height: 100px;
         }
@@ -45,9 +51,21 @@
             font-size: 14px;
             padding: 10px;
         }
+
+        .codes-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .codes-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="with-sidebar">
     <!-- Toggle Theme -->
     <button class="toggle-theme">
         <i class="fas fa-moon"></i>
@@ -146,162 +164,131 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-wrapper">
-                <!-- Breadcrumb -->
-                <div class="breadcrumb">
-                    <a href="mahkeme-kalemleri.html"><i class="fas fa-building"></i> Mahkeme Kalemleri</a>
-                    <i class="fas fa-chevron-right"></i>
-                    <span id="mahkemeAdi">Mahkeme Detay</span>
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions-bar">
+                <div class="quick-info">
+                    <h1>Mahkeme Adı</h1>
+                    <div class="status-indicator">
+                        <span class="status-dot"></span>
+                        <span class="status-text">Aktif</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn">
+                        <i class="fas fa-edit"></i>
+                        <span>Düzenle</span>
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span>Arıza Bildir</span>
+                    </button>
+                    <button class="action-btn">
+                        <i class="fas fa-share-alt"></i>
+                        <span>Paylaş</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Info Cards Row -->
+            <div class="info-cards-row">
+                <!-- Cards will be populated by JavaScript -->
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- General Information -->
+                <div class="detail-section">
+                    <div class="section-header">
+                        <h2>Genel Bilgiler</h2>
+                        <div class="section-actions">
+                            <button class="btn-icon" title="Düzenle">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <!-- Content will be populated by JavaScript -->
+                    </div>
                 </div>
 
-                <!-- Content Grid -->
-                <div class="detail-grid">
-                    <!-- Sol Kolon -->
-                    <div class="detail-column">
-                        <!-- Genel Bilgiler -->
-                        <div class="detay-card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-info-circle"></i> Genel Bilgiler</h2>
-                                <button class="btn btn-icon" id="editGeneralInfo">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                            <div class="card-content">
-                                <div class="info-group">
-                                    <label><i class="fas fa-building"></i> Mahkeme Adı</label>
-                                    <p id="detayMahkemeAdi"></p>
-                                </div>
-                                <div class="info-group">
-                                    <label><i class="fas fa-map-marker-alt"></i> Konum</label>
-                                    <p id="detayKonum"></p>
-                                </div>
-                                <div class="info-group">
-                                    <label><i class="fas fa-phone"></i> Telefon</label>
-                                    <p id="detayTelefon"></p>
-                                </div>
-                                <div class="info-group">
-                                    <label><i class="fas fa-envelope"></i> E-posta</label>
-                                    <p id="detayEposta"></p>
-                                </div>
-                            </div>
+                <!-- Personnel -->
+                <div class="detail-section">
+                    <div class="section-header">
+                        <h2>Personel</h2>
+                        <div class="section-actions">
+                            <button class="btn-icon" title="Personel Ekle">
+                                <i class="fas fa-plus"></i>
+                            </button>
                         </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="personnel-grid">
+                            <!-- Personnel cards will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
 
-                        <!-- Personel Bilgileri -->
-                        <div class="detay-card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-users"></i> Personel Bilgileri</h2>
-                                <button class="btn btn-icon" id="editPersonnel">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                            </div>
-                            <div class="card-content">
-                                <div class="personel-grid">
-                                    <!-- Hakim -->
-                                    <div class="personel-card">
-                                        <div class="personel-avatar">
-                                            <i class="fas fa-user-tie"></i>
-                                        </div>
-                                        <div class="personel-info">
-                                            <h3>Hakim</h3>
-                                            <p id="hakimAdSoyad"></p>
-                                            <small id="hakimSicil"></small>
-                                            <div class="personel-contact">
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-phone"></i></a>
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-envelope"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Katip -->
-                                    <div class="personel-card">
-                                        <div class="personel-avatar">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                        <div class="personel-info">
-                                            <h3>Katip</h3>
-                                            <p id="katipAdSoyad"></p>
-                                            <small id="katipSicil"></small>
-                                            <div class="personel-contact">
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-phone"></i></a>
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-envelope"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <!-- Mübaşir -->
-                                    <div class="personel-card">
-                                        <div class="personel-avatar">
-                                            <i class="fas fa-user"></i>
-                                        </div>
-                                        <div class="personel-info">
-                                            <h3>Mübaşir</h3>
-                                            <p id="mubasirAdSoyad"></p>
-                                            <small id="mubasirSicil"></small>
-                                            <div class="personel-contact">
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-phone"></i></a>
-                                                <a href="#" class="btn btn-icon"><i class="fas fa-envelope"></i></a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                <!-- Devices -->
+                <div class="detail-section">
+                    <div class="section-header">
+                        <h2>Cihazlar</h2>
+                        <div class="section-actions">
+                            <button class="btn-icon" title="Cihaz Ekle">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="btn-icon" title="Filtrele">
+                                <i class="fas fa-filter"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="devices-grid">
+                            <!-- Device cards will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Activity Timeline -->
+                <div class="detail-section full-width">
+                    <div class="section-header">
+                        <h2>Aktivite Geçmişi</h2>
+                        <div class="section-actions">
+                            <div class="date-range-picker">
+                                <button class="btn-text active">Bugün</button>
+                                <button class="btn-text">Bu Hafta</button>
+                                <button class="btn-text">Bu Ay</button>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Sağ Kolon -->
-                    <div class="detail-column">
-                        <!-- Cihaz Durumu -->
-                        <div class="detay-card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-laptop"></i> Cihaz Durumu</h2>
-                                <button class="btn btn-primary" id="addDevice">
-                                    <i class="fas fa-plus"></i> Cihaz Ekle
-                                </button>
-                            </div>
-                            <div class="card-content">
-                                <div class="device-list" id="deviceList">
-                                    <!-- Cihazlar dinamik olarak eklenecek -->
-                                </div>
-                            </div>
+                    <div class="section-content">
+                        <div class="timeline">
+                            <!-- Timeline items will be populated by JavaScript -->
                         </div>
+                    </div>
+                </div>
 
-                        <!-- Arıza Geçmişi -->
-                        <div class="detay-card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-history"></i> Arıza Geçmişi</h2>
-                                <button class="btn btn-primary" id="reportIssue">
-                                    <i class="fas fa-plus"></i> Arıza Bildir
-                                </button>
-                            </div>
-                            <div class="card-content">
-                                <div class="issue-list" id="issueList">
-                                    <!-- Arızalar dinamik olarak eklenecek -->
-                                </div>
-                            </div>
+                <!-- QR & Barcode -->
+                <div class="detail-section full-width">
+                    <div class="section-header">
+                        <h2>QR & Barkod</h2>
+                        <div class="section-actions">
+                            <button class="btn-icon" title="İndir">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn-icon" title="Yazdır">
+                                <i class="fas fa-print"></i>
+                            </button>
                         </div>
-
-                        <!-- QR Kod ve Barkod -->
-                        <div class="detay-card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-qrcode"></i> QR Kod ve Barkod</h2>
-                                <div class="card-actions">
-                                    <button class="btn btn-icon" id="downloadQR">
-                                        <i class="fas fa-download"></i>
-                                    </button>
-                                    <button class="btn btn-icon" id="printCodes">
-                                        <i class="fas fa-print"></i>
-                                    </button>
-                                </div>
+                    </div>
+                    <div class="section-content">
+                        <div class="codes-grid">
+                            <div class="code-container">
+                                <div id="qrCode"></div>
+                                <span class="code-label">QR Kod</span>
                             </div>
-                            <div class="card-content">
-                                <div class="code-grid">
-                                    <div class="code-container">
-                                        <h3>QR Kod</h3>
-                                        <div id="qrCode"></div>
-                                    </div>
-                                    <div class="code-container">
-                                        <h3>Barkod</h3>
-                                        <svg id="barCode"></svg>
-                                    </div>
-                                </div>
+                            <div class="code-container">
+                                <svg id="barcode"></svg>
+                                <span class="code-label">Barkod</span>
                             </div>
                         </div>
                     </div>

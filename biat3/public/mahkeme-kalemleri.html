@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
-<body>
+<body class="with-sidebar">
     <!-- Toggle Theme -->
     <button class="toggle-theme">
         <i class="fas fa-moon"></i>
@@ -30,7 +30,7 @@
                             <span>Ana Sayfa</span>
                         </a>
                     </li>
-                    <li class="has-submenu active">
+                    <li class="has-submenu">
                         <a href="#">
                             <i class="fas fa-laptop"></i>
                             <span>Cihazlar</span>
@@ -101,49 +101,79 @@
             </div>
         </div>
 
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay"></div>
+
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-wrapper">
-                <div class="page-header">
-                    <h1>Mahkeme Kalemleri</h1>
-                </div>
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1>Mahkeme Kalemleri</h1>
+                <button class="btn-primary" id="addNewOfficeBtn">
+                    <i class="fas fa-plus"></i>
+                    <span>Yeni Kalem Ekle</span>
+                </button>
+            </div>
 
-                <!-- Filtreler -->
-                <div class="filters-section">
+            <!-- Search and Filter Section -->
+            <div class="search-filter-section">
+                <div class="search-row">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="courtOfficeSearch" placeholder="Mahkeme ara...">
+                        <input type="text" id="courtOfficeSearch" placeholder="Mahkeme adı, hakim veya konum ara...">
                     </div>
+                </div>
+                <div class="filter-row">
                     <div class="filter-group">
+                        <label>Mahkeme Türü</label>
                         <select id="typeFilter">
-                            <option value="">Tüm Türler</option>
+                            <option value="">Tümü</option>
                             <option value="Ağır Ceza">Ağır Ceza</option>
                             <option value="Asliye Hukuk">Asliye Hukuk</option>
                             <option value="Tüketici">Tüketici</option>
                         </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-group">
+                        <label>Konum</label>
                         <select id="locationFilter">
-                            <option value="">Tüm Konumlar</option>
+                            <option value="">Tümü</option>
                         </select>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="filter-group">
+                        <label>Durum</label>
                         <select id="statusFilter">
-                            <option value="">Tüm Durumlar</option>
+                            <option value="">Tümü</option>
                             <option value="active">Aktif</option>
                             <option value="issue">Arızalı</option>
                             <option value="maintenance">Bakımda</option>
                         </select>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
-                    <button id="addNewOfficeBtn" class="btn btn-primary">
-                        <i class="fas fa-plus"></i>
-                        Yeni Kalem Ekle
-                    </button>
+                    <div class="filter-actions">
+                        <button class="btn-reset" id="resetFilters">
+                            <i class="fas fa-undo"></i>
+                            <span>Sıfırla</span>
+                        </button>
+                        <button class="btn-apply" id="applyFilters">
+                            <i class="fas fa-filter"></i>
+                            <span>Uygula</span>
+                        </button>
+                    </div>
                 </div>
+                <div class="active-filters" id="activeFilters">
+                    <!-- Active filters will be added here dynamically -->
+                </div>
+            </div>
 
-                <!-- Mahkeme Kartları -->
-                <div class="court-offices-grid"></div>
+            <!-- Court Offices Grid -->
+            <div class="court-offices-grid">
+                <!-- Court office cards will be populated by JavaScript -->
             </div>
         </main>
     </div>
 
-    <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
 </body>
 </html> 
