@@ -1,23 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Form elements
     const form = document.getElementById('issueForm');
     const locationSelect = document.getElementById('location');
     const subLocationSelect = document.getElementById('subLocation');
     const deviceTypeSelect = document.getElementById('deviceType');
     const deviceIdSelect = document.getElementById('deviceId');
     const contactPhoneInput = document.getElementById('contactPhone');
-    const fileUpload = document.getElementById('fileUpload');
-    const filePreview = document.querySelector('.file-upload-preview');
-    const previewModal = document.getElementById('previewModal');
-    const closeModalBtn = document.querySelector('.close-modal');
-    const selectedFiles = new Set();
-
-    // Lokasyon değiştiğinde alt lokasyonları güncelle
+    
+    // Location change handler
     locationSelect.addEventListener('change', function() {
         const location = this.value;
         updateSubLocations(location);
     });
-
-    // Lokasyon ve cihaz türü değiştiğinde cihaz listesini güncelle
+    
+    // Device selection handlers
     [locationSelect, subLocationSelect, deviceTypeSelect].forEach(select => {
         select.addEventListener('change', function() {
             if (locationSelect.value && subLocationSelect.value && deviceTypeSelect.value) {
@@ -25,8 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
-    // Telefon numarası formatını düzenle
+    
+    // Phone number formatter
     contactPhoneInput.addEventListener('input', function(e) {
         let value = e.target.value.replace(/\D/g, '');
         if (value.length > 0) {
@@ -36,226 +32,20 @@ document.addEventListener('DOMContentLoaded', function() {
             e.target.value = value;
         }
     });
-
-    // Dosya yükleme işlemi
-    fileUpload.addEventListener('change', function(e) {
-        const files = Array.from(e.target.files);
-        
-        if (selectedFiles.size + files.length > 5) {
-            showErrorMessage('En fazla 5 dosya yükleyebilirsiniz.');
-            return;
-        }
-
-        files.forEach(file => {
-            if (file.size > 5 * 1024 * 1024) {
-                showErrorMessage(`${file.name} dosyası 5MB'dan büyük.`);
-                return;
-            }
-
-            if (!file.type.startsWith('image/')) {
-                showErrorMessage(`${file.name} bir resim dosyası değil.`);
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewItem = document.createElement('div');
-                previewItem.className = 'preview-item';
-                previewItem.innerHTML = `
-                    <img src="${e.target.result}" alt="${file.name}">
-                    <button type="button" class="remove-file" data-name="${file.name}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                filePreview.appendChild(previewItem);
-                selectedFiles.add(file);
-            };
-            reader.readAsDataURL(file);
-        });
-    });
-
-    // Dosya kaldırma işlemi
-    filePreview.addEventListener('click', function(e) {
-        if (e.target.closest('.remove-file')) {
-            const fileName = e.target.closest('.remove-file').dataset.name;
-            e.target.closest('.preview-item').remove();
-            selectedFiles.forEach(file => {
-                if (file.name === fileName) {
-                    selectedFiles.delete(file);
-                }
-            });
-        }
-    });
-
-    // Modal kapatma
-    closeModalBtn.addEventListener('click', closePreview);
-
-    // Önizleme modalını kapat
-    function closePreview() {
-        previewModal.classList.remove('show');
-    }
-
-    // Form önizleme
-    window.previewForm = function() {
-        if (!validateForm()) return;
-
-        const formData = new FormData(form);
-        const previewContent = document.getElementById('previewContent');
-        
-        const urgencyLabels = {
-            'low': 'Düşük',
-            'medium': 'Orta',
-            'high': 'Yüksek',
-            'critical': 'Kritik'
-        };
-
-        let previewHTML = '<div class="preview-content">';
-        
-        // Lokasyon bilgileri
-        previewHTML += `
-            <div class="preview-group">
-                <div class="preview-label">Lokasyon</div>
-                <div class="preview-value">${locationSelect.options[locationSelect.selectedIndex].text}</div>
-            </div>
-            <div class="preview-group">
-                <div class="preview-label">Alt Lokasyon</div>
-                <div class="preview-value">${subLocationSelect.options[subLocationSelect.selectedIndex].text}</div>
-            </div>
-        `;
-
-        // Cihaz bilgileri
-        previewHTML += `
-            <div class="preview-group">
-                <div class="preview-label">Cihaz Türü</div>
-                <div class="preview-value">${deviceTypeSelect.options[deviceTypeSelect.selectedIndex].text}</div>
-            </div>
-            <div class="preview-group">
-                <div class="preview-label">Cihaz No</div>
-                <div class="preview-value">${deviceIdSelect.options[deviceIdSelect.selectedIndex].text}</div>
-            </div>
-        `;
-
-        // Arıza bilgileri
-        const urgencyLevel = formData.get('urgencyLevel');
-        previewHTML += `
-            <div class="preview-group">
-                <div class="preview-label">Arıza Türü</div>
-                <div class="preview-value">${document.getElementById('issueType').options[document.getElementById('issueType').selectedIndex].text}</div>
-            </div>
-            <div class="preview-group">
-                <div class="preview-label">Aciliyet Seviyesi</div>
-                <div class="preview-value">
-                    <span class="urgency-badge ${urgencyLevel}">${urgencyLabels[urgencyLevel]}</span>
-                </div>
-            </div>
-        `;
-
-        // Tahmini süre
-        const estimatedTime = formData.get('estimatedTime');
-        if (estimatedTime) {
-            const hours = Math.floor(estimatedTime / 60);
-            const minutes = estimatedTime % 60;
-            const timeText = hours > 0 ? 
-                `${hours} saat${minutes > 0 ? ` ${minutes} dakika` : ''}` : 
-                `${minutes} dakika`;
-            
-            previewHTML += `
-                <div class="preview-group">
-                    <div class="preview-label">Tahmini Süre</div>
-                    <div class="preview-value">${timeText}</div>
-                </div>
-            `;
-        }
-
-        // Açıklama
-        previewHTML += `
-            <div class="preview-group">
-                <div class="preview-label">Arıza Açıklaması</div>
-                <div class="preview-value">${formData.get('description')}</div>
-            </div>
-        `;
-
-        // Dosyalar
-        if (selectedFiles.size > 0) {
-            previewHTML += `
-                <div class="preview-group">
-                    <div class="preview-label">Ekli Dosyalar</div>
-                    <div class="preview-files">
-                        ${Array.from(selectedFiles).map(file => `
-                            <div class="preview-file">
-                                <img src="${URL.createObjectURL(file)}" alt="${file.name}">
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        // İletişim bilgileri
-        previewHTML += `
-            <div class="preview-group">
-                <div class="preview-label">İletişim Bilgileri</div>
-                <div class="preview-value">
-                    ${formData.get('contactName')} - ${formData.get('contactPhone')}
-                </div>
-            </div>
-        `;
-
-        previewHTML += '</div>';
-        previewContent.innerHTML = previewHTML;
-        previewModal.classList.add('show');
-    };
-
-    // Form gönderme
-    window.submitForm = async function() {
-        const formData = new FormData(form);
-        selectedFiles.forEach(file => {
-            formData.append('files[]', file);
-        });
-
-        try {
-            // API çağrısı yapılacak
-            console.log('Form data:', Object.fromEntries(formData.entries()));
-            showSuccessMessage('Arıza bildirimi başarıyla oluşturuldu.');
-            form.reset();
-            filePreview.innerHTML = '';
-            selectedFiles.clear();
-            closePreview();
-        } catch (error) {
-            showErrorMessage('Arıza bildirimi oluşturulurken bir hata oluştu.');
-        }
-    };
-
-    // Form validasyonu
-    function validateForm() {
-        let isValid = true;
-        const requiredFields = form.querySelectorAll('[required]');
-        
-        requiredFields.forEach(field => {
-            if (!field.value.trim()) {
-                showFieldError(field, 'Bu alan zorunludur');
-                isValid = false;
-            } else {
-                removeFieldError(field);
-            }
-        });
-
-        return isValid;
-    }
-
-    // Alt lokasyonları güncelle
+    
+    // Update sub-locations based on selected location
     function updateSubLocations(location) {
         subLocationSelect.innerHTML = '<option value="">Alt Lokasyon Seçiniz</option>';
         
         if (!location) return;
-
-        // Örnek veri - API'den gelecek
+        
+        // Mock data - Replace with API call in production
         const subLocations = {
             'mahkeme-kalemi': ['1. Asliye Hukuk Mahkemesi', '2. Asliye Hukuk Mahkemesi', '3. Asliye Hukuk Mahkemesi'],
             'durusma-salonu': ['Duruşma Salonu 1', 'Duruşma Salonu 2', 'Duruşma Salonu 3'],
             'hakim-odasi': ['Hakim Odası 1', 'Hakim Odası 2', 'Hakim Odası 3']
         };
-
+        
         subLocations[location].forEach(subLoc => {
             const option = document.createElement('option');
             option.value = subLoc.toLowerCase().replace(/\s+/g, '-');
@@ -263,18 +53,18 @@ document.addEventListener('DOMContentLoaded', function() {
             subLocationSelect.appendChild(option);
         });
     }
-
-    // Cihazları güncelle
+    
+    // Update devices based on selected location and device type
     function updateDevices(location, subLocation, deviceType) {
         deviceIdSelect.innerHTML = '<option value="">Cihaz Seçiniz</option>';
         
-        // Örnek veri - API'den gelecek
+        // Mock data - Replace with API call in production
         const devices = [
             { id: 'PC001', name: 'Bilgisayar 001' },
             { id: 'PC002', name: 'Bilgisayar 002' },
             { id: 'PR001', name: 'Yazıcı 001' }
         ];
-
+        
         devices.forEach(device => {
             const option = document.createElement('option');
             option.value = device.id;
@@ -282,57 +72,306 @@ document.addEventListener('DOMContentLoaded', function() {
             deviceIdSelect.appendChild(option);
         });
     }
+    
+    // File Upload Handling
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileUpload');
+    const previewContainer = document.querySelector('.file-upload-preview');
+    const maxFiles = 5;
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    // Highlight drop zone when dragging over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, unhighlight, false);
+    });
+    
+    // Handle dropped files
+    dropZone.addEventListener('drop', handleDrop, false);
+    fileInput.addEventListener('change', handleFiles);
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    function highlight(e) {
+        dropZone.classList.add('dragover');
+    }
+    
+    function unhighlight(e) {
+        dropZone.classList.remove('dragover');
+    }
+    
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles({ target: { files } });
+    }
+    
+    function handleFiles(e) {
+        const files = Array.from(e.target.files);
+        const currentFiles = previewContainer.querySelectorAll('.preview-item').length;
+        
+        if (currentFiles + files.length > maxFiles) {
+            showNotification('error', `En fazla ${maxFiles} dosya yükleyebilirsiniz.`);
+            return;
+        }
+        
+        files.forEach(file => {
+            if (!file.type.startsWith('image/')) {
+                showNotification('error', `${file.name} bir resim dosyası değil.`);
+                return;
+            }
+            
+            if (file.size > maxFileSize) {
+                showNotification('error', `${file.name} 5MB'dan büyük.`);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = createPreviewItem(e.target.result, file.name);
+                previewContainer.appendChild(preview);
+                showNotification('success', `${file.name} başarıyla yüklendi.`);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    function createPreviewItem(src, fileName) {
+        const div = document.createElement('div');
+        div.className = 'preview-item';
+        div.innerHTML = `
+            <img src="${src}" alt="${fileName}">
+            <button type="button" class="remove-file" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        return div;
+    }
+    
+    // Form Submission
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!validateForm()) return;
+        
+        const formData = new FormData(form);
+        const fileUploads = document.querySelectorAll('.preview-item img');
+        
+        // Add files to form data
+        fileUploads.forEach((img, index) => {
+            // Convert base64 to blob
+            const blob = dataURLtoBlob(img.src);
+            formData.append(`file${index}`, blob);
+        });
+        
+        try {
+            // Simulated API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            showNotification('success', 'Arıza bildirimi başarıyla gönderildi.');
+            form.reset();
+            previewContainer.innerHTML = '';
+            
+        } catch (error) {
+            showNotification('error', 'Bir hata oluştu. Lütfen tekrar deneyin.');
+        }
+    });
+    
+    // Validate form
+    function validateForm() {
+        const inputs = form.querySelectorAll('input, select, textarea');
+        let isValid = true;
+        
+        inputs.forEach(input => {
+            if (input.hasAttribute('required') && !input.value) {
+                isValid = false;
+                showError(input, 'Bu alan zorunludur');
+            } else if (input.id === 'contactPhone' && input.value) {
+                const phoneRegex = /^0\(\d{3}\)\s\d{3}\s\d{2}\s\d{2}$/;
+                if (!phoneRegex.test(input.value)) {
+                    isValid = false;
+                    showError(input, 'Geçerli bir telefon numarası giriniz');
+                } else {
+                    clearError(input);
+                }
+            } else {
+                clearError(input);
+            }
+        });
 
-    // Hata mesajı göster
-    function showFieldError(field, message) {
-        const formGroup = field.closest('.form-group');
+        if (!isValid) {
+            showNotification('error', 'Lütfen tüm zorunlu alanları doldurunuz');
+        }
+        
+        return isValid;
+    }
+    
+    // Show error message
+    function showError(input, message) {
+        const formGroup = input.closest('.form-group');
+        const error = formGroup.querySelector('.error-message') || document.createElement('div');
+        error.className = 'error-message';
+        error.textContent = message;
+        
+        if (!formGroup.querySelector('.error-message')) {
+            formGroup.appendChild(error);
+        }
+        
         formGroup.classList.add('error');
-        
-        let errorMessage = formGroup.querySelector('.error-message');
-        if (!errorMessage) {
-            errorMessage = document.createElement('div');
-            errorMessage.className = 'error-message';
-            formGroup.appendChild(errorMessage);
-        }
-        errorMessage.textContent = message;
+        input.setAttribute('aria-invalid', 'true');
     }
-
-    // Hata mesajını kaldır
-    function removeFieldError(field) {
-        const formGroup = field.closest('.form-group');
+    
+    // Clear error message
+    function clearError(input) {
+        const formGroup = input.closest('.form-group');
+        const error = formGroup.querySelector('.error-message');
+        
+        if (error) {
+            error.remove();
+        }
+        
         formGroup.classList.remove('error');
+        input.removeAttribute('aria-invalid');
+    }
+    
+    function dataURLtoBlob(dataURL) {
+        const arr = dataURL.split(',');
+        const mime = arr[0].match(/:(.*?);/)[1];
+        const bstr = atob(arr[1]);
+        let n = bstr.length;
+        const u8arr = new Uint8Array(n);
         
-        const errorMessage = formGroup.querySelector('.error-message');
-        if (errorMessage) {
-            errorMessage.remove();
+        while (n--) {
+            u8arr[n] = bstr.charCodeAt(n);
+        }
+        
+        return new Blob([u8arr], { type: mime });
+    }
+    
+    function showNotification(type, message) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+            <span>${message}</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.add('hide');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Preview functionality
+    const previewBtn = document.getElementById('previewBtn');
+    const previewModal = document.getElementById('previewModal');
+    const closeModalBtn = document.getElementById('closeModal');
+    const editFormBtn = document.getElementById('editForm');
+    const confirmSubmitBtn = document.getElementById('confirmSubmit');
+
+    function showPreview() {
+        // Get form values
+        const location = document.getElementById('location').value;
+        const subLocation = document.getElementById('subLocation').value;
+        const deviceType = document.getElementById('deviceType').value;
+        const deviceId = document.getElementById('deviceId').value;
+        const issueType = document.getElementById('issueType').value;
+        const urgencyLevel = document.getElementById('urgencyLevel').value;
+        const description = document.getElementById('description').value;
+        const contactName = document.getElementById('contactName').value;
+        const contactPhone = document.getElementById('contactPhone').value;
+
+        // Update preview content
+        document.getElementById('previewLocation').textContent = locationSelect.options[locationSelect.selectedIndex].text;
+        document.getElementById('previewSubLocation').textContent = subLocationSelect.options[subLocationSelect.selectedIndex].text;
+        document.getElementById('previewDeviceType').textContent = deviceTypeSelect.options[deviceTypeSelect.selectedIndex].text;
+        document.getElementById('previewDeviceId').textContent = deviceIdSelect.options[deviceIdSelect.selectedIndex].text;
+        document.getElementById('previewIssueType').textContent = document.getElementById('issueType').options[document.getElementById('issueType').selectedIndex].text;
+        document.getElementById('previewUrgencyLevel').innerHTML = `<span class="urgency-badge ${urgencyLevel.toLowerCase()}">${document.getElementById('urgencyLevel').options[document.getElementById('urgencyLevel').selectedIndex].text}</span>`;
+        document.getElementById('previewDescription').textContent = description;
+        document.getElementById('previewContactName').textContent = contactName;
+        document.getElementById('previewContactPhone').textContent = contactPhone;
+
+        // Handle file previews
+        const previewFiles = document.getElementById('previewFiles');
+        previewFiles.innerHTML = '';
+        const fileInput = document.getElementById('fileUpload');
+        
+        if (fileInput.files.length > 0) {
+            Array.from(fileInput.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const div = document.createElement('div');
+                        div.className = 'preview-file';
+                        div.innerHTML = `<img src="${e.target.result}" alt="${file.name}">`;
+                        previewFiles.appendChild(div);
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = 'preview-file';
+                    div.innerHTML = `<div class="file-icon"><i class="fas fa-file"></i></div>
+                                    <div class="file-name">${file.name}</div>`;
+                    previewFiles.appendChild(div);
+                }
+            });
+        } else {
+            previewFiles.innerHTML = '<p>Dosya yüklenmedi</p>';
+        }
+
+        // Show modal
+        previewModal.classList.add('show');
+    }
+
+    function hidePreview() {
+        previewModal.classList.remove('show');
+    }
+
+    function validateAndSubmit() {
+        if (validateForm()) {
+            hidePreview();
+            document.getElementById('issueForm').submit();
         }
     }
 
-    // Başarı mesajı göster
-    function showSuccessMessage(message) {
-        const successMessage = document.createElement('div');
-        successMessage.className = 'success-message';
-        successMessage.innerHTML = `<i class="fas fa-check-circle"></i>${message}`;
-        
-        form.insertBefore(successMessage, form.firstChild);
-        
-        setTimeout(() => {
-            successMessage.remove();
-        }, 3000);
-    }
+    // Event listeners
+    previewBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (validateForm(true)) {
+            showPreview();
+        }
+    });
 
-    // Hata mesajı göster
-    function showErrorMessage(message) {
-        const errorMessage = document.createElement('div');
-        errorMessage.className = 'error-message';
-        errorMessage.style.padding = '1rem';
-        errorMessage.style.marginBottom = '1rem';
-        errorMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i>${message}`;
-        
-        form.insertBefore(errorMessage, form.firstChild);
-        
-        setTimeout(() => {
-            errorMessage.remove();
-        }, 3000);
-    }
-}); 
+    closeModalBtn.addEventListener('click', hidePreview);
+    editFormBtn.addEventListener('click', hidePreview);
+    confirmSubmitBtn.addEventListener('click', validateAndSubmit);
+
+    // Close modal when clicking outside
+    previewModal.addEventListener('click', (e) => {
+        if (e.target === previewModal) {
+            hidePreview();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && previewModal.classList.contains('show')) {
+            hidePreview();
+        }
+    });
+});

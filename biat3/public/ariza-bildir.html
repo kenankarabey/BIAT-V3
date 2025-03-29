@@ -38,7 +38,7 @@
                         </a>
                         <ul class="submenu">
                             <li>
-                                <a href="tum-cihazlar.html" >
+                                <a href="tum-cihazlar.html">
                                     <i class="fas fa-list"></i>
                                     <span>Tüm Cihazlar</span>
                                 </a>
@@ -122,112 +122,147 @@
                     <!-- Lokasyon Bilgileri -->
                     <div class="form-group">
                         <label for="location">Lokasyon</label>
-                        <select id="location" name="location" required>
-                            <option value="">Lokasyon Seçiniz</option>
-                            <option value="mahkeme-kalemi">Mahkeme Kalemi</option>
-                            <option value="durusma-salonu">Duruşma Salonu</option>
-                            <option value="hakim-odasi">Hakim Odası</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-building"></i>
+                            </span>
+                            <select id="location" name="location" required>
+                                <option value="">Lokasyon Seçiniz</option>
+                                <option value="mahkeme-kalemi">Mahkeme Kalemi</option>
+                                <option value="durusma-salonu">Duruşma Salonu</option>
+                                <option value="hakim-odasi">Hakim Odası</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="subLocation">Alt Lokasyon</label>
-                        <select id="subLocation" name="subLocation" required>
-                            <option value="">Alt Lokasyon Seçiniz</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-door-open"></i>
+                            </span>
+                            <select id="subLocation" name="subLocation" required>
+                                <option value="">Alt Lokasyon Seçiniz</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Cihaz Bilgileri -->
                     <div class="form-group">
                         <label for="deviceType">Cihaz Türü</label>
-                        <select id="deviceType" name="deviceType" required>
-                            <option value="">Cihaz Türü Seçiniz</option>
-                            <option value="bilgisayar">Bilgisayar</option>
-                            <option value="yazici">Yazıcı</option>
-                            <option value="tarayici">Tarayıcı</option>
-                            <option value="tv">Televizyon</option>
-                            <option value="kamera">Kamera</option>
-                            <option value="segbis">SEGBİS</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-hdd"></i>
+                            </span>
+                            <select id="deviceType" name="deviceType" required>
+                                <option value="">Cihaz Türü Seçiniz</option>
+                                <option value="bilgisayar">Bilgisayar</option>
+                                <option value="yazici">Yazıcı</option>
+                                <option value="tarayici">Tarayıcı</option>
+                                <option value="tv">Televizyon</option>
+                                <option value="kamera">Kamera</option>
+                                <option value="segbis">SEGBİS</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="deviceId">Cihaz No</label>
-                        <select id="deviceId" name="deviceId" required>
-                            <option value="">Cihaz Seçiniz</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-barcode"></i>
+                            </span>
+                            <select id="deviceId" name="deviceId" required>
+                                <option value="">Cihaz Seçiniz</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Arıza Bilgileri -->
-                    <div class="form-group full-width">
+                    <div class="form-group">
                         <label for="issueType">Arıza Türü</label>
-                        <select id="issueType" name="issueType" required>
-                            <option value="">Arıza Türü Seçiniz</option>
-                            <option value="donanim">Donanım Arızası</option>
-                            <option value="yazilim">Yazılım Arızası</option>
-                            <option value="ag">Ağ Arızası</option>
-                            <option value="diger">Diğer</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            <select id="issueType" name="issueType" required>
+                                <option value="">Arıza Türü Seçiniz</option>
+                                <option value="donanim">Donanım Arızası</option>
+                                <option value="yazilim">Yazılım Arızası</option>
+                                <option value="ag">Ağ Arızası</option>
+                                <option value="diger">Diğer</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="urgencyLevel">Aciliyet Seviyesi</label>
-                        <select id="urgencyLevel" name="urgencyLevel" required>
-                            <option value="">Aciliyet Seçiniz</option>
-                            <option value="low">Düşük - Çalışmayı Etkilemiyor</option>
-                            <option value="medium">Orta - Kısmen Etkiliyor</option>
-                            <option value="high">Yüksek - Ciddi Şekilde Etkiliyor</option>
-                            <option value="critical">Kritik - Çalışmayı Durduruyor</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="estimatedTime">Tahmini Süre</label>
-                        <select id="estimatedTime" name="estimatedTime">
-                            <option value="">Tahmini Süre Seçiniz</option>
-                            <option value="15">15 dakika</option>
-                            <option value="30">30 dakika</option>
-                            <option value="60">1 saat</option>
-                            <option value="120">2 saat</option>
-                            <option value="240">4 saat</option>
-                            <option value="480">8 saat</option>
-                        </select>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-flag"></i>
+                            </span>
+                            <select id="urgencyLevel" name="urgencyLevel" required>
+                                <option value="">Aciliyet Seçiniz</option>
+                                <option value="low">Düşük - Çalışmayı Etkilemiyor</option>
+                                <option value="medium">Orta - Kısmen Etkiliyor</option>
+                                <option value="high">Yüksek - Ciddi Şekilde Etkiliyor</option>
+                                <option value="critical">Kritik - Çalışmayı Durduruyor</option>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="description">Arıza Açıklaması</label>
-                        <textarea id="description" name="description" placeholder="Lütfen arızayı detaylı bir şekilde açıklayınız..." required></textarea>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="fileUpload">Ekran Görüntüsü veya Fotoğraf</label>
-                        <div class="file-upload-container">
-                            <input type="file" id="fileUpload" name="fileUpload" accept="image/*" multiple>
-                            <div class="file-upload-preview"></div>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-comment-alt"></i>
+                            </span>
+                            <textarea id="description" name="description" placeholder="Lütfen arızayı detaylı bir şekilde açıklayınız..." required></textarea>
                         </div>
-                        <small class="file-info">En fazla 5 dosya, her biri maksimum 5MB. (PNG, JPG, JPEG)</small>
                     </div>
 
                     <!-- İletişim Bilgileri -->
                     <div class="form-group">
                         <label for="contactName">İletişim İsmi</label>
-                        <input type="text" id="contactName" name="contactName" placeholder="İletişim kurulacak kişi" required>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <input type="text" id="contactName" name="contactName" placeholder="İletişim kurulacak kişi" required>
+                        </div>
                     </div>
 
                     <div class="form-group">
                         <label for="contactPhone">İletişim Telefonu</label>
-                        <input type="tel" id="contactPhone" name="contactPhone" placeholder="0(5XX) XXX XX XX" required>
+                        <div class="input-group">
+                            <span class="input-icon">
+                                <i class="fas fa-phone"></i>
+                            </span>
+                            <input type="tel" id="contactPhone" name="contactPhone" placeholder="0(5XX) XXX XX XX" required>
+                        </div>
                     </div>
 
-                    <!-- Form Actions -->
-                    <div class="form-actions">
-                        <button type="button" class="btn-preview" onclick="previewForm()">
+                    <!-- Dosya Yükleme -->
+                    <div class="form-group full-width">
+                        <label for="fileUpload">Ekran Görüntüsü veya Fotoğraf</label>
+                        <div class="file-upload-container" id="dropZone">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">
+                                <p>Dosyaları sürükleyip bırakın veya seçmek için tıklayın</p>
+                                <span>En fazla 5 dosya, her biri maksimum 5MB. (PNG, JPG, JPEG)</span>
+                            </div>
+                            <input type="file" id="fileUpload" name="fileUpload" accept="image/*" multiple>
+                            <div class="file-upload-preview"></div>
+                        </div>
+                    </div>
+
+                    <!-- Form Submit -->
+                    <div class="form-actions full-width">
+                        <button type="button" class="btn-preview" id="previewBtn">
                             <i class="fas fa-eye"></i>
                             Önizle
-                        </button>
-                        <button type="reset" class="btn-reset">
-                            <i class="fas fa-undo"></i>
-                            Formu Temizle
                         </button>
                         <button type="submit" class="btn-submit">
                             <i class="fas fa-paper-plane"></i>
@@ -236,26 +271,89 @@
                     </div>
                 </form>
             </div>
+        </main>
+    </div>
 
-            <!-- Preview Modal -->
-            <div class="modal" id="previewModal">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h2>Arıza Bildirimi Önizleme</h2>
-                        <button class="close-modal">
-                            <i class="fas fa-times"></i>
-                        </button>
+    <!-- Preview Modal -->
+    <div class="modal" id="previewModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Arıza Bildirimi Önizleme</h2>
+                <button class="close-modal" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="preview-content">
+                    <div class="preview-section">
+                        <h3><i class="fas fa-map-marker-alt"></i> Lokasyon Bilgileri</h3>
+                        <div class="preview-group">
+                            <div class="preview-label">Lokasyon</div>
+                            <div class="preview-value" id="previewLocation"></div>
+                        </div>
+                        <div class="preview-group">
+                            <div class="preview-label">Alt Lokasyon</div>
+                            <div class="preview-value" id="previewSubLocation"></div>
+                        </div>
                     </div>
-                    <div class="modal-body">
-                        <div id="previewContent"></div>
+
+                    <div class="preview-section">
+                        <h3><i class="fas fa-laptop"></i> Cihaz Bilgileri</h3>
+                        <div class="preview-group">
+                            <div class="preview-label">Cihaz Türü</div>
+                            <div class="preview-value" id="previewDeviceType"></div>
+                        </div>
+                        <div class="preview-group">
+                            <div class="preview-label">Cihaz No</div>
+                            <div class="preview-value" id="previewDeviceId"></div>
+                        </div>
                     </div>
-                    <div class="modal-footer">
-                        <button class="btn-secondary" onclick="closePreview()">Düzenle</button>
-                        <button class="btn-primary" onclick="submitForm()">Onayla ve Gönder</button>
+
+                    <div class="preview-section">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Arıza Bilgileri</h3>
+                        <div class="preview-group">
+                            <div class="preview-label">Arıza Türü</div>
+                            <div class="preview-value" id="previewIssueType"></div>
+                        </div>
+                        <div class="preview-group">
+                            <div class="preview-label">Aciliyet Seviyesi</div>
+                            <div class="preview-value" id="previewUrgencyLevel"></div>
+                        </div>
+                        <div class="preview-group">
+                            <div class="preview-label">Arıza Açıklaması</div>
+                            <div class="preview-value" id="previewDescription"></div>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <h3><i class="fas fa-user"></i> İletişim Bilgileri</h3>
+                        <div class="preview-group">
+                            <div class="preview-label">İletişim İsmi</div>
+                            <div class="preview-value" id="previewContactName"></div>
+                        </div>
+                        <div class="preview-group">
+                            <div class="preview-label">İletişim Telefonu</div>
+                            <div class="preview-value" id="previewContactPhone"></div>
+                        </div>
+                    </div>
+
+                    <div class="preview-section">
+                        <h3><i class="fas fa-images"></i> Yüklenen Dosyalar</h3>
+                        <div class="preview-files" id="previewFiles"></div>
                     </div>
                 </div>
             </div>
-        </main>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="editForm">
+                    <i class="fas fa-edit"></i>
+                    Düzenle
+                </button>
+                <button class="btn-submit" id="confirmSubmit">
+                    <i class="fas fa-paper-plane"></i>
+                    Onayla ve Gönder
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="sidebar-overlay"></div>

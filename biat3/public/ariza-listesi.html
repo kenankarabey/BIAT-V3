@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Arıza Listesi - BIAT</title>
+    <title>Arıza Listesi - BİAT</title>
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -38,7 +38,7 @@
                         </a>
                         <ul class="submenu">
                             <li>
-                                <a href="tum-cihazlar.html" >
+                                <a href="tum-cihazlar.html">
                                     <i class="fas fa-list"></i>
                                     <span>Tüm Cihazlar</span>
                                 </a>
@@ -63,7 +63,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="has-submenu active">
+                    <li class="has-submenu">
                         <a href="#">
                             <i class="fas fa-tools"></i>
                             <span>Arıza Takip</span>
@@ -112,18 +112,161 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
+            <header class="content-header">
                 <h1>Arıza Listesi</h1>
+                <div class="header-actions">
+                    <button class="toggle-theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <a href="ariza-bildir.html" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Yeni Arıza Bildir
+                    </a>
+                </div>
+            </header>
+
+            <!-- Quick Stats -->
+            <div class="stats-cards">
+                <div class="stat-card pending">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-count" id="pendingCount">0</div>
+                        <div class="stat-label">Bekleyen</div>
+                    </div>
+                </div>
+                <div class="stat-card in-progress">
+                    <div class="stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-count" id="inProgressCount">0</div>
+                        <div class="stat-label">İşlemde</div>
+                    </div>
+                </div>
+                <div class="stat-card completed">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-count" id="completedCount">0</div>
+                        <div class="stat-label">Tamamlanan</div>
+                    </div>
+                </div>
+                <div class="stat-card canceled">
+                    <div class="stat-icon">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-count" id="canceledCount">0</div>
+                        <div class="stat-label">İptal Edilen</div>
+                    </div>
+                </div>
             </div>
 
-            <div class="issue-list-grid">
-                <!-- Issue List will be added dynamically via JavaScript -->
+            <!-- Filters -->
+            <section class="filters-section">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <label for="searchInput">Ara</label>
+                        <input type="text" id="searchInput" placeholder="Arıza no, lokasyon veya açıklama...">
+                    </div>
+                    <div class="form-group">
+                        <label for="locationFilter">Lokasyon</label>
+                        <select id="locationFilter">
+                            <option value="">Tümü</option>
+                            <option value="mahkeme">Mahkeme Kalemi</option>
+                            <option value="durusma">Duruşma Salonu</option>
+                            <option value="icra">İcra Dairesi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="deviceTypeFilter">Cihaz Türü</label>
+                        <select id="deviceTypeFilter">
+                            <option value="">Tümü</option>
+                            <option value="bilgisayar">Bilgisayar</option>
+                            <option value="yazici">Yazıcı</option>
+                            <option value="segbis">SEGBİS</option>
+                            <option value="tarayici">Tarayıcı</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusFilter">Durum</label>
+                        <select id="statusFilter">
+                            <option value="">Tümü</option>
+                            <option value="beklemede">Beklemede</option>
+                            <option value="islemde">İşlemde</option>
+                            <option value="tamamlandi">Tamamlandı</option>
+                            <option value="iptal">İptal Edildi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="urgencyFilter">Aciliyet</label>
+                        <select id="urgencyFilter">
+                            <option value="">Tümü</option>
+                            <option value="low">Düşük</option>
+                            <option value="medium">Orta</option>
+                            <option value="high">Yüksek</option>
+                            <option value="critical">Kritik</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filters-actions">
+                    <button class="btn btn-secondary" onclick="resetFilters()">
+                        <i class="fas fa-undo"></i>
+                        Filtreleri Sıfırla
+                    </button>
+                    <button class="btn btn-primary" onclick="applyFilters()">
+                        <i class="fas fa-filter"></i>
+                        Uygula
+                    </button>
+                </div>
+                <div id="activeFilters" class="active-filters"></div>
+            </section>
+
+            <!-- Issues Table -->
+            <div class="table-container">
+                <table class="issues-table">
+                    <thead>
+                        <tr>
+                            <th>Arıza No</th>
+                            <th>Tarih</th>
+                            <th>Lokasyon</th>
+                            <th>Cihaz</th>
+                            <th>Arıza Türü</th>
+                            <th>Aciliyet</th>
+                            <th>Durum</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="issuesTableBody">
+                        <!-- JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
 
-    <div class="sidebar-overlay"></div>
+    <!-- Issue Details Modal -->
+    <div class="modal" id="issueDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Arıza Detayları</h2>
+                <button class="close-modal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="issueDetails">
+                    <!-- JavaScript ile doldurulacak -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/ariza-listesi.js"></script>
 </body>
 </html> 
