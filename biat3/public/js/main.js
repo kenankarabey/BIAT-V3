@@ -100,26 +100,60 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTheme();
     setupSidebar();
     setupContent();
+    checkLoginStatus(); // Login durumunu kontrol et
 });
+
+// Login durumunu kontrol et
+function checkLoginStatus() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    if (!isLoggedIn && currentPage !== 'login.html') {
+        window.location.href = 'login.html';
+    }
+}
+
+// Logout fonksiyonu
+function logout() {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    localStorage.removeItem('rememberMe');
+    window.location.href = 'login.html';
+}
 
 // Tema ayarları
 function setupTheme() {
     const htmlElement = document.documentElement;
     const toggleThemeButton = document.querySelector('.toggle-theme');
     
-    if (toggleThemeButton) {
-        // Kaydedilmiş tema varsa uygula
+    // Kaydedilmiş tema varsa uygula
     const savedTheme = localStorage.getItem('theme') || 'light';
     htmlElement.setAttribute('data-theme', savedTheme);
-        toggleThemeButton.querySelector('i').className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    
+    // Tema değiştirme butonu varsa
+    if (toggleThemeButton) {
+        // İkon güncelleme fonksiyonu
+        const updateThemeIcon = (theme) => {
+            const themeIcon = toggleThemeButton.querySelector('i');
+            if (themeIcon) {
+                themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        };
+
+        // Başlangıçta ikonu ayarla
+        updateThemeIcon(savedTheme);
 
         // Tema değiştirme olayı
         toggleThemeButton.addEventListener('click', () => {
             const currentTheme = htmlElement.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            // Tema değişikliğini uygula
             htmlElement.setAttribute('data-theme', newTheme);
-            toggleThemeButton.querySelector('i').className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             localStorage.setItem('theme', newTheme);
+            
+            // İkonu güncelle
+            updateThemeIcon(newTheme);
         });
     }
 }

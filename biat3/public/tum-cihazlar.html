@@ -109,61 +109,105 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <!-- Device Statistics -->
-            <section class="device-stats-section">
-                <div class="device-stats-grid">
-                    <div class="device-stat-card computer">
-                        <i class="fas fa-desktop"></i>
-                        <h3>Bilgisayar</h3>
-                        <span class="stat-number" id="computerCount">0</span>
-                    </div>
-                    <div class="device-stat-card screen">
-                        <i class="fas fa-desktop"></i>
-                        <h3>Ekran</h3>
-                        <span class="stat-number" id="screenCount">0</span>
-                    </div>
-                    <div class="device-stat-card printer">
-                        <i class="fas fa-print"></i>
-                        <h3>Yazıcı</h3>
-                        <span class="stat-number" id="printerCount">0</span>
-                    </div>
-                    <div class="device-stat-card scanner">
-                        <i class="fas fa-scanner"></i>
-                        <h3>Tarayıcı</h3>
-                        <span class="stat-number" id="scannerCount">0</span>
-                    </div>
-                    <div class="device-stat-card tv">
-                        <i class="fas fa-tv"></i>
-                        <h3>Televizyon</h3>
-                        <span class="stat-number" id="tvCount">0</span>
-                    </div>
-                    <div class="device-stat-card camera">
-                        <i class="fas fa-video"></i>
-                        <h3>Kamera</h3>
-                        <span class="stat-number" id="cameraCount">0</span>
-                    </div>
-                    <div class="device-stat-card segbis">
-                        <i class="fas fa-video-plus"></i>
-                        <h3>SEGBIS</h3>
-                        <span class="stat-number" id="segbisCount">0</span>
-                    </div>
-                    <div class="device-stat-card ehearing">
-                        <i class="fas fa-gavel"></i>
-                        <h3>E-Duruşma</h3>
-                        <span class="stat-number" id="ehearingCount">0</span>
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="header-content">
+                    <a href="index.html" class="back-button">
+                        <i class="fas fa-arrow-left"></i>
+                    </a>
+                    <div class="header-info">
+                        <div class="header-title">
+                            <h1>Tüm Cihazlar</h1>
+                        </div>
+                        <div class="header-subtitle">
+                            Tüm cihazların listesi ve detayları
+                        </div>
                     </div>
                 </div>
-            </section>
+            </div>
+
+            <!-- Quick Stats Bar -->
+            <div class="quick-stats-bar">
+                <div class="stat-item">
+                    <div class="stat-icon success">
+                        <i class="fas fa-desktop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="computerCount">0</div>
+                        <div class="stat-label">Bilgisayar</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon info">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="printerCount">0</div>
+                        <div class="stat-label">Yazıcı</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-scanner"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="scannerCount">0</div>
+                        <div class="stat-label">Tarayıcı</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-tv"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="tvCount">0</div>
+                        <div class="stat-label">TV</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon info">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="cameraCount">0</div>
+                        <div class="stat-label">Kamera</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon success">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="segbisCount">0</div>
+                        <div class="stat-label">SEGBIS</div>
+                    </div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="ehearingCount">0</div>
+                        <div class="stat-label">E-Duruşma</div>
+                    </div>
+                </div>
+            </div>
 
             <!-- Device Management Section -->
             <section class="device-management">
                 <!-- Action Buttons -->
                 <div class="action-buttons">
-                    <button class="add-btn" onclick="showAddModal()">
+                    <button class="btn btn-primary" onclick="showAddModal()">
                         <i class="fas fa-plus"></i>
                         <span>Yeni Cihaz Ekle</span>
                     </button>
-                    <button class="filter-btn" onclick="toggleFilter()">
+                    <button class="btn btn-secondary" onclick="toggleFilter()">
                         <i class="fas fa-filter"></i>
                         <span>Filtrele</span>
                     </button>
@@ -190,7 +234,7 @@
                             <i class="fas fa-video"></i> Kamera
                         </button>
                         <button class="tab-button" data-tab="segbis">
-                            <i class="fas fa-video-plus"></i> SEGBIS
+                            <i class="fas fa-video"></i> SEGBIS
                         </button>
                         <button class="tab-button" data-tab="ehearing">
                             <i class="fas fa-gavel"></i> E-Duruşma

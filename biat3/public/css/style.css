@@ -1,15 +1,23 @@
 /* Variables */
 :root {
+    /* Light Theme Variables */
+    --bg-color: #f5f6fa;
+    --text-color: #2d3436;
     --primary-color: #161a4a;
-    --primary-dark: #0d1133;
-    --primary-light: rgba(22, 26, 74, 0.1);
-    --secondary-color: #ffffff;
-    --text-color: #2c3e50;
-    --text-light: #7f8c8d;
-    --background-color: #f8f9fc;
+    --secondary-color: #161a4a;
+    --danger-color: #d63031;
+    --warning-color: #fdcb6e;
+    --success-color: #00b894;
+    --border-color: #dfe6e9;
     --card-bg: #ffffff;
-    --border-color: #e6e9f0;
-    --hover-color: #f5f6fa;
+    --hover-color: #f1f2f6;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    /* Common Variables */
+    --sidebar-width: 260px;
+    --sidebar-collapsed-width: 70px;
+    --border-radius: 8px;
+    --transition: 0.3s ease;
     
     /* Status Colors */
     --success: #2ed573;
@@ -21,32 +29,26 @@
     --info: #2d98da;
     --info-light: rgba(45, 152, 218, 0.1);
 
-    /* Shadows */
-    --card-shadow: 0 4px 6px rgba(22, 26, 74, 0.1);
-    --header-shadow: 0 2px 4px rgba(22, 26, 74, 0.08);
-    
     /* Layout */
     --header-height: 70px;
-    --border-radius: 12px;
-    --transition: all 0.3s ease;
-    --sidebar-width: 280px;
-    --sidebar-collapsed-width: 70px;
     --transition-transform: transform 0.3s ease;
     --transition-all: all 0.3s ease;
 }
 
 /* Dark Theme Variables */
 [data-theme="dark"] {
+    /* Dark Theme Variables */
+    --bg-color: #2d3436;
+    --text-color: #f5f6fa;
     --primary-color: #161a4a;
-    --primary-dark: #0d1133;
-    --primary-light: rgba(22, 26, 74, 0.2);
-    --secondary-color: #ffffff;
-    --text-color: #ecf0f1;
-    --text-light: #bdc3c7;
-    --background-color: #1e2235;
-    --card-bg: #2a2f45;
-    --border-color: #363c54;
-    --hover-color: #32384f;
+    --secondary-color: #161a4a;
+    --danger-color: #ff7675;
+    --warning-color: #ffeaa7;
+    --success-color: #55efc4;
+    --border-color: #636e72;
+    --card-bg: #2d3436;
+    --hover-color: #353b48;
+    --shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     
     /* Status Colors in Dark Mode */
     --success: #2ed573;
@@ -66,6 +68,29 @@
     --login-text: #ecf0f1;
     --login-sidebar-bg: #1a1f3d;
     --login-sidebar-text: #ecf0f1;
+}
+
+/* Theme Variables */
+[data-theme="light"] {
+    --text-color: #2c3e50;
+    --background-color: #f8f9fc;
+    --card-bg: #ffffff;
+    --border-color: #e6e9f0;
+    --table-bg: #ffffff;
+    --table-text: #2c3e50;
+    --table-border: #e6e9f0;
+    --table-hover: rgba(22, 26, 74, 0.1);
+}
+
+[data-theme="dark"] {
+    --text-color: #ffffff;
+    --background-color: #1a1a1a;
+    --card-bg: #2a2f45;
+    --border-color: #404040;
+    --table-bg: #2a2f45;
+    --table-text: #ffffff;
+    --table-border: #404040;
+    --table-hover: rgba(255, 255, 255, 0.1);
 }
 
 /* Reset */
@@ -188,6 +213,7 @@ body {
     display: flex;
     align-items: center;
     gap: 1rem;
+    position: relative;
 }
 
 .user-profile img {
@@ -209,8 +235,32 @@ body {
 
 .user-info p {
     font-size: 1rem;
-    font-weight: 500;
     color: var(--text-color);
+    font-weight: 500;
+    margin: 0;
+}
+
+.logout-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light);
+    background: var(--hover-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: scale(1.1);
+}
+
+.logout-btn i {
+    font-size: 1rem;
 }
 
 /* Content Header */
@@ -1314,11 +1364,6 @@ body {
 .stat-card .stat-icon.info {
     background: var(--info-light);
     color: var(--info);
-}
-
-.stat-card .stat-icon.success {
-    background: var(--success-light);
-    color: var(--success);
 }
 
 .stat-card .stat-info {
@@ -5023,4 +5068,140 @@ input:checked + .slider:before {
 
 [data-theme="dark"] .session-info p {
     color: var(--text-light);
+}
+
+/* Tables */
+.table-section {
+    background-color: var(--table-bg) !important;
+    border: 1px solid var(--table-border) !important;
+    border-radius: 8px;
+    margin: 1rem;
+    overflow: hidden;
+}
+
+.devices-table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: var(--table-bg) !important;
+    color: var(--table-text) !important;
+}
+
+.devices-table th {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+    padding: 1rem;
+    text-align: left;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.devices-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--table-border) !important;
+    color: var(--table-text) !important;
+}
+
+.devices-table tbody tr:hover {
+    background-color: var(--table-hover) !important;
+}
+
+/* Device Tabs */
+.device-tabs {
+    background-color: var(--table-bg) !important;
+}
+
+.tab-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--table-border) !important;
+    background-color: var(--table-bg) !important;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--table-bg) !important;
+    color: var(--table-text) !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tab-button:hover {
+    background-color: var(--table-hover) !important;
+}
+
+.tab-button.active {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+/* Action Buttons */
+.action-buttons {
+    background-color: var(--table-bg) !important;
+    border-bottom: 1px solid var(--table-border) !important;
+}
+
+.edit-btn, .delete-btn {
+    padding: 0.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin: 0 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+}
+
+.edit-btn {
+    background-color: var(--primary-color) !important;
+    color: #ffffff !important;
+}
+
+.delete-btn {
+    background-color: var(--danger) !important;
+    color: #ffffff !important;
+}
+
+.edit-btn:hover, .delete-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Theme Toggle Button */
+.toggle-theme {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.toggle-theme:hover {
+    transform: scale(1.1);
+    background-color: var(--secondary-color);
+}
+
+.toggle-theme i {
+    font-size: 1.2rem;
 }

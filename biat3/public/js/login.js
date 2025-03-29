@@ -1,100 +1,74 @@
 // Toggle password visibility
 function togglePassword() {
     const passwordInput = document.getElementById('password');
-    const toggleBtn = document.querySelector('.toggle-password');
+    const toggleButton = document.querySelector('.toggle-password i');
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleBtn.innerHTML = '<i class="fas fa-eye-slash"></i>';
+        toggleButton.classList.remove('fa-eye');
+        toggleButton.classList.add('fa-eye-slash');
     } else {
         passwordInput.type = 'password';
-        toggleBtn.innerHTML = '<i class="fas fa-eye"></i>';
+        toggleButton.classList.remove('fa-eye-slash');
+        toggleButton.classList.add('fa-eye');
     }
 }
 
-// Handle login form submission
-async function handleLogin(event) {
+// Login form submit handler
+function handleLogin(event) {
     event.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
     
-    try {
-        // Here you would typically send a request to your backend
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password, remember })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Giriş başarısız');
-        }
-        
-        const data = await response.json();
-        
-        // Store the token
+    // Burada gerçek bir API çağrısı yapılacak
+    // Şimdilik basit bir kontrol yapıyoruz
+    if (username === 'admin' && password === 'admin') {
+        // Başarılı giriş
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('username', username);
         if (remember) {
-            localStorage.setItem('token', data.token);
-        } else {
-            sessionStorage.setItem('token', data.token);
+            localStorage.setItem('rememberMe', 'true');
         }
         
-        // Redirect to dashboard
-        window.location.href = '/';
-        
-    } catch (error) {
-        showNotification('Kullanıcı adı veya şifre hatalı', 'error');
-    }
+        // Tema ayarını koru
     
-    return false;
+        window.location.href = 'index.html';
+    } else {
+        showNotification('Kullanıcı adı veya şifre hatalı!', 'error');
+    }
+}
+
+// Logout function
+function logout() {
+    // Sadece login ile ilgili verileri temizle
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('username');
+    localStorage.removeItem('rememberMe');
+    
+    // Login sayfasına yönlendir
+    window.location.href = 'login.html';
 }
 
 // Show forgot password dialog
 function showForgotPassword() {
     const dialog = document.getElementById('forgotPasswordDialog');
-    dialog.classList.add('show');
+    dialog.style.display = 'block';
 }
 
 // Close forgot password dialog
 function closeForgotPassword() {
     const dialog = document.getElementById('forgotPasswordDialog');
-    dialog.classList.remove('show');
-    document.getElementById('resetEmail').value = '';
+    dialog.style.display = 'none';
 }
 
-// Send password reset link
-async function sendResetLink() {
+// Send reset link
+function sendResetLink() {
     const email = document.getElementById('resetEmail').value;
-    
-    if (!email) {
-        showNotification('Lütfen e-posta adresinizi girin', 'error');
-        return;
-    }
-    
-    try {
-        // Here you would typically send a request to your backend
-        const response = await fetch('/api/auth/reset-password', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ email })
-        });
-        
-        if (!response.ok) {
-            throw new Error('Şifre sıfırlama başarısız');
-        }
-        
-        showNotification('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi', 'success');
-        closeForgotPassword();
-        
-    } catch (error) {
-        showNotification('Şifre sıfırlama işlemi başarısız oldu', 'error');
-    }
+    // Burada gerçek bir API çağrısı yapılacak
+    showNotification('Şifre sıfırlama bağlantısı gönderildi!', 'success');
+    closeForgotPassword();
 }
 
 // Show notification
@@ -114,12 +88,18 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Theme toggle
-document.querySelector('.toggle-theme').addEventListener('click', () => {
-    const html = document.documentElement;
-    const currentTheme = html.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+// Call checkLoginStatus when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    // Tema ayarını uygula
+ 
     
-    html.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
+    // Login durumunu kontrol et
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const currentPage = window.location.pathname.split('/').pop();
+    
+    if (!isLoggedIn && currentPage !== 'login.html') {
+        window.location.href = 'login.html';
+    } else if (isLoggedIn && currentPage === 'login.html') {
+        window.location.href = 'index.html';
+    }
 }); 
