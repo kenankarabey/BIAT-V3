@@ -114,10 +114,146 @@
         <main class="main-content">
             <div class="content-header">
                 <h1>Arıza Bildir</h1>
+                <p>Lütfen arıza bildirimi için aşağıdaki formu doldurunuz.</p>
             </div>
 
             <div class="issue-report-form">
-                <!-- Issue Report Form will be added dynamically via JavaScript -->
+                <form id="issueForm" class="form-grid">
+                    <!-- Lokasyon Bilgileri -->
+                    <div class="form-group">
+                        <label for="location">Lokasyon</label>
+                        <select id="location" name="location" required>
+                            <option value="">Lokasyon Seçiniz</option>
+                            <option value="mahkeme-kalemi">Mahkeme Kalemi</option>
+                            <option value="durusma-salonu">Duruşma Salonu</option>
+                            <option value="hakim-odasi">Hakim Odası</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="subLocation">Alt Lokasyon</label>
+                        <select id="subLocation" name="subLocation" required>
+                            <option value="">Alt Lokasyon Seçiniz</option>
+                        </select>
+                    </div>
+
+                    <!-- Cihaz Bilgileri -->
+                    <div class="form-group">
+                        <label for="deviceType">Cihaz Türü</label>
+                        <select id="deviceType" name="deviceType" required>
+                            <option value="">Cihaz Türü Seçiniz</option>
+                            <option value="bilgisayar">Bilgisayar</option>
+                            <option value="yazici">Yazıcı</option>
+                            <option value="tarayici">Tarayıcı</option>
+                            <option value="tv">Televizyon</option>
+                            <option value="kamera">Kamera</option>
+                            <option value="segbis">SEGBİS</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="deviceId">Cihaz No</label>
+                        <select id="deviceId" name="deviceId" required>
+                            <option value="">Cihaz Seçiniz</option>
+                        </select>
+                    </div>
+
+                    <!-- Arıza Bilgileri -->
+                    <div class="form-group full-width">
+                        <label for="issueType">Arıza Türü</label>
+                        <select id="issueType" name="issueType" required>
+                            <option value="">Arıza Türü Seçiniz</option>
+                            <option value="donanim">Donanım Arızası</option>
+                            <option value="yazilim">Yazılım Arızası</option>
+                            <option value="ag">Ağ Arızası</option>
+                            <option value="diger">Diğer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="urgencyLevel">Aciliyet Seviyesi</label>
+                        <select id="urgencyLevel" name="urgencyLevel" required>
+                            <option value="">Aciliyet Seçiniz</option>
+                            <option value="low">Düşük - Çalışmayı Etkilemiyor</option>
+                            <option value="medium">Orta - Kısmen Etkiliyor</option>
+                            <option value="high">Yüksek - Ciddi Şekilde Etkiliyor</option>
+                            <option value="critical">Kritik - Çalışmayı Durduruyor</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="estimatedTime">Tahmini Süre</label>
+                        <select id="estimatedTime" name="estimatedTime">
+                            <option value="">Tahmini Süre Seçiniz</option>
+                            <option value="15">15 dakika</option>
+                            <option value="30">30 dakika</option>
+                            <option value="60">1 saat</option>
+                            <option value="120">2 saat</option>
+                            <option value="240">4 saat</option>
+                            <option value="480">8 saat</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="description">Arıza Açıklaması</label>
+                        <textarea id="description" name="description" placeholder="Lütfen arızayı detaylı bir şekilde açıklayınız..." required></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="fileUpload">Ekran Görüntüsü veya Fotoğraf</label>
+                        <div class="file-upload-container">
+                            <input type="file" id="fileUpload" name="fileUpload" accept="image/*" multiple>
+                            <div class="file-upload-preview"></div>
+                        </div>
+                        <small class="file-info">En fazla 5 dosya, her biri maksimum 5MB. (PNG, JPG, JPEG)</small>
+                    </div>
+
+                    <!-- İletişim Bilgileri -->
+                    <div class="form-group">
+                        <label for="contactName">İletişim İsmi</label>
+                        <input type="text" id="contactName" name="contactName" placeholder="İletişim kurulacak kişi" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactPhone">İletişim Telefonu</label>
+                        <input type="tel" id="contactPhone" name="contactPhone" placeholder="0(5XX) XXX XX XX" required>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn-preview" onclick="previewForm()">
+                            <i class="fas fa-eye"></i>
+                            Önizle
+                        </button>
+                        <button type="reset" class="btn-reset">
+                            <i class="fas fa-undo"></i>
+                            Formu Temizle
+                        </button>
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-paper-plane"></i>
+                            Arıza Bildir
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Preview Modal -->
+            <div class="modal" id="previewModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Arıza Bildirimi Önizleme</h2>
+                        <button class="close-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="previewContent"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn-secondary" onclick="closePreview()">Düzenle</button>
+                        <button class="btn-primary" onclick="submitForm()">Onayla ve Gönder</button>
+                    </div>
+                </div>
             </div>
         </main>
     </div>
@@ -125,5 +261,6 @@
     <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/ariza-bildir.js"></script>
 </body>
 </html> 

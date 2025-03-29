@@ -5205,3 +5205,310 @@ input:checked + .slider:before {
 .toggle-theme i {
     font-size: 1.2rem;
 }
+
+/* Arıza Bildir Form Styles */
+.issue-report-form {
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(22, 26, 74, 0.1);
+}
+
+.form-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.btn-submit {
+    background: var(--primary-color);
+    color: white;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    background: var(--secondary-color);
+    transform: translateY(-1px);
+}
+
+.btn-reset {
+    background: transparent;
+    color: var(--text-color);
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-reset:hover {
+    background: var(--hover-color);
+}
+
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .issue-report-form {
+        margin: 1rem;
+        padding: 1.5rem;
+    }
+}
+
+/* Form Validation Styles */
+.form-group.error input,
+.form-group.error select,
+.form-group.error textarea {
+    border-color: var(--danger-color);
+}
+
+.error-message {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+/* Form Success Message */
+.success-message {
+    background: var(--success-color);
+    color: white;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.success-message i {
+    font-size: 1.25rem;
+}
+
+/* File Upload Styles */
+.file-upload-container {
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 1rem;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.file-upload-container:hover {
+    border-color: var(--primary-color);
+}
+
+.file-upload-container input[type="file"] {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.file-upload-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.preview-item {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.preview-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-file {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.remove-file:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.file-info {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--text-color);
+    opacity: 0.7;
+    font-size: 0.875rem;
+}
+
+/* Preview Modal Styles */
+.btn-preview {
+    background: var(--bg-color);
+    color: var(--text-color);
+    padding: 0.75rem 2rem;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-preview:hover {
+    background: var(--hover-color);
+}
+
+.preview-content {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.preview-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.preview-label {
+    font-weight: 500;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.preview-value {
+    color: var(--text-color);
+}
+
+.preview-files {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.preview-file {
+    width: 100px;
+    height: 100px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.preview-file img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.urgency-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.urgency-badge.low {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.urgency-badge.medium {
+    background: #FFF3E0;
+    color: #EF6C00;
+}
+
+.urgency-badge.high {
+    background: #FFEBEE;
+    color: #C62828;
+}
+
+.urgency-badge.critical {
+    background: #B71C1C;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .preview-files {
+        justify-content: center;
+    }
+    
+    .preview-file {
+        width: 80px;
+        height: 80px;
+    }
+}
