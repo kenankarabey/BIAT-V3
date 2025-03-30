@@ -129,7 +129,7 @@
             <!-- Quick Stats Bar -->
             <div class="quick-stats-bar">
                 <div class="stat-item">
-                    <div class="stat-icon success">
+                    <div class="stat-icon" style="background: rgba(46, 213, 115, 0.15); color: #2ed573;">
                         <i class="fas fa-desktop"></i>
                     </div>
                     <div class="stat-info">
@@ -137,9 +137,26 @@
                         <div class="stat-label">Bilgisayar</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon info">
+                    <div class="stat-icon" style="background: rgba(52, 152, 219, 0.15); color: #3498db;">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="laptopCount">0</div>
+                        <div class="stat-label">Laptop</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(155, 89, 182, 0.15); color: #9b59b6;">
+                        <i class="fas fa-tv"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="screenCount">0</div>
+                        <div class="stat-label">Monitör</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(230, 126, 34, 0.15); color: #e67e22;">
                         <i class="fas fa-print"></i>
                     </div>
                     <div class="stat-info">
@@ -147,9 +164,8 @@
                         <div class="stat-label">Yazıcı</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon warning">
+                    <div class="stat-icon" style="background: rgba(241, 196, 15, 0.15); color: #f1c40f;">
                         <i class="fas fa-scanner"></i>
                     </div>
                     <div class="stat-info">
@@ -157,9 +173,8 @@
                         <div class="stat-label">Tarayıcı</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon primary">
+                    <div class="stat-icon" style="background: rgba(52, 152, 219, 0.15); color: #3498db;">
                         <i class="fas fa-tv"></i>
                     </div>
                     <div class="stat-info">
@@ -167,9 +182,8 @@
                         <div class="stat-label">TV</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon info">
+                    <div class="stat-icon" style="background: rgba(231, 76, 60, 0.15); color: #e74c3c;">
                         <i class="fas fa-video"></i>
                     </div>
                     <div class="stat-info">
@@ -177,9 +191,8 @@
                         <div class="stat-label">Kamera</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon success">
+                    <div class="stat-icon" style="background: rgba(46, 204, 113, 0.15); color: #2ecc71;">
                         <i class="fas fa-video"></i>
                     </div>
                     <div class="stat-info">
@@ -187,9 +200,17 @@
                         <div class="stat-label">SEGBIS</div>
                     </div>
                 </div>
-                <div class="stat-divider"></div>
                 <div class="stat-item">
-                    <div class="stat-icon warning">
+                    <div class="stat-icon" style="background: rgba(142, 68, 173, 0.15); color: #8e44ad;">
+                        <i class="fas fa-microphone"></i>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="microphoneCount">0</div>
+                        <div class="stat-label">Mikrofon</div>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon" style="background: rgba(155, 89, 182, 0.15); color: #9b59b6;">
                         <i class="fas fa-gavel"></i>
                     </div>
                     <div class="stat-info">
@@ -218,8 +239,11 @@
                         <button class="tab-button active" data-tab="computer">
                             <i class="fas fa-desktop"></i> Bilgisayar
                         </button>
+                        <button class="tab-button" data-tab="laptop">
+                            <i class="fas fa-laptop"></i> Laptop
+                        </button>
                         <button class="tab-button" data-tab="screen">
-                            <i class="fas fa-desktop"></i> Ekran
+                            <i class="fas fa-tv"></i> Monitör
                         </button>
                         <button class="tab-button" data-tab="printer">
                             <i class="fas fa-print"></i> Yazıcı
@@ -235,6 +259,9 @@
                         </button>
                         <button class="tab-button" data-tab="segbis">
                             <i class="fas fa-video"></i> SEGBIS
+                        </button>
+                        <button class="tab-button" data-tab="microphone">
+                            <i class="fas fa-microphone"></i> Mikrofon
                         </button>
                         <button class="tab-button" data-tab="ehearing">
                             <i class="fas fa-gavel"></i> E-Duruşma
@@ -263,6 +290,103 @@
                             </div>
                         </div>
 
+                        <!-- Device Details Modal -->
+                        <div id="deviceDetailsModal" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>Cihaz Detayları</h2>
+                                    <button onclick="closeDetailsModal()" class="close-modal">&times;</button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="device-details">
+                                        <div class="detail-section">
+                                            <h3>Genel Bilgiler</h3>
+                                            <div class="detail-grid">
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Birim</span>
+                                                    <span class="detail-value" id="detailUnit"></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Marka</span>
+                                                    <span class="detail-value" id="detailBrand"></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Model</span>
+                                                    <span class="detail-value" id="detailModel"></span>
+                                                </div>
+                                                <div class="detail-item">
+                                                    <span class="detail-label">Seri No</span>
+                                                    <span class="detail-value" id="detailSerial"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Codes Section -->
+                                        <div class="detail-section">
+                                            <h3>Cihaz Kodları</h3>
+                                            <div class="codes-grid">
+                                                <div class="code-container">
+                                                    <div id="qrCode"></div>
+                                                    <span class="code-label">QR Kod</span>
+                                                </div>
+                                                <div class="code-container">
+                                                    <div id="barcode"></div>
+                                                    <span class="code-label">Barkod</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button onclick="closeDetailsModal()" class="btn btn-secondary">Kapat</button>
+                                    <button onclick="showEditModal(currentDeviceId)" class="btn btn-primary">Düzenle</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Device Modal -->
+                        <div class="modal" id="editDeviceModal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>Cihaz Düzenle</h2>
+                                    <button class="close-modal" onclick="closeEditModal()">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <form id="editDeviceForm">
+                                        <input type="hidden" id="editDeviceId">
+                                        <div class="form-group">
+                                            <label for="editDeviceType">Cihaz Türü</label>
+                                            <select id="editDeviceType" onchange="updateEditFormFields()">
+                                                <option value="computer">Bilgisayar</option>
+                                                <option value="laptop">Laptop</option>
+                                                <option value="screen">Monitör</option>
+                                                <option value="printer">Yazıcı</option>
+                                                <option value="scanner">Tarayıcı</option>
+                                                <option value="tv">Televizyon</option>
+                                                <option value="camera">Kamera</option>
+                                                <option value="segbis">SEGBIS</option>
+                                                <option value="microphone">Mikrofon</option>
+                                                <option value="ehearing">E-Duruşma</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="editBirim">Birim</label>
+                                            <input type="text" id="editBirim" required>
+                                        </div>
+                                        <div id="editDynamicFields">
+                                            <!-- Dinamik form alanları buraya eklenecek -->
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-secondary" onclick="closeEditModal()">İptal</button>
+                                    <button class="btn btn-primary" onclick="updateDevice()">Güncelle</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Screen Tab -->
                         <div class="tab-pane" id="screenTab">
                             <div class="table-section">
@@ -270,13 +394,37 @@
                                     <thead>
                                         <tr>
                                             <th>Birim</th>
-                                            <th>Ekran Marka</th>
-                                            <th>Ekran Model</th>
-                                            <th>Ekran Seri No</th>
+                                            <th>Unvan</th>
+                                            <th>Adı Soyadı</th>
+                                            <th>Sicil No</th>
+                                            <th>Monitör Marka</th>
+                                            <th>Monitör Model</th>
+                                            <th>Monitör Seri No</th>
                                             <th>İşlemler</th>
                                         </tr>
                                     </thead>
                                     <tbody id="screenTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Laptop Tab -->
+                        <div class="tab-pane" id="laptopTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Unvan</th>
+                                            <th>Adı Soyadı</th>
+                                            <th>Sicil No</th>
+                                            <th>Laptop Marka</th>
+                                            <th>Laptop Model</th>
+                                            <th>Laptop Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="laptopTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -371,6 +519,24 @@
                             </div>
                         </div>
 
+                        <!-- Microphone Tab -->
+                        <div class="tab-pane" id="microphoneTab">
+                            <div class="table-section">
+                                <table class="devices-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Birim</th>
+                                            <th>Mikrofon Marka</th>
+                                            <th>Mikrofon Model</th>
+                                            <th>Mikrofon Seri No</th>
+                                            <th>İşlemler</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="microphoneTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- E-Duruşma Tab -->
                         <div class="tab-pane" id="ehearingTab">
                             <div class="table-section">
@@ -397,5 +563,51 @@
     <script src="js/devices.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/sidebar.js"></script>
+
+    <!-- Add Device Modal -->
+    <div class="modal" id="addDeviceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yeni Cihaz Ekle</h2>
+                <button class="close-modal" onclick="closeAddModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addDeviceForm">
+                    <div class="form-group">
+                        <label for="deviceType">Cihaz Türü</label>
+                        <select id="deviceType" onchange="updateFormFields()">
+                            <option value="computer">Bilgisayar</option>
+                            <option value="laptop">Laptop</option>
+                            <option value="screen">Monitör</option>
+                            <option value="printer">Yazıcı</option>
+                            <option value="scanner">Tarayıcı</option>
+                            <option value="tv">Televizyon</option>
+                            <option value="camera">Kamera</option>
+                            <option value="segbis">SEGBIS</option>
+                            <option value="microphone">Mikrofon</option>
+                            <option value="ehearing">E-Duruşma</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="birim">Birim</label>
+                        <input type="text" id="birim" required>
+                    </div>
+                    <div id="dynamicFields">
+                        <!-- Dinamik form alanları buraya eklenecek -->
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeAddModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveDevice()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add these script tags at the end of the body -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </body>
 </html> 
