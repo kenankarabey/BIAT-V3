@@ -1,15 +1,55 @@
 // Mahkeme Kalemleri verilerini tutacak dizi
-let mahkemeKalemleri = [];
-
-// Mahkeme kalemleri verisi
-let courtOffices = JSON.parse(localStorage.getItem('courtOffices')) || [
-    { id: '1', name: 'Ağır Ceza Mahkemesi Kalemi', location: 'A Blok, 2. Kat' },
-    { id: '2', name: 'Asliye Ceza Mahkemesi Kalemi', location: 'B Blok, 1. Kat' },
-    { id: '3', name: 'Asliye Hukuk Mahkemesi Kalemi', location: 'C Blok, 3. Kat' }
+let mahkemeKalemleri = JSON.parse(localStorage.getItem('mahkemeKalemleri')) || [
+    { 
+        id: '1', 
+        ad: 'Ağır Ceza Mahkemesi Kalemi', 
+        tip: 'Ağır Ceza',
+        konum: 'A Blok, 2. Kat',
+        durum: 'Aktif',
+        createdAt: new Date().toLocaleDateString('tr-TR'),
+        cihazSayisi: 0
+    },
+    { 
+        id: '2', 
+        ad: 'Asliye Ceza Mahkemesi Kalemi', 
+        tip: 'Asliye Ceza',
+        konum: 'B Blok, 1. Kat',
+        durum: 'Aktif',
+        createdAt: new Date().toLocaleDateString('tr-TR'),
+        cihazSayisi: 0
+    },
+    { 
+        id: '3', 
+        ad: 'Asliye Hukuk Mahkemesi Kalemi', 
+        tip: 'Asliye Hukuk',
+        konum: 'C Blok, 3. Kat',
+        durum: 'Aktif',
+        createdAt: new Date().toLocaleDateString('tr-TR'),
+        cihazSayisi: 0
+    }
 ];
 
 // Cihaz verisi
 let devices = JSON.parse(localStorage.getItem('devices')) || [];
+
+// Filtreleme durumunu tutacak değişkenler
+let currentFilters = {
+    tip: 'all',
+    durum: 'all',
+    search: ''
+};
+
+// Mahkeme kalemlerini filtreleme
+function filterMahkemeKalemleri(kalemler) {
+    return kalemler.filter(kalem => {
+        const tipMatch = currentFilters.tip === 'all' || kalem.tip === currentFilters.tip;
+        const durumMatch = currentFilters.durum === 'all' || kalem.durum === currentFilters.durum;
+        const searchMatch = kalem.ad.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
+                          kalem.konum.toLowerCase().includes(currentFilters.search.toLowerCase());
+        
+        return tipMatch && durumMatch && searchMatch;
+    });
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     // Modal elementlerini seç
@@ -20,12 +60,61 @@ document.addEventListener('DOMContentLoaded', function() {
     const cancelButtons = document.querySelectorAll('.btn-secondary');
     const form = document.querySelector('#mahkemeKalemiForm');
 
-    // Local storage'dan verileri yükle
-    loadMahkemeKalemleri();
+    // Filtre elementlerini seç
+    const tipFilter = document.querySelector('#tipFilter');
+    const durumFilter = document.querySelector('#durumFilter');
+    const searchInput = document.querySelector('#searchInput');
+    const resetFiltersBtn = document.querySelector('#resetFilters');
+
+    // Filtre değişikliklerini dinle
+    if (tipFilter) {
+        tipFilter.addEventListener('change', function(e) {
+            currentFilters.tip = e.target.value;
+            renderMahkemeKalemleri();
+        });
+    }
+
+    if (durumFilter) {
+        durumFilter.addEventListener('change', function(e) {
+            currentFilters.durum = e.target.value;
+            renderMahkemeKalemleri();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            currentFilters.search = e.target.value;
+            renderMahkemeKalemleri();
+        });
+    }
+
+    // Filtreleri sıfırlama
+    if (resetFiltersBtn) {
+        resetFiltersBtn.addEventListener('click', function() {
+            currentFilters = {
+                tip: 'all',
+                durum: 'all',
+                search: ''
+            };
+            
+            if (tipFilter) tipFilter.value = 'all';
+            if (durumFilter) durumFilter.value = 'all';
+            if (searchInput) searchInput.value = '';
+            
+            renderMahkemeKalemleri();
+        });
+    }
 
     // Yeni Kalem Ekle butonuna tıklandığında
     if (addButton) {
         addButton.addEventListener('click', function() {
+            // Form submit handler'ı varsayılan haline getir
+            if (form) {
+                form.onsubmit = function(e) {
+                    e.preventDefault();
+                    saveMahkemeKalemi();
+                };
+            }
             openOfficeModal();
         });
     }
@@ -56,41 +145,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Form gönderildiğinde
     if (form) {
-        form.addEventListener('submit', function(e) {
+        form.onsubmit = function(e) {
             e.preventDefault();
             saveMahkemeKalemi();
-        });
+        };
     }
 
     // Kartları ilk yükleme
     renderMahkemeKalemleri();
-
-    // Arama ve filtreleme işlemleri
-    const searchInput = document.querySelector('#courtOfficeSearch');
-    const typeFilter = document.querySelector('#typeFilter');
-    const statusFilter = document.querySelector('#statusFilter');
-    const resetButton = document.querySelector('#resetFilters');
-    const applyButton = document.querySelector('#applyFilters');
-
-    if (searchInput) {
-        searchInput.addEventListener('input', filterMahkemeKalemleri);
-    }
-
-    if (typeFilter) {
-        typeFilter.addEventListener('change', filterMahkemeKalemleri);
-    }
-
-    if (statusFilter) {
-        statusFilter.addEventListener('change', filterMahkemeKalemleri);
-    }
-
-    if (resetButton) {
-        resetButton.addEventListener('click', resetFilters);
-    }
-
-    if (applyButton) {
-        applyButton.addEventListener('click', filterMahkemeKalemleri);
-    }
 });
 
 // Kalem ekleme modalını açma
@@ -131,11 +193,27 @@ function closeDeviceModal() {
 // Yeni mahkeme kalemi kaydetme
 function saveMahkemeKalemi() {
     const form = document.querySelector('#mahkemeKalemiForm');
+    const mahkemeTuru = form.querySelector('#mahkemeTuru').value;
+    const mahkemeNo = form.querySelector('#tip').value;
+    const blok = form.querySelector('#blok').value;
+    const kat = form.querySelector('#konum').value;
+    
+    // Mahkeme adını formatla
+    let formattedAd = '';
+    if (mahkemeTuru === 'İcra') {
+        formattedAd = `${mahkemeNo}. İcra Müdürlüğü`;
+    } else {
+        formattedAd = `${mahkemeNo}. ${mahkemeTuru} Mahkemesi`;
+    }
+    
     const yeniKalem = {
-        id: Date.now(),
-        ad: form.querySelector('[name="ad"]').value,
-        tip: form.querySelector('[name="tip"]').value,
-        konum: form.querySelector('[name="konum"]').value,
+        id: Date.now().toString(),
+        ad: formattedAd,
+        tip: mahkemeTuru,
+        mahkemeNo: mahkemeNo,
+        blok: blok,
+        kat: kat,
+        konum: `${blok}, ${kat}`,
         durum: 'Aktif',
         createdAt: new Date().toLocaleDateString('tr-TR'),
         cihazSayisi: 0
@@ -149,19 +227,27 @@ function saveMahkemeKalemi() {
     showNotification('Mahkeme kalemi başarıyla eklendi', 'success');
 }
 
-// Mahkeme kalemlerini yükleme
-function loadMahkemeKalemleri() {
-    const stored = localStorage.getItem('mahkemeKalemleri');
-    mahkemeKalemleri = stored ? JSON.parse(stored) : [];
-}
-
 // Mahkeme kalemlerini kartlara render etme
 function renderMahkemeKalemleri() {
     const grid = document.querySelector('.court-offices-grid');
     if (!grid) return;
 
+    // Filtrelenmiş kalemleri al
+    const filteredKalemler = filterMahkemeKalemleri(mahkemeKalemleri);
+
     grid.innerHTML = '';
-    mahkemeKalemleri.forEach(kalem => {
+    
+    // Sonuç bulunamadı mesajı
+    if (filteredKalemler.length === 0) {
+        const noResults = document.createElement('div');
+        noResults.className = 'no-results';
+        noResults.innerHTML = '<p>Arama kriterlerinize uygun sonuç bulunamadı.</p>';
+        grid.appendChild(noResults);
+        return;
+    }
+
+    filteredKalemler.forEach(kalem => {
+        const officeDevices = devices.filter(d => d.officeId === kalem.id.toString());
         const card = document.createElement('div');
         card.className = 'court-office-card';
         card.innerHTML = `
@@ -178,9 +264,19 @@ function renderMahkemeKalemleri() {
                     <i class="fas fa-map-marker-alt"></i>
                     <span>${kalem.konum}</span>
                 </div>
-                <div class="info-row">
-                    <i class="fas fa-laptop"></i>
-                    <span>${kalem.cihazSayisi} Cihaz</span>
+                <div class="device-stats">
+                    <div class="device-stat">
+                        <i class="fas fa-desktop"></i>
+                        <span>${officeDevices.filter(d => d.type === 'computer').length}</span>
+                    </div>
+                    <div class="device-stat">
+                        <i class="fas fa-print"></i>
+                        <span>${officeDevices.filter(d => d.type === 'printer').length}</span>
+                    </div>
+                    <div class="device-stat">
+                        <i class="fas fa-scanner"></i>
+                        <span>${officeDevices.filter(d => d.type === 'scanner').length}</span>
+                    </div>
                 </div>
                 <div class="info-row">
                     <i class="fas fa-calendar"></i>
@@ -188,13 +284,13 @@ function renderMahkemeKalemleri() {
                 </div>
             </div>
             <div class="card-footer">
-                <button class="btn-icon" onclick="openAddDeviceModal(${kalem.id})" title="Cihaz Ekle">
+                <button class="btn-icon" onclick="openAddDeviceModal('${kalem.id}')" title="Cihaz Ekle">
                     <i class="fas fa-plus"></i>
                 </button>
-                <button class="btn-icon edit" onclick="editKalem(${kalem.id})" title="Düzenle">
+                <button class="btn-icon edit" onclick="editKalem('${kalem.id}')" title="Düzenle">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="btn-icon delete" onclick="deleteKalem(${kalem.id})" title="Sil">
+                <button class="btn-icon delete" onclick="deleteKalem('${kalem.id}')" title="Sil">
                     <i class="fas fa-trash"></i>
                 </button>
             </div>
@@ -215,20 +311,69 @@ function deleteKalem(id) {
 
 // Mahkeme kalemi düzenleme
 function editKalem(id) {
-    const kalem = mahkemeKalemleri.find(k => k.id === id);
+    const kalem = mahkemeKalemleri.find(k => k.id.toString() === id.toString());
     if (!kalem) return;
 
     const form = document.querySelector('#mahkemeKalemiForm');
-    form.querySelector('[name="ad"]').value = kalem.ad;
-    form.querySelector('[name="tip"]').value = kalem.tip;
-    form.querySelector('[name="konum"]').value = kalem.konum;
     
-    // Form gönderme işlemini güncelleme işlemi olarak değiştir
+    // Mahkeme adını parçalara ayır
+    let mahkemeNo = kalem.mahkemeNo || '';
+    
+    if (!mahkemeNo) {
+        if (kalem.tip === 'İcra') {
+            // "2. İcra Müdürlüğü" formatından ayıklama
+            const match = kalem.ad.match(/(\d+)\.\s*İcra\s*Müdürlüğü/i);
+            if (match) {
+                mahkemeNo = match[1];
+            }
+        } else {
+            // "2. Ağır Ceza Mahkemesi" formatından ayıklama
+            const match = kalem.ad.match(/(\d+)\.\s*.*?\s*Mahkemesi/i);
+            if (match) {
+                mahkemeNo = match[1];
+            }
+        }
+    }
+    
+    form.querySelector('#mahkemeTuru').value = kalem.tip;
+    form.querySelector('#tip').value = mahkemeNo;
+    
+    // Konum bilgilerini ayır ve form alanlarına yerleştir
+    if (kalem.blok && kalem.kat) {
+        form.querySelector('#blok').value = kalem.blok;
+        form.querySelector('#konum').value = kalem.kat;
+    } else if (kalem.konum) {
+        const [blok, kat] = kalem.konum.split(', ');
+        form.querySelector('#blok').value = blok || '';
+        form.querySelector('#konum').value = kat || '';
+    }
+    
+    // Mevcut form submit event listener'ını kaldır
+    const oldSubmitHandler = form.onsubmit;
+    form.removeEventListener('submit', oldSubmitHandler);
+    
+    // Yeni submit handler ekle
     form.onsubmit = function(e) {
         e.preventDefault();
-        kalem.ad = form.querySelector('[name="ad"]').value;
-        kalem.tip = form.querySelector('[name="tip"]').value;
-        kalem.konum = form.querySelector('[name="konum"]').value;
+        const mahkemeTuru = form.querySelector('#mahkemeTuru').value;
+        const mahkemeNo = form.querySelector('#tip').value;
+        const blok = form.querySelector('#blok').value;
+        const kat = form.querySelector('#konum').value;
+        
+        // Mahkeme adını formatla
+        let formattedAd = '';
+        if (mahkemeTuru === 'İcra') {
+            formattedAd = `${mahkemeNo}. İcra Müdürlüğü`;
+        } else {
+            formattedAd = `${mahkemeNo}. ${mahkemeTuru} Mahkemesi`;
+        }
+        
+        kalem.ad = formattedAd;
+        kalem.tip = mahkemeTuru;
+        kalem.mahkemeNo = mahkemeNo;
+        kalem.blok = blok;
+        kalem.kat = kat;
+        kalem.konum = `${blok}, ${kat}`;
         
         localStorage.setItem('mahkemeKalemleri', JSON.stringify(mahkemeKalemleri));
         renderMahkemeKalemleri();
@@ -236,155 +381,10 @@ function editKalem(id) {
         showNotification('Mahkeme kalemi başarıyla güncellendi', 'success');
         
         // Form submit işleyicisini varsayılana döndür
-        form.onsubmit = null;
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            saveMahkemeKalemi();
-        });
+        form.onsubmit = oldSubmitHandler;
     };
     
     openOfficeModal();
-}
-
-// Arama ve filtreleme
-function filterMahkemeKalemleri() {
-    const searchTerm = document.querySelector('#courtOfficeSearch').value.toLowerCase();
-    const selectedType = document.querySelector('#typeFilter').value;
-    const selectedStatus = document.querySelector('#statusFilter').value;
-
-    const filteredKalemler = mahkemeKalemleri.filter(kalem => {
-        const matchesSearch = kalem.ad.toLowerCase().includes(searchTerm) ||
-                            kalem.tip.toLowerCase().includes(searchTerm) ||
-                            kalem.konum.toLowerCase().includes(searchTerm);
-        
-        const matchesType = !selectedType || kalem.tip === selectedType;
-        const matchesStatus = !selectedStatus || 
-                            (selectedStatus === 'active' && kalem.durum === 'Aktif') ||
-                            (selectedStatus === 'issue' && kalem.durum === 'Arızalı') ||
-                            (selectedStatus === 'maintenance' && kalem.durum === 'Bakımda');
-
-        return matchesSearch && matchesType && matchesStatus;
-    });
-
-    renderFilteredKalemler(filteredKalemler);
-}
-
-// Filtrelenmiş mahkeme kalemlerini render etme
-function renderFilteredKalemler(filteredKalemler) {
-    const grid = document.querySelector('.court-offices-grid');
-    if (!grid) return;
-
-    grid.innerHTML = '';
-    
-    if (filteredKalemler.length === 0) {
-        grid.innerHTML = '<div class="no-results">Sonuç bulunamadı</div>';
-        return;
-    }
-
-    filteredKalemler.forEach(kalem => {
-        const card = document.createElement('div');
-        card.className = 'court-office-card';
-        card.innerHTML = `
-            <div class="card-header">
-                <h3>${kalem.ad}</h3>
-                <span class="status-badge ${kalem.durum.toLowerCase()}">${kalem.durum}</span>
-            </div>
-            <div class="card-body">
-                <div class="info-row">
-                    <i class="fas fa-gavel"></i>
-                    <span>${kalem.tip}</span>
-                </div>
-                <div class="info-row">
-                    <i class="fas fa-map-marker-alt"></i>
-                    <span>${kalem.konum}</span>
-                </div>
-                <div class="info-row">
-                    <i class="fas fa-laptop"></i>
-                    <span>${kalem.cihazSayisi} Cihaz</span>
-                </div>
-                <div class="info-row">
-                    <i class="fas fa-calendar"></i>
-                    <span>${kalem.createdAt}</span>
-                </div>
-            </div>
-            <div class="card-footer">
-                <button class="btn-icon" onclick="openAddDeviceModal(${kalem.id})" title="Cihaz Ekle">
-                    <i class="fas fa-plus"></i>
-                </button>
-                <button class="btn-icon edit" onclick="editKalem(${kalem.id})" title="Düzenle">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-icon delete" onclick="deleteKalem(${kalem.id})" title="Sil">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
-        grid.appendChild(card);
-    });
-}
-
-// Filtreleri sıfırlama
-function resetFilters() {
-    const searchInput = document.querySelector('#courtOfficeSearch');
-    const typeFilter = document.querySelector('#typeFilter');
-    const statusFilter = document.querySelector('#statusFilter');
-
-    if (searchInput) searchInput.value = '';
-    if (typeFilter) typeFilter.value = '';
-    if (statusFilter) statusFilter.value = '';
-
-    renderMahkemeKalemleri();
-}
-
-// Bildirim gösterme fonksiyonu
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
-}
-
-function createCourtOfficeCard(office) {
-    const officeDevices = devices.filter(d => d.officeId === office.id);
-    return `
-        <div class="court-office-card">
-            <div class="card-header">
-                <div class="card-title">
-                    <h2>${office.name}</h2>
-                    <p>${office.location}</p>
-                </div>
-                <div class="card-actions">
-                    <button class="btn-icon" onclick="openAddDeviceModal('${office.id}')" title="Cihaz Ekle">
-                        <i class="fas fa-plus"></i>
-                    </button>
-                </div>
-            </div>
-            <div class="card-content">
-                <div class="device-stats">
-                    <div class="device-stat-item">
-                        <i class="fas fa-desktop"></i>
-                        <span>${officeDevices.filter(d => d.type === 'computer').length} Bilgisayar</span>
-                    </div>
-                    <div class="device-stat-item">
-                        <i class="fas fa-print"></i>
-                        <span>${officeDevices.filter(d => d.type === 'printer').length} Yazıcı</span>
-                    </div>
-                    <div class="device-stat-item">
-                        <i class="fas fa-scanner"></i>
-                        <span>${officeDevices.filter(d => d.type === 'scanner').length} Tarayıcı</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
 }
 
 // Cihaz kaydetme
@@ -416,8 +416,15 @@ function saveDevice() {
     devices.push(device);
     localStorage.setItem('devices', JSON.stringify(devices));
     
+    // İlgili mahkeme kaleminin cihaz sayısını güncelle
+    const kalem = mahkemeKalemleri.find(k => k.id.toString() === officeId);
+    if (kalem) {
+        kalem.cihazSayisi = devices.filter(d => d.officeId === officeId).length;
+        localStorage.setItem('mahkemeKalemleri', JSON.stringify(mahkemeKalemleri));
+    }
+    
     closeDeviceModal();
-    renderCourtOffices();
+    renderMahkemeKalemleri();
     showNotification('Cihaz başarıyla eklendi', 'success');
 }
 
@@ -432,8 +439,18 @@ function validateDeviceForm(device) {
            device.recipient.name;
 }
 
-// Mahkeme kalemlerini listele
-function renderCourtOffices() {
-    const grid = document.querySelector('.court-offices-grid');
-    grid.innerHTML = courtOffices.map(office => createCourtOfficeCard(office)).join('');
+// Bildirim gösterme fonksiyonu
+function showNotification(message, type = 'success') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.classList.add('hide');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
 } 

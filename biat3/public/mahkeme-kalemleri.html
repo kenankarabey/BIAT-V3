@@ -129,50 +129,40 @@
                 <div class="search-row">
                     <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="courtOfficeSearch" placeholder="Mahkeme adı, hakim veya konum ara...">
+                        <input type="text" id="searchInput" placeholder="Mahkeme adı veya konum ara...">
                     </div>
                 </div>
                 <div class="filter-row">
                     <div class="filter-group">
                         <label>Mahkeme Türü</label>
-                        <select id="typeFilter">
-                            <option value="">Tümü</option>
+                        <select id="tipFilter">
+                            <option value="all">Tümü</option>
                             <option value="Ağır Ceza">Ağır Ceza</option>
+                            <option value="Asliye Ceza">Asliye Ceza</option>
                             <option value="Asliye Hukuk">Asliye Hukuk</option>
+                            <option value="Sulh Ceza">Sulh Ceza</option>
+                            <option value="Sulh Hukuk">Sulh Hukuk</option>
+                            <option value="İcra">İcra</option>
+                            <option value="İş">İş</option>
+                            <option value="Ticaret">Ticaret</option>
+                            <option value="Çocuk">Çocuk</option>
                             <option value="Tüketici">Tüketici</option>
                         </select>
-                        <i class="fas fa-chevron-down"></i>
-                    </div>
-                    <div class="filter-group">
-                        <label>Konum</label>
-                        <select id="locationFilter">
-                            <option value="">Tümü</option>
-                        </select>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="filter-group">
                         <label>Durum</label>
-                        <select id="statusFilter">
-                            <option value="">Tümü</option>
-                            <option value="active">Aktif</option>
-                            <option value="issue">Arızalı</option>
-                            <option value="maintenance">Bakımda</option>
+                        <select id="durumFilter">
+                            <option value="all">Tümü</option>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Pasif">Pasif</option>
                         </select>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="filter-actions">
                         <button class="btn-reset" id="resetFilters">
                             <i class="fas fa-undo"></i>
                             <span>Sıfırla</span>
                         </button>
-                        <button class="btn-apply" id="applyFilters">
-                            <i class="fas fa-filter"></i>
-                            <span>Uygula</span>
-                        </button>
                     </div>
-                </div>
-                <div class="active-filters" id="activeFilters">
-                    <!-- Active filters will be added here dynamically -->
                 </div>
             </div>
 
@@ -186,38 +176,61 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h2>Yeni Mahkeme Kalemi Ekle</h2>
-                        <button class="close-modal">
-                            <i class="fas fa-times"></i>
-                        </button>
+                        <button class="close-modal">&times;</button>
                     </div>
-                    <div class="modal-body">
-                        <form id="mahkemeKalemiForm">
-                            <div class="form-group">
-                                <label for="ad">Mahkeme Kalemi Adı</label>
-                                <input type="text" id="ad" name="ad" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="tip">Mahkeme Tipi</label>
-                                <select id="tip" name="tip" required>
-                                    <option value="">Seçiniz</option>
-                                    <option value="Ağır Ceza">Ağır Ceza</option>
-                                    <option value="Asliye Ceza">Asliye Ceza</option>
-                                    <option value="Asliye Hukuk">Asliye Hukuk</option>
-                                    <option value="Sulh Ceza">Sulh Ceza</option>
-                                    <option value="Sulh Hukuk">Sulh Hukuk</option>
-                                    <option value="İcra">İcra</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="konum">Konum</label>
-                                <input type="text" id="konum" name="konum" required>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary">İptal</button>
-                        <button type="submit" form="mahkemeKalemiForm" class="btn btn-primary">Kaydet</button>
-                    </div>
+                    <form id="mahkemeKalemiForm">
+                        <div class="form-group">
+                            <label for="mahkemeTuru">Mahkeme Türü</label>
+                            <select name="mahkemeTuru" id="mahkemeTuru" class="form-control" required>
+                                <option value="">Mahkeme Türü Seçin</option>
+                                <option value="Ağır Ceza">Ağır Ceza</option>
+                                <option value="Asliye Ceza">Asliye Ceza</option>
+                                <option value="Asliye Hukuk">Asliye Hukuk</option>
+                                <option value="Sulh Ceza">Sulh Ceza</option>
+                                <option value="Sulh Hukuk">Sulh Hukuk</option>
+                                <option value="İcra">İcra</option>
+                                <option value="İş">İş</option>
+                                <option value="Ticaret">Ticaret</option>
+                                <option value="Çocuk">Çocuk</option>
+                                <option value="Tüketici">Tüketici</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tip">Mahkeme No</label>
+                            <input type="number" name="tip" id="tip" class="form-control" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="blok">Blok</label>
+                            <select name="blok" id="blok" class="form-control" required>
+                                <option value="">Blok Seçin</option>
+                                <option value="A Blok">A Blok</option>
+                                <option value="B Blok">B Blok</option>
+                                <option value="C Blok">C Blok</option>
+                                <option value="D Blok">D Blok</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="konum">Kat</label>
+                            <select name="konum" id="konum" class="form-control" required>
+                                <option value="">Kat Seçin</option>
+                                <option value="Zemin Kat">Zemin Kat</option>
+                                <option value="1. Kat">1. Kat</option>
+                                <option value="2. Kat">2. Kat</option>
+                                <option value="3. Kat">3. Kat</option>
+                                <option value="4. Kat">4. Kat</option>
+                                <option value="5. Kat">5. Kat</option>
+                                <option value="6. Kat">6. Kat</option>
+                                <option value="7. Kat">7. Kat</option>
+                                <option value="8. Kat">8. Kat</option>
+                                <option value="9. Kat">9. Kat</option>
+                                <option value="10. Kat">10. Kat</option>
+                            </select>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary">İptal</button>
+                            <button type="submit" class="btn btn-primary">Kaydet</button>
+                        </div>
+                    </form>
                 </div>
             </div>
 

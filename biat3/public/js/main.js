@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupTheme();
     setupSidebar();
     setupContent();
-    checkLoginStatus(); // Login durumunu kontrol et
+    checkLoginStatus();
 });
 
 // Login durumunu kontrol et
@@ -132,7 +132,7 @@ function setupSidebar() {
             const link = item.querySelector('a');
             if (link) {
                 link.addEventListener('click', (e) => {
-            e.preventDefault();
+                    e.preventDefault();
                     item.classList.toggle('active');
                     
                     // Alt menü ikonunu döndür
@@ -149,9 +149,9 @@ function setupSidebar() {
                         
                         // Animasyon tamamlandıktan sonra height: auto yap
                         if (!isExpanding) {
-                setTimeout(() => {
+                            setTimeout(() => {
                                 submenu.style.height = 'auto';
-                }, 300);
+                            }, 300);
                         }
                     }
                 });
@@ -161,7 +161,7 @@ function setupSidebar() {
         // Overlay tıklama olayı
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
+                sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
@@ -192,7 +192,7 @@ function handleResize() {
             sidebarOverlay?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-            } else {
+    } else {
         sidebarOverlay?.classList.remove('active');
         document.body.style.overflow = '';
         
@@ -203,127 +203,6 @@ function handleResize() {
             updateSidebarButtonText('Menü Aç');
         }
     }
-}
-
-// İstatistikleri güncelle
-function updateStatistics() {
-    // Toplam mahkeme sayısı
-    const totalCourts = state.courtOffices.length;
-    document.getElementById('totalCourts').textContent = totalCourts;
-
-    // Aktif arıza sayısı
-    const activeIssues = state.arizalar.filter(ariza => ariza.durum === 'beklemede' || ariza.durum === 'işlemde').length;
-    document.getElementById('activeIssues').textContent = activeIssues;
-
-    // Bakımda olan cihaz sayısı
-    const maintenanceCount = state.courtOffices.reduce((total, office) => {
-        return total + office.cihazlar.filter(cihaz => cihaz.durum === 'maintenance').length;
-    }, 0);
-    document.getElementById('maintenanceCount').textContent = maintenanceCount;
-
-    // Aktif cihaz sayısı
-    const activeDevices = state.courtOffices.reduce((total, office) => {
-        return total + office.cihazlar.filter(cihaz => cihaz.durum === 'active').length;
-    }, 0);
-    document.getElementById('activeDevices').textContent = activeDevices;
-}
-
-// Arıza dağılımı grafiği
-function createIssueDistributionChart() {
-    const ctx = document.getElementById('issueDistribution');
-    if (!ctx) return;
-
-    const issuesByType = {};
-    state.arizalar.forEach(ariza => {
-        issuesByType[ariza.cihaz] = (issuesByType[ariza.cihaz] || 0) + 1;
-    });
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(issuesByType),
-            datasets: [{
-                data: Object.values(issuesByType),
-                backgroundColor: [
-                    '#FF6384',
-                    '#36A2EB',
-                    '#FFCE56',
-                    '#4BC0C0',
-                    '#9966FF'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'right'
-                },
-                title: {
-                    display: true,
-                    text: 'Cihaz Türüne Göre Arıza Dağılımı'
-                }
-            }
-        }
-    });
-}
-
-// Cihaz durumları grafiği
-function createDeviceStatusChart() {
-    const ctx = document.getElementById('deviceStatus');
-    if (!ctx) return;
-
-    const deviceStatus = {
-        active: 0,
-        issue: 0,
-        maintenance: 0
-    };
-
-    state.courtOffices.forEach(office => {
-        office.cihazlar.forEach(cihaz => {
-            deviceStatus[cihaz.durum]++;
-        });
-    });
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Aktif', 'Arızalı', 'Bakımda'],
-            datasets: [{
-                label: 'Cihaz Sayısı',
-                data: [
-                    deviceStatus.active,
-                    deviceStatus.issue,
-                    deviceStatus.maintenance
-                ],
-                backgroundColor: [
-                    '#4CAF50',
-                    '#F44336',
-                    '#FFC107'
-                ]
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                title: {
-                    display: true,
-                    text: 'Cihaz Durumları'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
 }
 
 // Sayfa içeriğini ayarla
@@ -346,44 +225,6 @@ function setupContent() {
     }
 }
 
-// Mahkeme detay sayfası için yeni fonksiyonlar
-async function loadMahkemeDetay(mahkemeId) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function updateDetailHeader(data) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function updateInfoCards(data) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function updatePersonnel(personnel) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function updateDevices(devices) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function updateActivityTimeline(activities) {
-    // Bu fonksiyon kaldırılacak
-}
-
-// Mahkeme kalemleri fonksiyonlarını kaldır
-function createMahkemeCard(mahkeme) {
-    // Bu fonksiyon kaldırılacak
-}
-
-function loadCourtOfficesContent() {
-    // Bu fonksiyon kaldırılacak
-}
-
-function setupFilters() {
-    // Bu fonksiyon kaldırılacak
-}
-
 // Duruşma Salonları Sayfası
 function setupCourtroomsPage() {
     updateCourtroomStats();
@@ -398,13 +239,13 @@ function updateCourtroomStats() {
         active: state.durusmaSalonlari.filter(salon => salon.durum === 'active').length,
         issue: state.durusmaSalonlari.filter(salon => salon.durum === 'issue').length,
         maintenance: state.durusmaSalonlari.filter(salon => salon.durum === 'maintenance').length,
-        todayHearings: 12 // Örnek veri
+        total: state.durusmaSalonlari.length
     };
 
-    document.getElementById('activeCourtroomsCount').textContent = stats.active;
-    document.getElementById('issuesCourtroomsCount').textContent = stats.issue;
-    document.getElementById('maintenanceCourtroomsCount').textContent = stats.maintenance;
-    document.getElementById('todayHearingsCount').textContent = stats.todayHearings;
+    document.getElementById('totalCourtrooms').textContent = stats.total;
+    document.getElementById('activeCourtrooms').textContent = stats.active;
+    document.getElementById('issueCourtrooms').textContent = stats.issue;
+    document.getElementById('maintenanceCourtrooms').textContent = stats.maintenance;
 }
 
 // Grid/List görünüm değiştirme
@@ -766,21 +607,21 @@ function createTimelineItem(item) {
     timelineItem.innerHTML = `
         <div class="timeline-icon ${item.type === 'issue' ? 'issue' : ''}">
             <i class="fas fa-${item.type === 'issue' ? 'exclamation-circle' : 'wrench'}"></i>
-                </div>
+        </div>
         <div class="timeline-content">
             <div class="timeline-header">
                 <h3>${item.title}</h3>
                 <span class="date">${item.date}</span>
-                </div>
+            </div>
             <p>${item.description}</p>
             <div class="timeline-footer">
                 <span class="technician">
                     <i class="fas fa-user"></i>
                     ${item.technician}
                 </span>
-                </div>
             </div>
-        `;
+        </div>
+    `;
     return timelineItem;
 }
 
