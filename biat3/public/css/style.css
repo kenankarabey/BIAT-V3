@@ -7,7 +7,7 @@
     --secondary-color: #161a4a;
     --danger-color: #d63031;
     --warning-color: #fdcb6e;
-    --success-color: #00b894;
+    --success-color: #28a745;
     --border-color: #dfe6e9;
     --card-bg: #ffffff;
     --hover-color: #f1f2f6;
@@ -28,6 +28,9 @@
     --danger-light: rgba(255, 71, 87, 0.1);
     --info: #2d98da;
     --info-light: rgba(45, 152, 218, 0.1);
+    --success-bg: rgba(40, 167, 69, 0.1);
+    --warning-bg: rgba(255, 193, 7, 0.1);
+    --danger-bg: rgba(220, 53, 69, 0.1);
 
     /* Layout */
     --header-height: 70px;
@@ -66,6 +69,11 @@
     --table-border: #404040;
     --table-hover: rgba(255, 255, 255, 0.05);
     --table-header: #161a4a;
+
+    /* ... existing dark theme variables ... */
+    --success-bg: rgba(40, 167, 69, 0.2);
+    --warning-bg: rgba(255, 193, 7, 0.2);
+    --danger-bg: rgba(220, 53, 69, 0.2);
 }
 
 /* Theme Variables */
@@ -288,11 +296,28 @@ body {
 
 /* Cards */
 .court-office-card {
-    background: var(--card-bg, #ffffff);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px var(--shadow-color, rgba(0, 0, 0, 0.1));
-    transition: transform 0.2s, box-shadow 0.2s;
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--card-shadow);
+    border-left: 4px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.court-office-card.active {
+    border-left-color: var(--success-color);
+    background: linear-gradient(to right, var(--success-bg), var(--card-bg));
+}
+
+.court-office-card.issue {
+    border-left-color: var(--danger-color);
+    background: linear-gradient(to right, var(--danger-bg), var(--card-bg));
+}
+
+.court-office-card.maintenance {
+    border-left-color: var(--warning-color);
+    background: linear-gradient(to right, var(--warning-bg), var(--card-bg));
 }
 
 .court-office-card:hover {
@@ -2552,11 +2577,6 @@ select.form-control {
     color: #ffa801;
 }
 
-.quick-stats .stat-icon.scheduled {
-    background: rgba(48, 51, 107, 0.15);
-    color: #30336b;
-}
-
 .quick-stats .stat-info h3 {
     font-size: 0.875rem;
     color: var(--text-light);
@@ -4791,39 +4811,41 @@ input:checked + .slider:before {
 
 /* Modal Styles */
 .modal {
+    display: none;
     position: fixed;
-    top: 0;
+    z-index: 9999;
     left: 0;
+    top: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
     opacity: 0;
-    display: none;
-    transition: opacity 0.3s ease;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .modal.show {
-    display: flex;
+    display: flex !important;
     opacity: 1;
+    visibility: visible;
     align-items: center;
     justify-content: center;
 }
 
 .modal-content {
-    background-color: var(--card-bg);
+    background-color: var(--bg-color);
     border-radius: 8px;
-    box-shadow: var(--shadow);
+    padding: 20px;
     width: 90%;
     max-width: 600px;
     max-height: 90vh;
     overflow-y: auto;
-        transform: translateY(-20px);
+    transform: translateY(-20px);
     transition: transform 0.3s ease;
-    }
+}
 
 .modal.show .modal-content {
-        transform: translateY(0);
+    transform: translateY(0);
 }
 
 .modal-header {
@@ -5577,5 +5599,244 @@ input:checked + .slider:before {
 
 [data-theme="dark"] .btn-icon:hover {
     background: rgba(255, 255, 255, 0.1);
+}
+
+/* Stepper Progress */
+.stepper-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    position: relative;
+    padding: 0 1rem;
+}
+
+.stepper-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color, #e2e8f0);
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: var(--text-secondary, #718096);
+}
+
+.step.active {
+    color: var(--primary-color, #4299e1);
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--background-color, #fff);
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step.active .step-number {
+    background: var(--primary-color, #4299e1);
+    color: #fff;
+    border-color: var(--primary-color, #4299e1);
+}
+
+.step-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Step Content */
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Monitor Details */
+.monitor-item {
+    background: var(--background-color, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.monitor-item h4 {
+    margin: 0 0 1rem;
+    color: var(--text-primary, #2d3748);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.device-details {
+    margin-top: 1rem;
+}
+
+/* Form Validation */
+.form-group input.error {
+    border-color: var(--danger-color, #f56565);
+}
+
+.form-group input.error:focus {
+    box-shadow: 0 0 0 3px rgba(245, 101, 101, 0.15);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Stepper Form Styles */
+.stepper-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+    padding: 0 20px;
+}
+
+.stepper-progress::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 40px;
+    right: 40px;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.step {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    text-align: center;
+    background: var(--bg-color);
+}
+
+.step-number {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--bg-color);
+    border: 2px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    font-weight: 500;
+}
+
+.step.active .step-number {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.step.active .step-label {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.step-content {
+    display: none;
+}
+
+.step-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.monitor-item {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.monitor-item h4 {
+    margin: 0 0 15px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.device-details {
+    margin-top: 20px;
+}
+
+/* Empty State Styles */
+.empty-state {
+    text-align: center;
+    padding: 40px;
+    background-color: var(--bg-color);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    margin: 20px 0;
+}
+
+.empty-state i {
+    font-size: 2rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Dark theme card status adjustments */
+[data-theme="dark"] .court-office-card.active {
+    background: linear-gradient(to right, var(--success-bg), var(--card-bg));
+}
+
+[data-theme="dark"] .court-office-card.issue {
+    background: linear-gradient(to right, var(--danger-bg), var(--card-bg));
+}
+
+[data-theme="dark"] .court-office-card.maintenance {
+    background: linear-gradient(to right, var(--warning-bg), var(--card-bg));
 }
 
