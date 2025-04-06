@@ -118,9 +118,9 @@
             <!-- Page Header -->
             <div class="page-header">
                 <h1>Mahkeme Kalemleri</h1>
-                <button class="btn-primary" id="addNewOfficeBtn">
+                <button class="btn btn-primary">
                     <i class="fas fa-plus"></i>
-                    <span>Yeni Kalem Ekle</span>
+                    Yeni Kalem Ekle
                 </button>
             </div>
 
@@ -180,10 +180,107 @@
             <div class="court-offices-grid">
                 <!-- Court office cards will be populated by JavaScript -->
             </div>
+
+            <!-- Add Office Modal -->
+            <div class="modal" id="addOfficeModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Yeni Mahkeme Kalemi Ekle</h2>
+                        <button class="close-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="mahkemeKalemiForm">
+                            <div class="form-group">
+                                <label for="ad">Mahkeme Kalemi Adı</label>
+                                <input type="text" id="ad" name="ad" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="tip">Mahkeme Tipi</label>
+                                <select id="tip" name="tip" required>
+                                    <option value="">Seçiniz</option>
+                                    <option value="Ağır Ceza">Ağır Ceza</option>
+                                    <option value="Asliye Ceza">Asliye Ceza</option>
+                                    <option value="Asliye Hukuk">Asliye Hukuk</option>
+                                    <option value="Sulh Ceza">Sulh Ceza</option>
+                                    <option value="Sulh Hukuk">Sulh Hukuk</option>
+                                    <option value="İcra">İcra</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="konum">Konum</label>
+                                <input type="text" id="konum" name="konum" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary">İptal</button>
+                        <button type="submit" form="mahkemeKalemiForm" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Device Modal -->
+            <div class="modal" id="addDeviceModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Cihaz Ekle</h2>
+                        <button class="close-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="deviceForm">
+                            <div class="form-group">
+                                <label for="deviceType">Cihaz Türü</label>
+                                <select id="deviceType" required>
+                                    <option value="">Seçiniz</option>
+                                    <option value="computer">Bilgisayar</option>
+                                    <option value="monitor">Monitör</option>
+                                    <option value="printer">Yazıcı</option>
+                                    <option value="scanner">Tarayıcı</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="brand">Marka</label>
+                                <input type="text" id="brand" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="model">Model</label>
+                                <input type="text" id="model" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="serialNumber">Seri Numarası</label>
+                                <input type="text" id="serialNumber" required>
+                            </div>
+                            <hr>
+                            <h3>Zimmetli Kişi Bilgileri</h3>
+                            <div class="form-group">
+                                <label for="recipientTitle">Unvan</label>
+                                <input type="text" id="recipientTitle" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recipientId">Sicil No</label>
+                                <input type="text" id="recipientId" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="recipientName">Ad Soyad</label>
+                                <input type="text" id="recipientName" required>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary">İptal</button>
+                        <button class="btn btn-primary" onclick="saveDevice()">Kaydet</button>
+                    </div>
+                </div>
+            </div>
         </main>
     </div>
 
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/mahkeme-kalemleri.js"></script>
 </body>
 </html> 

@@ -2836,7 +2836,6 @@ body {
     .hardware-grid {
         grid-template-columns: 1fr;
     }
-
     .hardware-card {
         flex-direction: row;
         align-items: center;
@@ -5384,3 +5383,48 @@ input:checked + .slider:before {
         padding-top: 12px;
     }
 }
+
+.card-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-left: auto;
+}
+
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-color);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    padding: 0;
+}
+
+.btn-icon i {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+[data-theme="dark"] .btn-icon {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="dark"] .btn-icon i {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .btn-icon:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
