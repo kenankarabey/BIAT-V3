@@ -31,29 +31,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Tema butonunu ayarla
-    setupTheme();
-    
-    // Tema butonuna doğrudan event listener ekle
-    const themeToggle = document.querySelector('.toggle-theme');
-    if (themeToggle) {
-        themeToggle.addEventListener('click', function() {
-            const htmlElement = document.documentElement;
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            // Tema değişikliğini uygula
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            // İkonu güncelle
-            const themeIcon = themeToggle.querySelector('i');
-            if (themeIcon) {
-                themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-        });
-    }
-    
     // Modal kapatma butonları için event listener'lar
     const closeButtons = document.querySelectorAll('.close-modal');
     closeButtons.forEach(button => {

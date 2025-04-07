@@ -1,8 +1,8 @@
 // Theme handling
-function initializeTheme() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-}
+// function initializeTheme() {
+//     const savedTheme = localStorage.getItem('theme') || 'light';
+//     document.documentElement.setAttribute('data-theme', savedTheme);
+// }
 
 // Toggle password visibility
 function togglePassword() {
@@ -141,7 +141,7 @@ function showNotification(message, type = 'info') {
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize theme
-    initializeTheme();
+    // initializeTheme();
     
     // Check login status
     const isLoggedIn = localStorage.getItem('isLoggedIn');

@@ -560,53 +560,10 @@
         </main>
     </div>
 
-    <script src="js/devices.js"></script>
     <script src="js/theme.js"></script>
-    <script src="js/sidebar.js"></script>
-
-    <!-- Add Device Modal -->
-    <div class="modal" id="addDeviceModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Yeni Cihaz Ekle</h2>
-                <button class="close-modal" onclick="closeAddModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addDeviceForm">
-                    <div class="form-group">
-                        <label for="deviceType">Cihaz Türü</label>
-                        <select id="deviceType" onchange="updateFormFields()">
-                            <option value="computer">Bilgisayar</option>
-                            <option value="laptop">Laptop</option>
-                            <option value="screen">Monitör</option>
-                            <option value="printer">Yazıcı</option>
-                            <option value="scanner">Tarayıcı</option>
-                            <option value="tv">Televizyon</option>
-                            <option value="camera">Kamera</option>
-                            <option value="segbis">SEGBIS</option>
-                            <option value="microphone">Mikrofon</option>
-                            <option value="ehearing">E-Duruşma</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="birim">Birim</label>
-                        <input type="text" id="birim" required>
-                    </div>
-                    <div id="dynamicFields">
-                        <!-- Dinamik form alanları buraya eklenecek -->
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeAddModal()">İptal</button>
-                <button class="btn btn-primary" onclick="saveDevice()">Kaydet</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add these script tags at the end of the body -->
+    <script src="js/main.js"></script>
+    <script src="js/login.js"></script>
+    <script src="js/tum-cihazlar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </body>

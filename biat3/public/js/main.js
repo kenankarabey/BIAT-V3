@@ -28,16 +28,9 @@ const state = {
 
 // Sayfa yüklendiğinde çalışacak ana fonksiyon
 document.addEventListener('DOMContentLoaded', function() {
-    setupTheme();
     setupSidebar();
     setupContent();
     checkLoginStatus();
-    
-    // Tema butonlarına tıklama olayı ekle
-    const themeButtons = document.querySelectorAll('.toggle-theme');
-    themeButtons.forEach(button => {
-        button.addEventListener('click', toggleTheme);
-    });
     
     // Sidebar toggle butonuna tıklama olayı ekle
     const sidebarToggle = document.querySelector('.toggle-sidebar');
@@ -62,43 +55,6 @@ function logout() {
     localStorage.removeItem('username');
     localStorage.removeItem('rememberMe');
     window.location.href = 'login.html';
-}
-
-// Tema ayarları
-function setupTheme() {
-    const htmlElement = document.documentElement;
-    const toggleThemeButton = document.querySelector('.toggle-theme');
-    
-    // Kaydedilmiş tema varsa uygula
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    htmlElement.setAttribute('data-theme', savedTheme);
-    
-    // Tema değiştirme butonu varsa
-    if (toggleThemeButton) {
-        // İkon güncelleme fonksiyonu
-        const updateThemeIcon = (theme) => {
-            const themeIcon = toggleThemeButton.querySelector('i');
-            if (themeIcon) {
-                themeIcon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            }
-        };
-
-        // Başlangıçta ikonu ayarla
-        updateThemeIcon(savedTheme);
-
-        // Tema değiştirme olayı
-        toggleThemeButton.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-            
-            // Tema değişikliğini uygula
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            
-            // İkonu güncelle
-            updateThemeIcon(newTheme);
-        });
-    }
 }
 
 // Sidebar ayarları
@@ -444,21 +400,6 @@ function showNotification(message, type = 'success') {
         notification.classList.add('hide');
         setTimeout(() => notification.remove(), 300);
     }, 3000);
-}
-
-// Tema değiştir
-function toggleTheme() {
-    const currentTheme = document.documentElement.getAttribute('data-theme');
-    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Tüm tema değiştirme butonlarının ikonlarını güncelle
-    const themeIcons = document.querySelectorAll('.toggle-theme i');
-    themeIcons.forEach(icon => {
-        icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
-    });
 }
 
 // Sidebar'ı aç/kapat
