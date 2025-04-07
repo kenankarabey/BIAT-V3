@@ -1,3 +1,9 @@
+// Theme handling
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
 // Toggle password visibility
 function togglePassword() {
     const passwordInput = document.getElementById('password');
@@ -14,6 +20,26 @@ function togglePassword() {
     }
 }
 
+// Form validation
+function validateForm(username, password) {
+    if (!username.trim()) {
+        showNotification('Kullanıcı adı boş olamaz!', 'error');
+        return false;
+    }
+    
+    if (!password.trim()) {
+        showNotification('Şifre boş olamaz!', 'error');
+        return false;
+    }
+    
+    if (password.length < 4) {
+        showNotification('Şifre en az 4 karakter olmalıdır!', 'error');
+        return false;
+    }
+    
+    return true;
+}
+
 // Login form submit handler
 function handleLogin(event) {
     event.preventDefault();
@@ -22,33 +48,43 @@ function handleLogin(event) {
     const password = document.getElementById('password').value;
     const remember = document.getElementById('remember').checked;
     
-    // Burada gerçek bir API çağrısı yapılacak
-    // Şimdilik basit bir kontrol yapıyoruz
-    if (username === 'admin' && password === 'admin') {
-        // Başarılı giriş
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('username', username);
-        if (remember) {
-            localStorage.setItem('rememberMe', 'true');
-        }
-        
-        // Tema ayarını koru
-    
-        window.location.href = 'index.html';
-    } else {
-        showNotification('Kullanıcı adı veya şifre hatalı!', 'error');
+    if (!validateForm(username, password)) {
+        return;
     }
+    
+    // Simulated API call
+    setTimeout(() => {
+        if (username === 'admin' && password === 'admin') {
+            // Successful login
+            showNotification('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
+            
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('username', username);
+            if (remember) {
+                localStorage.setItem('rememberMe', 'true');
+            }
+            
+            // Redirect after notification
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        } else {
+            showNotification('Kullanıcı adı veya şifre hatalı!', 'error');
+        }
+    }, 500); // Simulate network delay
 }
 
 // Logout function
 function logout() {
-    // Sadece login ile ilgili verileri temizle
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('username');
-    localStorage.removeItem('rememberMe');
+    showNotification('Çıkış yapılıyor...', 'info');
     
-    // Login sayfasına yönlendir
-    window.location.href = 'login.html';
+    setTimeout(() => {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        localStorage.removeItem('rememberMe');
+        
+        window.location.href = 'login.html';
+    }, 500);
 }
 
 // Show forgot password dialog
@@ -66,13 +102,27 @@ function closeForgotPassword() {
 // Send reset link
 function sendResetLink() {
     const email = document.getElementById('resetEmail').value;
-    // Burada gerçek bir API çağrısı yapılacak
+    
+    if (!email.trim()) {
+        showNotification('E-posta adresi boş olamaz!', 'error');
+        return;
+    }
+    
+    if (!email.endsWith('@adalet.gov.tr')) {
+        showNotification('Geçerli bir adalet.gov.tr e-posta adresi giriniz!', 'error');
+        return;
+    }
+    
     showNotification('Şifre sıfırlama bağlantısı gönderildi!', 'success');
     closeForgotPassword();
 }
 
 // Show notification
 function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
+    
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
     notification.textContent = message;
@@ -88,18 +138,28 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-// Call checkLoginStatus when page loads
+// Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
-    // Tema ayarını uygula
- 
+    // Initialize theme
+    initializeTheme();
     
-    // Login durumunu kontrol et
+    // Check login status
     const isLoggedIn = localStorage.getItem('isLoggedIn');
     const currentPage = window.location.pathname.split('/').pop();
     
     if (!isLoggedIn && currentPage !== 'login.html') {
+        showNotification('Lütfen giriş yapın!', 'info');
         window.location.href = 'login.html';
     } else if (isLoggedIn && currentPage === 'login.html') {
         window.location.href = 'index.html';
+    }
+    
+    // Set remembered username if exists
+    if (currentPage === 'login.html' && localStorage.getItem('rememberMe')) {
+        const rememberedUsername = localStorage.getItem('username');
+        if (rememberedUsername) {
+            document.getElementById('username').value = rememberedUsername;
+            document.getElementById('remember').checked = true;
+        }
     }
 }); 

@@ -122,7 +122,7 @@ function setupSidebar() {
             const link = item.querySelector('a');
             if (link) {
                 link.addEventListener('click', (e) => {
-                    e.preventDefault();
+            e.preventDefault();
                     item.classList.toggle('active');
                     
                     // Alt menü ikonunu döndür
@@ -139,9 +139,9 @@ function setupSidebar() {
                         
                         // Animasyon tamamlandıktan sonra height: auto yap
                         if (!isExpanding) {
-                            setTimeout(() => {
+                setTimeout(() => {
                                 submenu.style.height = 'auto';
-                            }, 300);
+                }, 300);
                         }
                     }
                 });
@@ -151,7 +151,7 @@ function setupSidebar() {
         // Overlay tıklama olayı
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
+            sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
@@ -182,7 +182,7 @@ function handleResize() {
             sidebarOverlay?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-    } else {
+            } else {
         sidebarOverlay?.classList.remove('active');
         document.body.style.overflow = '';
         
@@ -201,14 +201,14 @@ function setupContent() {
     
     switch (currentPage) {
         case 'hakim-odalari.html':
-            setupChambersPage();
-            break;
+        setupChambersPage();
+                    break;
         case 'arizalar.html':
             setupMaintenancePage();
-            break;
+                    break;
         case 'durusma-salonlari.html':
             // Duruşma salonları için özel bir işlem gerekmediğinden boş bırakıyoruz
-            break;
+                    break;
     }
 }
 
@@ -315,21 +315,21 @@ function createTimelineItem(item) {
     timelineItem.innerHTML = `
         <div class="timeline-icon ${item.type === 'issue' ? 'issue' : ''}">
             <i class="fas fa-${item.type === 'issue' ? 'exclamation-circle' : 'wrench'}"></i>
-        </div>
+                </div>
         <div class="timeline-content">
             <div class="timeline-header">
                 <h3>${item.title}</h3>
                 <span class="date">${item.date}</span>
-            </div>
+                </div>
             <p>${item.description}</p>
             <div class="timeline-footer">
                 <span class="technician">
                     <i class="fas fa-user"></i>
                     ${item.technician}
                 </span>
+                </div>
             </div>
-        </div>
-    `;
+        `;
     return timelineItem;
 }
 
