@@ -32,6 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSidebar();
     setupContent();
     checkLoginStatus();
+    
+    // Tema butonlarına tıklama olayı ekle
+    const themeButtons = document.querySelectorAll('.toggle-theme');
+    themeButtons.forEach(button => {
+        button.addEventListener('click', toggleTheme);
+    });
+    
+    // Sidebar toggle butonuna tıklama olayı ekle
+    const sidebarToggle = document.querySelector('.toggle-sidebar');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
 });
 
 // Login durumunu kontrol et
@@ -100,21 +112,15 @@ function setupSidebar() {
         const savedState = localStorage.getItem('sidebarState');
         if (savedState === 'collapsed') {
             sidebar.classList.add('collapsed');
-            updateSidebarButtonText('Menü Aç');
+            toggleSidebarButton.querySelector('span').textContent = 'Menü Aç';
         }
 
         // Sidebar toggle olayı
         toggleSidebarButton.addEventListener('click', () => {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.toggle('active');
-                sidebarOverlay?.classList.toggle('active');
-                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-            } else {
-                sidebar.classList.toggle('collapsed');
-                const isCollapsed = sidebar.classList.contains('collapsed');
-                localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
-                updateSidebarButtonText(isCollapsed ? 'Menü Aç' : 'Menü Küçült');
-            }
+            sidebar.classList.toggle('collapsed');
+            const isCollapsed = sidebar.classList.contains('collapsed');
+            toggleSidebarButton.querySelector('span').textContent = isCollapsed ? 'Menü Aç' : 'Menü Küçült';
+            localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
         });
 
         // Alt menü olayları
@@ -163,14 +169,6 @@ function setupSidebar() {
     }
 }
 
-// Sidebar buton metnini güncelle
-function updateSidebarButtonText(text) {
-    const toggleText = document.querySelector('.toggle-sidebar span');
-    if (toggleText) {
-        toggleText.textContent = text;
-    }
-}
-
 // Responsive davranış
 function handleResize() {
     const sidebar = document.querySelector('.sidebar');
@@ -190,7 +188,7 @@ function handleResize() {
         const savedState = localStorage.getItem('sidebarState');
         if (savedState === 'collapsed' && sidebar) {
             sidebar.classList.add('collapsed');
-            updateSidebarButtonText('Menü Aç');
+            toggleSidebarButton.querySelector('span').textContent = 'Menü Aç';
         }
     }
 }
@@ -448,4 +446,27 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-/* ... existing code ... */ 
+// Tema değiştir
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Tüm tema değiştirme butonlarının ikonlarını güncelle
+    const themeIcons = document.querySelectorAll('.toggle-theme i');
+    themeIcons.forEach(icon => {
+        icon.className = newTheme === 'light' ? 'fas fa-moon' : 'fas fa-sun';
+    });
+}
+
+// Sidebar'ı aç/kapat
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleBtn = document.querySelector('.toggle-sidebar');
+    
+    sidebar.classList.toggle('collapsed');
+    toggleBtn.querySelector('span').textContent = 
+        sidebar.classList.contains('collapsed') ? 'Menü Aç' : 'Menü Küçült';
+} 

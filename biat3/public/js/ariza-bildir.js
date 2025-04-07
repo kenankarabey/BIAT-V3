@@ -7,6 +7,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const deviceIdSelect = document.getElementById('deviceId');
     const contactPhoneInput = document.getElementById('contactPhone');
     
+    // Form submit olayını dinle
+    if (form) {
+        form.addEventListener('submit', submitIssueForm);
+    }
+    
     // Location change handler
     locationSelect.addEventListener('change', function() {
         const location = this.value;
@@ -161,12 +166,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Form Submission
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    async function submitIssueForm(event) {
+        event.preventDefault();
         
         if (!validateForm()) return;
         
-        const formData = new FormData(form);
+        // Form verilerini al
+        const formData = new FormData(event.target);
+        const issue = {
+            id: generateIssueId(),
+            date: new Date().toISOString(),
+            location: formData.get('location'),
+            subLocation: formData.get('subLocation'),
+            deviceType: formData.get('deviceType'),
+            device: formData.get('device'),
+            issueType: formData.get('issueType'),
+            urgency: formData.get('urgency'),
+            description: formData.get('description'),
+            status: 'beklemede',
+            files: [] // Dosya yükleme işlemi eklenecek
+        };
+        
+        // LocalStorage'a kaydet
+        let issues = JSON.parse(localStorage.getItem('issues')) || [];
+        issues.push(issue);
+        localStorage.setItem('issues', JSON.stringify(issues));
+        
+        // Yeni bildirim olarak işaretle
+        let newIssues = JSON.parse(localStorage.getItem('newIssues')) || [];
+        newIssues.push(issue.id);
+        localStorage.setItem('newIssues', JSON.stringify(newIssues));
+        
         const fileUploads = document.querySelectorAll('.preview-item img');
         
         // Add files to form data
@@ -181,13 +211,16 @@ document.addEventListener('DOMContentLoaded', function() {
             await new Promise(resolve => setTimeout(resolve, 1500));
             
             showNotification('success', 'Arıza bildirimi başarıyla gönderildi.');
-            form.reset();
+            event.target.reset();
             previewContainer.innerHTML = '';
             
         } catch (error) {
             showNotification('error', 'Bir hata oluştu. Lütfen tekrar deneyin.');
         }
-    });
+        
+        // Başarılı modalını göster
+        showSuccessModal();
+    }
     
     // Validate form
     function validateForm() {
@@ -375,3 +408,24 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+
+// Arıza ID'si oluştur
+function generateIssueId() {
+    const date = new Date();
+    const year = date.getFullYear().toString().slice(-2);
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    return `ARZ${year}${month}${day}${random}`;
+}
+
+// Başarılı modalını göster
+function showSuccessModal() {
+    const modal = document.getElementById('successModal');
+    modal.classList.add('show');
+    
+    // 3 saniye sonra modalı kapat
+    setTimeout(() => {
+        modal.classList.remove('show');
+    }, 3000);
+}

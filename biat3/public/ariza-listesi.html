@@ -115,9 +115,6 @@
             <header class="content-header">
                 <h1>Arıza Listesi</h1>
                 <div class="header-actions">
-                    <button class="toggle-theme">
-                        <i class="fas fa-moon"></i>
-                    </button>
                     <a href="ariza-bildir.html" class="btn btn-primary">
                         <i class="fas fa-plus"></i>
                         Yeni Arıza Bildir
@@ -261,6 +258,87 @@
                 <div id="issueDetails">
                     <!-- JavaScript ile doldurulacak -->
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Issue Edit Modal -->
+    <div class="modal" id="issueEditModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Arıza Düzenle</h2>
+                <button class="close-modal" onclick="closeIssueEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editIssueForm">
+                    <input type="hidden" id="editIssueId">
+                    <div class="form-group">
+                        <label for="editLocation">Lokasyon</label>
+                        <select id="editLocation" required>
+                            <option value="mahkeme-kalemi">Mahkeme Kalemi</option>
+                            <option value="durusma-salonu">Duruşma Salonu</option>
+                            <option value="hakim-odasi">Hakim Odası</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSubLocation">Alt Lokasyon</label>
+                        <select id="editSubLocation" required>
+                            <!-- JavaScript ile doldurulacak -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDeviceType">Cihaz Türü</label>
+                        <select id="editDeviceType" required>
+                            <option value="bilgisayar">Bilgisayar</option>
+                            <option value="yazici">Yazıcı</option>
+                            <option value="tarayici">Tarayıcı</option>
+                            <option value="segbis">SEGBİS</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDeviceId">Cihaz</label>
+                        <select id="editDeviceId" required>
+                            <!-- JavaScript ile doldurulacak -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIssueType">Arıza Türü</label>
+                        <select id="editIssueType" required>
+                            <option value="donanim">Donanım Arızası</option>
+                            <option value="yazilim">Yazılım Arızası</option>
+                            <option value="ag">Ağ Arızası</option>
+                            <option value="diger">Diğer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editUrgencyLevel">Aciliyet</label>
+                        <select id="editUrgencyLevel" required>
+                            <option value="low">Düşük</option>
+                            <option value="medium">Orta</option>
+                            <option value="high">Yüksek</option>
+                            <option value="critical">Kritik</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Durum</label>
+                        <select id="editStatus" required>
+                            <option value="beklemede">Beklemede</option>
+                            <option value="islemde">İşlemde</option>
+                            <option value="tamamlandi">Tamamlandı</option>
+                            <option value="iptal">İptal Edildi</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editIssueDescription">Açıklama</label>
+                        <textarea id="editIssueDescription" rows="4" required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeIssueEditModal()">İptal</button>
+                        <button type="button" class="btn btn-primary" onclick="saveIssueEdit()">Kaydet</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
