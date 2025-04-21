@@ -1,20 +1,20 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { createStackNavigator } from '@react-navigation/stack';
-
-// Kategori ekranlarını içe aktarma
-import AllDevicesScreen from './devices/AllDevicesScreen';
-import CourtOfficesScreen from './devices/CourtOfficesScreen';
-import CourtroomsScreen from './devices/CourtroomsScreen';
-import JudgeRoomsScreen from './devices/JudgeRoomsScreen';
-
-const Stack = createStackNavigator();
 
 // Ana kategori ekranı
-const DevicesCategoriesScreen = ({ navigation }) => {
+const DevicesScreen = ({ navigation }) => {
   // Kategori verileri
   const categories = [
+    { 
+      id: 'add', 
+      title: 'Cihaz Ekle', 
+      description: 'Yeni bir cihaz ekle', 
+      icon: 'add-circle-outline',
+      count: null,
+      screen: 'AddDevice',
+      color: '#0891b2'
+    },
     { 
       id: 'all', 
       title: 'Tüm Cihazlar', 
@@ -56,7 +56,7 @@ const DevicesCategoriesScreen = ({ navigation }) => {
   // Kategori kartı bileşeni
   const CategoryCard = ({ item }) => (
     <TouchableOpacity 
-      style={styles.categoryCard}
+      style={[styles.categoryCard, item.id === 'add' && styles.addCard]}
       onPress={() => navigation.navigate(item.screen)}
     >
       <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
@@ -65,9 +65,11 @@ const DevicesCategoriesScreen = ({ navigation }) => {
       <View style={styles.categoryContent}>
         <View style={styles.categoryHeader}>
           <Text style={styles.categoryTitle}>{item.title}</Text>
-          <View style={styles.countContainer}>
-            <Text style={styles.countText}>{item.count}</Text>
-          </View>
+          {item.count && (
+            <View style={styles.countContainer}>
+              <Text style={styles.countText}>{item.count}</Text>
+            </View>
+          )}
         </View>
         <Text style={styles.categoryDescription}>{item.description}</Text>
       </View>
@@ -110,19 +112,6 @@ const DevicesCategoriesScreen = ({ navigation }) => {
         </View>
       </ScrollView>
     </SafeAreaView>
-  );
-};
-
-// Cihazlar Navigator
-const DevicesNavigator = () => {
-  return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="DevicesCategories" component={DevicesCategoriesScreen} />
-      <Stack.Screen name="AllDevices" component={AllDevicesScreen} />
-      <Stack.Screen name="CourtOffices" component={CourtOfficesScreen} />
-      <Stack.Screen name="Courtrooms" component={CourtroomsScreen} />
-      <Stack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
-    </Stack.Navigator>
   );
 };
 
@@ -209,6 +198,11 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 2,
   },
+  addCard: {
+    borderWidth: 2,
+    borderColor: '#0891b2',
+    borderStyle: 'dashed',
+  },
   iconContainer: {
     width: 56,
     height: 56,
@@ -248,4 +242,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DevicesNavigator; 
+export default DevicesScreen; 

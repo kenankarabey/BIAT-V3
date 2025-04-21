@@ -2,15 +2,40 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, Platform } from 'react-native';
+import { createStackNavigator } from '@react-navigation/stack';
 
 // Ekranları içe aktarma
 import HomeScreen from '../screens/HomeScreen';
-import DevicesNavigator from '../screens/DevicesScreen';
+import DevicesScreen from '../screens/DevicesScreen';
+import AllDevicesScreen from '../screens/devices/AllDevicesScreen';
+import CourtOfficesScreen from '../screens/devices/CourtOfficesScreen';
+import CourtroomsScreen from '../screens/devices/CourtroomsScreen';
+import JudgeRoomsScreen from '../screens/devices/JudgeRoomsScreen';
 import IssuesScreen from '../screens/IssuesScreen';
-import ReportsScreen from '../screens/ReportsScreen';
+import ScannerScreen from '../screens/ScannerScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import DeviceDetailScreen from '../screens/devices/DeviceDetailScreen';
+import AddDeviceScreen from '../screens/AddDeviceScreen';
+import DeviceFormScreen from '../screens/DeviceFormScreen';
 
 const Tab = createBottomTabNavigator();
+const DevicesStack = createStackNavigator();
+
+// Cihazlar Navigator
+const DevicesNavigator = () => {
+  return (
+    <DevicesStack.Navigator screenOptions={{ headerShown: false }}>
+      <DevicesStack.Screen name="DevicesMain" component={DevicesScreen} />
+      <DevicesStack.Screen name="AllDevices" component={AllDevicesScreen} />
+      <DevicesStack.Screen name="CourtOffices" component={CourtOfficesScreen} />
+      <DevicesStack.Screen name="Courtrooms" component={CourtroomsScreen} />
+      <DevicesStack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
+      <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
+      <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
+      <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
+    </DevicesStack.Navigator>
+  );
+};
 
 const TabNavigator = () => {
   return (
@@ -76,13 +101,13 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen 
-        name="Reports" 
-        component={ReportsScreen} 
+        name="Scanner" 
+        component={ScannerScreen} 
         options={{
-          tabBarLabel: 'Raporlar',
+          tabBarLabel: 'Tarayıcı',
           tabBarIcon: ({ color, size, focused }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? 'document-text' : 'document-text-outline'} size={size} color={color} />
+              <Ionicons name={focused ? 'qr-code' : 'qr-code-outline'} size={size} color={color} />
             </View>
           ),
         }}
