@@ -286,8 +286,110 @@
         </main>
     </div>
 
+    <!-- Add Chamber Modal -->
+    <div class="modal" id="addChamberModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Yeni Hakim Odası Ekle</h2>
+                <button class="close-modal" onclick="closeChamberModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="chamberForm">
+                    <div class="form-group">
+                        <label for="roomNumber">Oda Numarası</label>
+                        <input type="text" id="roomNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="block">Blok</label>
+                        <select id="block" required>
+                            <option value="">Seçiniz</option>
+                            <option value="A Blok">A Blok</option>
+                            <option value="B Blok">B Blok</option>
+                            <option value="C Blok">C Blok</option>
+                            <option value="D Blok">D Blok</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="floor">Kat</label>
+                        <select id="floor" required>
+                            <option value="">Seçiniz</option>
+                            <option value="Zemin Kat">Zemin Kat</option>
+                            <option value="1. Kat">1. Kat</option>
+                            <option value="2. Kat">2. Kat</option>
+                            <option value="3. Kat">3. Kat</option>
+                            <option value="4. Kat">4. Kat</option>
+                            <option value="5. Kat">5. Kat</option>
+                            <option value="6. Kat">6. Kat</option>
+                            <option value="7. Kat">7. Kat</option>
+                            <option value="8. Kat">8. Kat</option>
+                            <option value="9. Kat">9. Kat</option>
+                            <option value="10. Kat">10. Kat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hakimler</label>
+                        <div id="judges-container">
+                            <div class="judge-entry">
+                                <div class="form-row">
+                                    <div class="form-column">
+                                        <label for="judgeName0">Hakim Adı</label>
+                                        <input type="text" id="judgeName0" class="judge-name" required>
+                                    </div>
+                                    <div class="form-column">
+                                        <label for="judgeCourt0">Mahkeme</label>
+                                        <select id="judgeCourt0" class="judge-court" required>
+                                            <option value="">Seçiniz</option>
+                                            <option value="Ağır Ceza">Ağır Ceza</option>
+                                            <option value="Asliye Ceza">Asliye Ceza</option>
+                                            <option value="Asliye Hukuk">Asliye Hukuk</option>
+                                            <option value="Sulh Ceza">Sulh Ceza</option>
+                                            <option value="Sulh Hukuk">Sulh Hukuk</option>
+                                            <option value="İcra">İcra</option>
+                                            <option value="İş">İş</option>
+                                            <option value="Ticaret">Ticaret</option>
+                                            <option value="Çocuk">Çocuk</option>
+                                            <option value="Tüketici">Tüketici</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-column">
+                                        <label for="judgeCourtNumber0">Mahkeme No</label>
+                                        <input type="number" id="judgeCourtNumber0" class="judge-court-number" min="1" required>
+                                    </div>
+                                    <div class="form-action">
+                                        <button type="button" class="btn-icon delete-judge" style="visibility: hidden;">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline" id="addJudgeBtn">
+                            <i class="fas fa-plus"></i>
+                            <span>Hakim Ekle</span>
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Durum</label>
+                        <select id="status" required>
+                            <option value="active">Aktif</option>
+                            <option value="maintenance">Bakımda</option>
+                            <option value="issue">Arıza Var</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeChamberModal()">İptal</button>
+                <button class="btn btn-primary" onclick="saveChamber()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/hakim-odalari.js"></script>
 </body>
 </html> 

@@ -7,6 +7,132 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Toast notification styles */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+        
+        /* Custom date range picker */
+        .custom-date-range {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: var(--card-bg);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .custom-date-range.show {
+            display: block;
+        }
+        
+        .date-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .date-inputs input {
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        /* Status badge styles */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-success {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+        
+        .status-warning {
+            background-color: rgba(255, 193, 7, 0.2);
+            color: #FFC107;
+        }
+        
+        .status-info {
+            background-color: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+        }
+        
+        .status-danger {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: #F44336;
+        }
+        
+        /* Chart container styles */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        /* Filter panel */
+        .filter-panel {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--card-bg);
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .filter-item select, .filter-item input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+        
+        .filter-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -120,11 +246,64 @@
                         <button class="btn btn-secondary active">Günlük</button>
                         <button class="btn btn-secondary">Haftalık</button>
                         <button class="btn btn-secondary">Aylık</button>
+                        <button class="btn btn-secondary" id="customDateBtn">Özel Tarih</button>
                     </div>
                     <button class="btn btn-primary refresh-data">
                         <i class="fas fa-sync-alt"></i>
                         Verileri Güncelle
                     </button>
+                </div>
+            </div>
+            
+            <!-- Custom Date Range Picker -->
+            <div class="custom-date-range" id="customDateRange">
+                <div class="date-inputs">
+                    <div class="filter-item">
+                        <label for="startDate">Başlangıç Tarihi</label>
+                        <input type="date" id="startDate">
+                    </div>
+                    <div class="filter-item">
+                        <label for="endDate">Bitiş Tarihi</label>
+                        <input type="date" id="endDate">
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-secondary" id="cancelCustomDate">İptal</button>
+                    <button class="btn btn-primary" id="applyCustomDate">Uygula</button>
+                </div>
+            </div>
+            
+            <!-- Filter Panel -->
+            <div class="filter-panel">
+                <div class="filter-row">
+                    <div class="filter-item">
+                        <label for="locationFilter">Konum</label>
+                        <select id="locationFilter">
+                            <option value="">Tümü</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label for="deviceFilter">Cihaz Tipi</label>
+                        <select id="deviceFilter">
+                            <option value="">Tümü</option>
+                            <!-- Options will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    <div class="filter-item">
+                        <label for="statusFilter">Durum</label>
+                        <select id="statusFilter">
+                            <option value="">Tümü</option>
+                            <option value="Beklemede">Beklemede</option>
+                            <option value="İşlemde">İşlemde</option>
+                            <option value="Çözüldü">Çözüldü</option>
+                            <option value="İptal Edildi">İptal Edildi</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-secondary" id="resetFilters">Filtreleri Sıfırla</button>
+                    <button class="btn btn-primary" id="applyFilters">Filtreleri Uygula</button>
                 </div>
             </div>
 
@@ -271,6 +450,7 @@
     <div class="sidebar-overlay"></div>
     <script src="js/theme.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/raporlar.js"></script>
     <script src="js/login.js"></script>
 </body>
 </html> 
