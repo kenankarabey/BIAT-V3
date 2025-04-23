@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -86,114 +87,121 @@ const CourtroomDetail = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={styles.backButton}
-        >
-          <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Salon Detayları</Text>
-        <View style={{ width: 32 }} />
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <View style={styles.titleRow}>
-            <Text style={styles.title}>{courtroom.name}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(courtroom.status) }]}>
-              <Text style={styles.statusText}>{courtroom.status}</Text>
-            </View>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="gavel" size={20} color="#64748b" />
-            <Text style={styles.infoText}>{courtroom.court}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="map-marker" size={20} color="#64748b" />
-            <Text style={styles.infoText}>{courtroom.location}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <MaterialCommunityIcons name="calendar-check" size={20} color="#64748b" />
-            <Text style={styles.infoText}>Son Kontrol: {courtroom.lastCheck}</Text>
-          </View>
-
-          <View style={styles.divider} />
-
-          <Text style={styles.sectionTitle}>Cihazlar ({totalDevices})</Text>
-          
-          <View style={styles.deviceGrid}>
-            {Object.entries(deviceMap).map(([key, { icon, label }]) => (
-              <TouchableOpacity 
-                key={key} 
-                style={styles.deviceItem}
-                onPress={() => handleDeviceDetail(key)}
-                disabled={!courtroom.devices || courtroom.devices[key] <= 0}
-              >
-                <View style={[
-                  styles.deviceIconContainer,
-                  { backgroundColor: courtroom.devices && courtroom.devices[key] > 0 ? '#eef2ff' : '#f1f5f9' }
-                ]}>
-                  <MaterialCommunityIcons 
-                    name={icon} 
-                    size={24} 
-                    color={courtroom.devices && courtroom.devices[key] > 0 ? '#4f46e5' : '#94a3b8'} 
-                  />
-                </View>
-                <Text style={[
-                  styles.deviceItemText,
-                  { color: courtroom.devices && courtroom.devices[key] > 0 ? '#1e293b' : '#94a3b8' }
-                ]}>
-                  {label}
-                </Text>
-                {courtroom.devices && courtroom.devices[key] > 0 ? (
-                  <View style={styles.deviceCountTag}>
-                    <Text style={styles.deviceCountText}>{courtroom.devices[key]}</Text>
-                  </View>
-                ) : (
-                  <View style={styles.deviceMissingTag}>
-                    <Text style={styles.deviceMissingText}>0</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {courtroom.notes && (
-            <>
-              <View style={styles.divider} />
-              <Text style={styles.sectionTitle}>Notlar</Text>
-              <Text style={styles.notesText}>{courtroom.notes}</Text>
-            </>
-          )}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Salon Detayları</Text>
+          <View style={{ width: 32 }} />
         </View>
-      </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.deleteButton}
-          onPress={handleDelete}
-        >
-          <MaterialCommunityIcons name="delete" size={20} color="#ef4444" />
-          <Text style={styles.deleteButtonText}>Sil</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.editButton}
-          onPress={handleEdit}
-        >
-          <MaterialCommunityIcons name="pencil" size={20} color="#ffffff" />
-          <Text style={styles.editButtonText}>Düzenle</Text>
-        </TouchableOpacity>
+        <ScrollView style={styles.content}>
+          <View style={styles.card}>
+            <View style={styles.titleRow}>
+              <Text style={styles.title}>{courtroom.name}</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(courtroom.status) }]}>
+                <Text style={styles.statusText}>{courtroom.status}</Text>
+              </View>
+            </View>
+
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="gavel" size={20} color="#64748b" />
+              <Text style={styles.infoText}>{courtroom.court}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="map-marker" size={20} color="#64748b" />
+              <Text style={styles.infoText}>{courtroom.location}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <MaterialCommunityIcons name="calendar-check" size={20} color="#64748b" />
+              <Text style={styles.infoText}>Son Kontrol: {courtroom.lastCheck}</Text>
+            </View>
+
+            <View style={styles.divider} />
+
+            <Text style={styles.sectionTitle}>Cihazlar ({totalDevices})</Text>
+            
+            <View style={styles.deviceGrid}>
+              {Object.entries(deviceMap).map(([key, { icon, label }]) => (
+                <TouchableOpacity 
+                  key={key} 
+                  style={styles.deviceItem}
+                  onPress={() => handleDeviceDetail(key)}
+                  disabled={!courtroom.devices || courtroom.devices[key] <= 0}
+                >
+                  <View style={[
+                    styles.deviceIconContainer,
+                    { backgroundColor: courtroom.devices && courtroom.devices[key] > 0 ? '#eef2ff' : '#f1f5f9' }
+                  ]}>
+                    <MaterialCommunityIcons 
+                      name={icon} 
+                      size={24} 
+                      color={courtroom.devices && courtroom.devices[key] > 0 ? '#4f46e5' : '#94a3b8'} 
+                    />
+                  </View>
+                  <Text style={[
+                    styles.deviceItemText,
+                    { color: courtroom.devices && courtroom.devices[key] > 0 ? '#1e293b' : '#94a3b8' }
+                  ]}>
+                    {label}
+                  </Text>
+                  {courtroom.devices && courtroom.devices[key] > 0 ? (
+                    <View style={styles.deviceCountTag}>
+                      <Text style={styles.deviceCountText}>{courtroom.devices[key]}</Text>
+                    </View>
+                  ) : (
+                    <View style={styles.deviceMissingTag}>
+                      <Text style={styles.deviceMissingText}>0</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            {courtroom.notes && (
+              <>
+                <View style={styles.divider} />
+                <Text style={styles.sectionTitle}>Notlar</Text>
+                <Text style={styles.notesText}>{courtroom.notes}</Text>
+              </>
+            )}
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity 
+            style={styles.deleteButton}
+            onPress={handleDelete}
+          >
+            <MaterialCommunityIcons name="delete" size={20} color="#ef4444" />
+            <Text style={styles.deleteButtonText}>Sil</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={handleEdit}
+          >
+            <MaterialCommunityIcons name="pencil" size={20} color="#ffffff" />
+            <Text style={styles.editButtonText}>Düzenle</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',

@@ -11,6 +11,8 @@ import AllDevicesScreen from '../screens/devices/AllDevicesScreen';
 import CourtOfficesScreen from '../screens/devices/CourtOfficesScreen';
 import Courtrooms from '../screens/devices/Courtrooms';
 import JudgeRoomsScreen from '../screens/devices/JudgeRoomsScreen';
+import JudgeRoomDetail from '../screens/devices/JudgeRoomDetail';
+import JudgeRoomForm from '../screens/devices/JudgeRoomForm';
 import IssuesScreen from '../screens/IssuesScreen';
 import ScannerScreen from '../screens/ScannerScreen';
 import ProfileScreen from '../screens/ProfileScreen';
@@ -36,6 +38,8 @@ const DevicesNavigator = () => {
       <DevicesStack.Screen name="CourtOffices" component={CourtOfficesScreen} />
       <DevicesStack.Screen name="Courtrooms" component={Courtrooms} />
       <DevicesStack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
+      <DevicesStack.Screen name="JudgeRoomDetail" component={JudgeRoomDetail} />
+      <DevicesStack.Screen name="JudgeRoomForm" component={JudgeRoomForm} />
       <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
       <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
       <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
@@ -57,9 +61,9 @@ const TabNavigator = () => {
         tabBarActiveTintColor: '#1e3a8a',
         tabBarInactiveTintColor: '#64748b',
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 90 : 70,
+          height: Platform.OS === 'ios' ? 80 : 60,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 5,
           paddingTop: 5,
-          paddingBottom: Platform.OS === 'ios' ? 25 : 10,
           backgroundColor: '#ffffff',
           borderTopWidth: 1,
           borderTopColor: '#e2e8f0',
@@ -73,7 +77,9 @@ const TabNavigator = () => {
         tabBarLabelStyle: {
           fontSize: 12,
           fontWeight: '500',
+          marginBottom: Platform.OS === 'ios' ? 5 : 0,
         },
+        safeAreaInsets: { top: 0 },
       }}
     >
       <Tab.Screen 

@@ -15,7 +15,9 @@ const DeviceNavigator = () => {
       initialRouteName="Courtrooms"
       screenOptions={{
         headerShown: false,
-        cardStyle: { backgroundColor: '#f5f5f5' }
+        cardStyle: { backgroundColor: '#f5f5f5' },
+        contentStyle: { paddingTop: 0 },
+        safeAreaInsets: { top: 0 },
       }}
     >
       <Stack.Screen name="Courtrooms" component={Courtrooms} />

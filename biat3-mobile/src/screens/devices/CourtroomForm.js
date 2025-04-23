@@ -11,6 +11,7 @@ import {
   Alert,
   SafeAreaView,
   Switch,
+  StatusBar,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -152,180 +153,187 @@ const CourtroomForm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            onPress={() => navigation.goBack()}
-            style={styles.backButton}
-          >
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            {isEditing ? 'Salon Düzenle' : 'Yeni Salon Ekle'}
-          </Text>
-          <View style={{ width: 32 }} />
-        </View>
-
-        <ScrollView style={styles.formContainer}>
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Salon Adı *</Text>
-            <TextInput
-              style={[
-                styles.input,
-                errors.name && styles.inputError,
-              ]}
-              value={formData.name}
-              onChangeText={(text) => handleChange('name', text)}
-              placeholder="Örn: 101 Nolu Salon"
-            />
-            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      <View style={styles.container}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+        >
+          <View style={styles.header}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              style={styles.backButton}
+            >
+              <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+            </TouchableOpacity>
+            <Text style={styles.headerTitle}>
+              {isEditing ? 'Salon Düzenle' : 'Yeni Salon Ekle'}
+            </Text>
+            <View style={{ width: 32 }} />
           </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Mahkeme Adı *</Text>
-            <TextInput
-              style={[
-                styles.input,
-                errors.court && styles.inputError,
-              ]}
-              value={formData.court}
-              onChangeText={(text) => handleChange('court', text)}
-              placeholder="Örn: İş Mahkemesi"
-            />
-            {errors.court && <Text style={styles.errorText}>{errors.court}</Text>}
-          </View>
+          <ScrollView style={styles.formContainer}>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Salon Adı *</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.name && styles.inputError,
+                ]}
+                value={formData.name}
+                onChangeText={(text) => handleChange('name', text)}
+                placeholder="Örn: 101 Nolu Salon"
+              />
+              {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+            </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Konum *</Text>
-            <TextInput
-              style={[
-                styles.input,
-                errors.location && styles.inputError,
-              ]}
-              value={formData.location}
-              onChangeText={(text) => handleChange('location', text)}
-              placeholder="Örn: 1. Kat, Sağ Koridor"
-            />
-            {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
-          </View>
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Mahkeme Adı *</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.court && styles.inputError,
+                ]}
+                value={formData.court}
+                onChangeText={(text) => handleChange('court', text)}
+                placeholder="Örn: İş Mahkemesi"
+              />
+              {errors.court && <Text style={styles.errorText}>{errors.court}</Text>}
+            </View>
 
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Durum</Text>
-            <View style={styles.statusOptions}>
-              {statusOptions.map((statusOption) => (
-                <TouchableOpacity
-                  key={statusOption}
-                  style={[
-                    styles.statusOption,
-                    {
-                      backgroundColor:
-                        formData.status === statusOption ? getStatusColor(statusOption) : 'transparent',
-                      borderColor: getStatusColor(statusOption),
-                    },
-                  ]}
-                  onPress={() => handleChange('status', statusOption)}
-                >
-                  <Text
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Konum *</Text>
+              <TextInput
+                style={[
+                  styles.input,
+                  errors.location && styles.inputError,
+                ]}
+                value={formData.location}
+                onChangeText={(text) => handleChange('location', text)}
+                placeholder="Örn: 1. Kat, Sağ Koridor"
+              />
+              {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Durum</Text>
+              <View style={styles.statusOptions}>
+                {statusOptions.map((statusOption) => (
+                  <TouchableOpacity
+                    key={statusOption}
                     style={[
-                      styles.statusOptionText,
-                      { color: formData.status === statusOption ? '#fff' : getStatusColor(statusOption) },
+                      styles.statusOption,
+                      {
+                        backgroundColor:
+                          formData.status === statusOption ? getStatusColor(statusOption) : 'transparent',
+                        borderColor: getStatusColor(statusOption),
+                      },
                     ]}
+                    onPress={() => handleChange('status', statusOption)}
                   >
-                    {statusOption}
-                  </Text>
-                </TouchableOpacity>
+                    <Text
+                      style={[
+                        styles.statusOptionText,
+                        { color: formData.status === statusOption ? '#fff' : getStatusColor(statusOption) },
+                      ]}
+                    >
+                      {statusOption}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            <Text style={styles.sectionTitle}>Salon Cihazları</Text>
+
+            <View style={styles.deviceList}>
+              {Object.entries(deviceMap).map(([key, { icon, label }]) => (
+                <View key={key} style={styles.deviceToggleRow}>
+                  <View style={styles.deviceInfo}>
+                    <MaterialCommunityIcons 
+                      name={icon} 
+                      size={22} 
+                      color={formData.devices && formData.devices[key] > 0 ? "#4f46e5" : "#64748b"} 
+                    />
+                    <Text style={styles.deviceLabel}>{label}</Text>
+                  </View>
+                  <View style={styles.deviceCounterContainer}>
+                    <TouchableOpacity 
+                      style={[
+                        styles.deviceCountButton, 
+                        {opacity: !formData.devices || formData.devices[key] <= 0 ? 0.5 : 1}
+                      ]}
+                      onPress={() => handleDeviceCountChange(key, false)}
+                      disabled={!formData.devices || formData.devices[key] <= 0}
+                    >
+                      <MaterialCommunityIcons name="minus" size={16} color="#4f46e5" />
+                    </TouchableOpacity>
+                    
+                    <Text style={styles.deviceCountText}>
+                      {formData.devices && formData.devices[key] ? formData.devices[key] : 0}
+                    </Text>
+                    
+                    <TouchableOpacity 
+                      style={styles.deviceCountButton}
+                      onPress={() => handleDeviceCountChange(key, true)}
+                    >
+                      <MaterialCommunityIcons name="plus" size={16} color="#4f46e5" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
               ))}
             </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Son Kontrol Tarihi</Text>
+              <TextInput
+                style={styles.input}
+                value={formData.lastCheck}
+                onChangeText={(text) => handleChange('lastCheck', text)}
+                placeholder="GG.AA.YYYY"
+              />
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Notlar</Text>
+              <TextInput
+                style={[styles.input, styles.textarea]}
+                value={formData.notes}
+                onChangeText={(text) => handleChange('notes', text)}
+                placeholder="Salon hakkında notlar..."
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <TouchableOpacity 
+              style={styles.cancelButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.cancelButtonText}>İptal</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.saveButton}
+              onPress={handleSubmit}
+            >
+              <Text style={styles.saveButtonText}>Kaydet</Text>
+            </TouchableOpacity>
           </View>
-
-          <Text style={styles.sectionTitle}>Salon Cihazları</Text>
-
-          <View style={styles.deviceList}>
-            {Object.entries(deviceMap).map(([key, { icon, label }]) => (
-              <View key={key} style={styles.deviceToggleRow}>
-                <View style={styles.deviceInfo}>
-                  <MaterialCommunityIcons 
-                    name={icon} 
-                    size={22} 
-                    color={formData.devices && formData.devices[key] > 0 ? "#4f46e5" : "#64748b"} 
-                  />
-                  <Text style={styles.deviceLabel}>{label}</Text>
-                </View>
-                <View style={styles.deviceCounterContainer}>
-                  <TouchableOpacity 
-                    style={[
-                      styles.deviceCountButton, 
-                      {opacity: !formData.devices || formData.devices[key] <= 0 ? 0.5 : 1}
-                    ]}
-                    onPress={() => handleDeviceCountChange(key, false)}
-                    disabled={!formData.devices || formData.devices[key] <= 0}
-                  >
-                    <MaterialCommunityIcons name="minus" size={16} color="#4f46e5" />
-                  </TouchableOpacity>
-                  
-                  <Text style={styles.deviceCountText}>
-                    {formData.devices && formData.devices[key] ? formData.devices[key] : 0}
-                  </Text>
-                  
-                  <TouchableOpacity 
-                    style={styles.deviceCountButton}
-                    onPress={() => handleDeviceCountChange(key, true)}
-                  >
-                    <MaterialCommunityIcons name="plus" size={16} color="#4f46e5" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Son Kontrol Tarihi</Text>
-            <TextInput
-              style={styles.input}
-              value={formData.lastCheck}
-              onChangeText={(text) => handleChange('lastCheck', text)}
-              placeholder="GG.AA.YYYY"
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Notlar</Text>
-            <TextInput
-              style={[styles.input, styles.textarea]}
-              value={formData.notes}
-              onChangeText={(text) => handleChange('notes', text)}
-              placeholder="Salon hakkında notlar..."
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </View>
-        </ScrollView>
-
-        <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.cancelButton}
-            onPress={() => navigation.goBack()}
-          >
-            <Text style={styles.cancelButtonText}>İptal</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.saveButton}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.saveButtonText}>Kaydet</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f3f4f6',

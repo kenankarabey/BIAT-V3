@@ -363,104 +363,108 @@ const Courtrooms = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Duruşma Salonları</Text>
-      </View>
-      
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <MaterialCommunityIcons name="magnify" size={22} color="#64748b" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Salon adı, mahkeme veya konum ara..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholderTextColor="#a1a1aa"
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <MaterialCommunityIcons name="close-circle" size={20} color="#64748b" />
-            </TouchableOpacity>
-          ) : null}
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Duruşma Salonları</Text>
         </View>
         
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false} 
-          contentContainerStyle={styles.filterScrollContainer}
-        >
-          {['Tümü', 'Aktif', 'Arıza', 'Bakım'].map(status => (
-            <TouchableOpacity
-              key={status}
-              style={[
-                styles.filterButton,
-                statusFilter === status && { 
-                  backgroundColor: status === 'Tümü' 
-                    ? '#4f46e5' 
-                    : getStatusColor(status),
-                  borderColor: status === 'Tümü' 
-                    ? '#4f46e5' 
-                    : getStatusColor(status),
-                }
-              ]}
-              onPress={() => setStatusFilter(status)}
-            >
-              <Text 
-                style={[
-                  styles.filterText,
-                  statusFilter === status && { color: '#fff' }
-                ]}
-              >
-                {status}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-      
-      <FlatList
-        data={filteredCourtrooms}
-        keyExtractor={item => item.id}
-        renderItem={renderCourtroomCard}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#ccc" />
-            <Text style={styles.emptyText}>
-              {searchQuery || statusFilter !== 'Tümü'
-                ? 'Aramanızla eşleşen duruşma salonu bulunamadı.'
-                : 'Henüz duruşma salonu eklenmemiş.'}
-            </Text>
-            <TouchableOpacity 
-              style={styles.emptyAddButton}
-              onPress={handleAddCourtroom}
-            >
-              <MaterialCommunityIcons name="plus" size={20} color="#fff" />
-              <Text style={styles.emptyAddButtonText}>Salon Ekle</Text>
-            </TouchableOpacity>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchBar}>
+            <MaterialCommunityIcons name="magnify" size={22} color="#64748b" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Salon adı, mahkeme veya konum ara..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholderTextColor="#a1a1aa"
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <MaterialCommunityIcons name="close-circle" size={20} color="#64748b" />
+              </TouchableOpacity>
+            ) : null}
           </View>
-        }
-      />
-      
-      {/* Fixed Action Button for adding new courtroom */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={handleAddCourtroom}
-      >
-        <MaterialCommunityIcons name="plus" size={24} color="#fff" />
-      </TouchableOpacity>
+          
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.filterScrollContainer}
+          >
+            {['Tümü', 'Aktif', 'Arıza', 'Bakım'].map(status => (
+              <TouchableOpacity
+                key={status}
+                style={[
+                  styles.filterButton,
+                  statusFilter === status && { 
+                    backgroundColor: status === 'Tümü' 
+                      ? '#4f46e5' 
+                      : getStatusColor(status),
+                    borderColor: status === 'Tümü' 
+                      ? '#4f46e5' 
+                      : getStatusColor(status),
+                  }
+                ]}
+                onPress={() => setStatusFilter(status)}
+              >
+                <Text 
+                  style={[
+                    styles.filterText,
+                    statusFilter === status && { color: '#fff' }
+                  ]}
+                >
+                  {status}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+        
+        <FlatList
+          data={filteredCourtrooms}
+          keyExtractor={item => item.id}
+          renderItem={renderCourtroomCard}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#ccc" />
+              <Text style={styles.emptyText}>
+                {searchQuery || statusFilter !== 'Tümü'
+                  ? 'Aramanızla eşleşen duruşma salonu bulunamadı.'
+                  : 'Henüz duruşma salonu eklenmemiş.'}
+              </Text>
+              <TouchableOpacity 
+                style={styles.emptyAddButton}
+                onPress={handleAddCourtroom}
+              >
+                <MaterialCommunityIcons name="plus" size={20} color="#fff" />
+                <Text style={styles.emptyAddButtonText}>Salon Ekle</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+        
+        {/* Fixed Action Button for adding new courtroom */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={handleAddCourtroom}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
-    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
   },
   header: {
     flexDirection: 'row',
