@@ -9,7 +9,7 @@ import HomeScreen from '../screens/HomeScreen';
 import DevicesScreen from '../screens/DevicesScreen';
 import AllDevicesScreen from '../screens/devices/AllDevicesScreen';
 import CourtOfficesScreen from '../screens/devices/CourtOfficesScreen';
-import CourtroomsScreen from '../screens/devices/CourtroomsScreen';
+import Courtrooms from '../screens/devices/Courtrooms';
 import JudgeRoomsScreen from '../screens/devices/JudgeRoomsScreen';
 import IssuesScreen from '../screens/IssuesScreen';
 import ScannerScreen from '../screens/ScannerScreen';
@@ -20,6 +20,9 @@ import DeviceFormScreen from '../screens/DeviceFormScreen';
 import CourtOfficeForm from '../screens/CourtOfficeForm';
 import CourtOfficeDetailScreen from '../screens/devices/CourtOfficeDetailScreen';
 import CourtOfficePersonnelForm from '../screens/CourtOfficePersonnelForm';
+import CourtroomForm from '../screens/devices/CourtroomForm';
+import CourtroomDetail from '../screens/devices/CourtroomDetail';
+import DeviceTypeDetail from '../screens/devices/DeviceTypeDetail';
 
 const Tab = createBottomTabNavigator();
 const DevicesStack = createStackNavigator();
@@ -31,7 +34,7 @@ const DevicesNavigator = () => {
       <DevicesStack.Screen name="DevicesMain" component={DevicesScreen} />
       <DevicesStack.Screen name="AllDevices" component={AllDevicesScreen} />
       <DevicesStack.Screen name="CourtOffices" component={CourtOfficesScreen} />
-      <DevicesStack.Screen name="Courtrooms" component={CourtroomsScreen} />
+      <DevicesStack.Screen name="Courtrooms" component={Courtrooms} />
       <DevicesStack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
       <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
       <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
@@ -39,6 +42,9 @@ const DevicesNavigator = () => {
       <DevicesStack.Screen name="CourtOfficeForm" component={CourtOfficeForm} />
       <DevicesStack.Screen name="CourtOfficeDetail" component={CourtOfficeDetailScreen} />
       <DevicesStack.Screen name="CourtOfficePersonnelForm" component={CourtOfficePersonnelForm} />
+      <DevicesStack.Screen name="CourtroomForm" component={CourtroomForm} />
+      <DevicesStack.Screen name="CourtroomDetail" component={CourtroomDetail} />
+      <DevicesStack.Screen name="DeviceTypeDetail" component={DeviceTypeDetail} />
     </DevicesStack.Navigator>
   );
 };
