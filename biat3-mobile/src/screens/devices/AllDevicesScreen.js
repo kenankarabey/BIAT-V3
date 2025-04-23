@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 
 const deviceTypes = [
   { id: 'pc', title: 'Kasa', icon: 'desktop', color: '#4f46e5' },
@@ -134,6 +135,56 @@ export default function AllDevicesScreen({ navigation }) {
     ? mockDevices.filter(device => device.type === selectedType)
     : mockDevices;
 
+  // Düzenleme işlevi
+  const handleEdit = (device) => {
+    // Düzenleme formuna gidebilir veya modal açabilirsiniz
+    navigation.navigate('DeviceForm', { deviceType: { id: device.type, name: deviceTypes.find(t => t.id === device.type)?.title || 'Cihaz' }, device });
+  };
+
+  // Silme işlevi
+  const handleDelete = (device) => {
+    Alert.alert(
+      "Cihazı Sil",
+      `${device.name} cihazını silmek istediğinize emin misiniz?`,
+      [
+        {
+          text: "İptal",
+          style: "cancel"
+        },
+        { 
+          text: "Sil", 
+          onPress: () => {
+            // Burada gerçek silme işlemi API'ye gönderilecek
+            Alert.alert("Başarılı", "Cihaz başarıyla silindi");
+          },
+          style: "destructive"
+        }
+      ]
+    );
+  };
+
+  // Sola kaydırma aksiyonları
+  const renderRightActions = (device) => {
+    return (
+      <View style={styles.swipeActions}>
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#4f46e5' }]}
+          onPress={() => handleEdit(device)}
+        >
+          <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.actionText}>Düzenle</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
+          onPress={() => handleDelete(device)}
+        >
+          <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.actionText}>Sil</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const DeviceTypeCard = ({ item }) => (
     <TouchableOpacity
       style={styles.typeCard}
@@ -172,55 +223,59 @@ export default function AllDevicesScreen({ navigation }) {
     };
 
     return (
-      <TouchableOpacity 
-        style={styles.deviceItem}
-        onPress={() => navigation.navigate('DeviceDetail', { device: item })}
-      >
-        <View style={styles.deviceInfo}>
-          <Text style={styles.deviceName}>{item.name}</Text>
-          <Text style={styles.deviceLocation}>{item.location}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
-          <Text style={styles.statusText}>{statusText[item.status]}</Text>
-        </View>
-      </TouchableOpacity>
+      <Swipeable renderRightActions={() => renderRightActions(item)}>
+        <TouchableOpacity 
+          style={styles.deviceItem}
+          onPress={() => navigation.navigate('DeviceDetail', { device: item })}
+        >
+          <View style={styles.deviceInfo}>
+            <Text style={styles.deviceName}>{item.name}</Text>
+            <Text style={styles.deviceLocation}>{item.location}</Text>
+          </View>
+          <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
+            <Text style={styles.statusText}>{statusText[item.status]}</Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tüm Cihazlar</Text>
-        <TouchableOpacity>
-          <Ionicons name="search" size={24} color="#1e293b" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-        <View style={styles.typeScroll}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.typeContainer}
-          >
-            {deviceTypes.map(type => (
-              <DeviceTypeCard key={type.id} item={type} />
-            ))}
-          </ScrollView>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Tüm Cihazlar</Text>
+          <TouchableOpacity>
+            <Ionicons name="search" size={24} color="#1e293b" />
+          </TouchableOpacity>
         </View>
 
-        <FlatList
-          data={filteredDevices}
-          renderItem={({ item }) => <DeviceItem item={item} />}
-          keyExtractor={item => item.id}
-          contentContainerStyle={styles.deviceList}
-          showsVerticalScrollIndicator={false}
-        />
+        <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+          <View style={styles.typeScroll}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.typeContainer}
+            >
+              {deviceTypes.map(type => (
+                <DeviceTypeCard key={type.id} item={type} />
+              ))}
+            </ScrollView>
+          </View>
+
+          <FlatList
+            data={filteredDevices}
+            renderItem={({ item }) => <DeviceItem item={item} />}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.deviceList}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
       </View>
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
@@ -320,5 +375,22 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: '#FFFFFF',
+  },
+  swipeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actionButton: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    paddingHorizontal: 10,
+  },
+  actionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    marginTop: 4,
   },
 }); 

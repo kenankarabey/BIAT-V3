@@ -32,6 +32,27 @@ const DeviceDetailScreen = ({ route, navigation }) => {
     );
   };
 
+  // Cihazı düzenleme fonksiyonu
+  const handleEdit = () => {
+    // Cihaz türünü belirle
+    const deviceTypeObj = {
+      id: device.type,
+      name: {
+        pc: 'Kasa',
+        monitor: 'Monitör',
+        printer: 'Yazıcı',
+        scanner: 'Tarayıcı',
+        segbis: 'SEGBİS',
+        hearing: 'E-Duruşma',
+        microphone: 'Mikrofon',
+        tv: 'TV'
+      }[device.type] || 'Cihaz'
+    };
+    
+    // Düzenleme formuna git
+    navigation.navigate('DeviceForm', { deviceType: deviceTypeObj, device });
+  };
+
   // Cihaz silme butonu
   const renderRightActions = () => {
     return (
@@ -187,7 +208,20 @@ const DeviceDetailScreen = ({ route, navigation }) => {
             <Ionicons name="arrow-back" size={24} color="#1e293b" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>Cihaz Detayı</Text>
-          <View style={{ width: 24 }} />
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.headerButton} 
+              onPress={handleEdit}
+            >
+              <Ionicons name="create-outline" size={24} color="#4f46e5" />
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.headerButton} 
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={24} color="#ef4444" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
@@ -223,6 +257,19 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#1e293b',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  headerButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f1f5f9',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
   scrollContent: {
     padding: 16,

@@ -17,6 +17,9 @@ import ProfileScreen from '../screens/ProfileScreen';
 import DeviceDetailScreen from '../screens/devices/DeviceDetailScreen';
 import AddDeviceScreen from '../screens/AddDeviceScreen';
 import DeviceFormScreen from '../screens/DeviceFormScreen';
+import CourtOfficeForm from '../screens/CourtOfficeForm';
+import CourtOfficeDetailScreen from '../screens/devices/CourtOfficeDetailScreen';
+import CourtOfficePersonnelForm from '../screens/CourtOfficePersonnelForm';
 
 const Tab = createBottomTabNavigator();
 const DevicesStack = createStackNavigator();
@@ -33,6 +36,9 @@ const DevicesNavigator = () => {
       <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
       <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
       <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
+      <DevicesStack.Screen name="CourtOfficeForm" component={CourtOfficeForm} />
+      <DevicesStack.Screen name="CourtOfficeDetail" component={CourtOfficeDetailScreen} />
+      <DevicesStack.Screen name="CourtOfficePersonnelForm" component={CourtOfficePersonnelForm} />
     </DevicesStack.Navigator>
   );
 };

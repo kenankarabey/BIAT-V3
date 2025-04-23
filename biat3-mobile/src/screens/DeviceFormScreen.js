@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -15,7 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 
 const DeviceFormScreen = ({ route, navigation }) => {
-  const { deviceType } = route.params;
+  const { deviceType, device } = route.params;
+  const isEditMode = !!device; // Eğer device parametresi varsa düzenleme modundayız
   
   // Form state
   const [formData, setFormData] = useState({
@@ -31,6 +32,22 @@ const DeviceFormScreen = ({ route, navigation }) => {
     userTitle: '',
     userRegistrationNumber: '',
   });
+
+  // Eğer düzenleme modundaysa, formu mevcut cihaz verileriyle doldur
+  useEffect(() => {
+    if (isEditMode && device) {
+      setFormData({
+        serialNumber: device.serialNumber || '',
+        brand: device.brand || '',
+        model: device.model || '',
+        location: device.location || '',
+        status: device.status || 'Active',
+        userName: device.userName || '',
+        userTitle: device.userTitle || '',
+        userRegistrationNumber: device.userRegistrationNumber || '',
+      });
+    }
+  }, [isEditMode, device]);
 
   const isUserDevice = ['pc', 'monitor'].includes(deviceType.id);
 
@@ -63,7 +80,7 @@ const DeviceFormScreen = ({ route, navigation }) => {
     // Save device (just navigation back for now, would normally save to API/database)
     Alert.alert(
       "Başarılı",
-      "Cihaz başarıyla eklendi",
+      isEditMode ? "Cihaz başarıyla güncellendi" : "Cihaz başarıyla eklendi",
       [
         { 
           text: "Tamam", 
@@ -83,7 +100,9 @@ const DeviceFormScreen = ({ route, navigation }) => {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#1e293b" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>{deviceType.name} Ekle</Text>
+          <Text style={styles.headerTitle}>
+            {isEditMode ? `${deviceType.name} Düzenle` : `${deviceType.name} Ekle`}
+          </Text>
           <View style={{ width: 24 }} />
         </View>
         
