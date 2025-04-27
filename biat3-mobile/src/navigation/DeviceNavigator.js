@@ -6,6 +6,7 @@ import Courtrooms from '../screens/devices/Courtrooms';
 import CourtroomDetail from '../screens/devices/CourtroomDetail';
 import CourtroomForm from '../screens/devices/CourtroomForm';
 import DeviceTypeDetail from '../screens/devices/DeviceTypeDetail';
+import DeviceDetailScreen from '../screens/devices/DeviceDetailScreen';
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ const DeviceNavigator = () => {
       <Stack.Screen name="CourtroomDetail" component={CourtroomDetail} />
       <Stack.Screen name="CourtroomForm" component={CourtroomForm} />
       <Stack.Screen name="DeviceTypeDetail" component={DeviceTypeDetail} />
+      <Stack.Screen name="DeviceDetailScreen" component={DeviceDetailScreen} />
     </Stack.Navigator>
   );
 };

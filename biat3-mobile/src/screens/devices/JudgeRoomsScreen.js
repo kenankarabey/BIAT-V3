@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const JudgeRoomsScreen = ({ route }) => {
+const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
   
   // Örnek hakim odaları listesi
@@ -216,48 +217,48 @@ const JudgeRoomsScreen = ({ route }) => {
         if (item.judges.length > 1) {
           return (
             <View style={styles.judgesInfo}>
-              <Text style={styles.judgeName}>{item.judges[0].name}</Text>
-              <Text style={styles.judgeCount}>+{item.judges.length - 1} hakim daha</Text>
+              <Text style={[styles.judgeName, { color: theme.text }]}>{item.judges[0].name}</Text>
+              <Text style={[styles.judgeCount, { color: theme.textSecondary }]}>+{item.judges.length - 1} hakim daha</Text>
             </View>
           );
         } else {
           // Tek hakim varsa sadece ismini göster
-          return <Text style={styles.judgeName}>{item.judges[0].name}</Text>;
+          return <Text style={[styles.judgeName, { color: theme.text }]}>{item.judges[0].name}</Text>;
         }
       } else {
         // Eski formatta veya hakim bilgisi yoksa
-        return <Text style={styles.judgeName}>{item.judgeName || "Belirtilmemiş"}</Text>;
+        return <Text style={[styles.judgeName, { color: theme.text }]}>{item.judgeName || "Belirtilmemiş"}</Text>;
       }
     };
       
     return (
       <TouchableOpacity 
-        style={styles.roomCard}
+        style={[styles.roomCard, { backgroundColor: theme.cardBackground, shadowColor: theme.isDark ? 'transparent' : '#000' }]}
         onPress={() => handleRoomDetail(item)}
       >
         <View style={styles.roomInfo}>
           <View style={styles.roomHeader}>
-            <Text style={styles.roomNumber}>Oda {item.roomNumber}</Text>
+            <Text style={[styles.roomNumber, { color: theme.text }]}>Oda {item.roomNumber}</Text>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
               <Text style={styles.statusText}>{item.status}</Text>
             </View>
           </View>
           {displayJudges()}
-          <Text style={styles.courtName}>{item.court}</Text>
+          <Text style={[styles.courtName, { color: theme.textSecondary }]}>{item.court}</Text>
         </View>
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
         <View style={styles.deviceInfoContainer}>
-          <View style={styles.deviceIconContainer}>
-            <MaterialCommunityIcons name="devices" size={16} color="#1e3a8a" />
+          <View style={[styles.deviceIconContainer, { backgroundColor: theme.backgroundSecondary }]}>
+            <MaterialCommunityIcons name="devices" size={16} color={theme.primary} />
           </View>
           <View style={styles.deviceInfo}>
-            <Text style={styles.deviceCount}>{totalDevices} Cihaz</Text>
+            <Text style={[styles.deviceCount, { color: theme.textSecondary }]}>{totalDevices} Cihaz</Text>
             <TouchableOpacity 
               style={styles.detailsButton}
               onPress={() => handleRoomDetail(item)}
             >
-              <Text style={styles.detailsText}>Detaylar</Text>
-              <MaterialCommunityIcons name="chevron-right" size={16} color="#1e3a8a" />
+              <Text style={[styles.detailsText, { color: theme.primary }]}>Detaylar</Text>
+              <MaterialCommunityIcons name="chevron-right" size={16} color={theme.primary} />
             </TouchableOpacity>
           </View>
         </View>
@@ -266,35 +267,35 @@ const JudgeRoomsScreen = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
-        <View style={styles.header}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#1e3a8a" />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.primary} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Hakim Odaları</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Hakim Odaları</Text>
           <TouchableOpacity style={styles.filterButton}>
-            <MaterialCommunityIcons name="filter" size={24} color="#1e3a8a" />
+            <MaterialCommunityIcons name="filter" size={24} color={theme.primary} />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <MaterialCommunityIcons name="magnify" size={20} color="#64748b" />
+        <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <View style={[styles.searchBar, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+            <MaterialCommunityIcons name="magnify" size={20} color={theme.textSecondary} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.text }]}
               placeholder="Hakim adı, oda numarası veya mahkeme ara..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor="#94a3b8"
+              placeholderTextColor={theme.textSecondary}
             />
             {searchQuery ? (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialCommunityIcons name="close-circle" size={20} color="#64748b" />
+                <MaterialCommunityIcons name="close-circle" size={20} color={theme.textSecondary} />
               </TouchableOpacity>
             ) : null}
           </View>
@@ -307,14 +308,14 @@ const JudgeRoomsScreen = ({ route }) => {
           contentContainerStyle={styles.roomsList}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <MaterialCommunityIcons name="account-off-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyText}>
+              <MaterialCommunityIcons name="account-off-outline" size={48} color={theme.textSecondary} />
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
                 {searchQuery
                   ? 'Aramanızla eşleşen hakim odası bulunamadı.'
                   : 'Henüz hakim odası eklenmemiş.'}
               </Text>
               <TouchableOpacity 
-                style={styles.emptyAddButton}
+                style={[styles.emptyAddButton, { backgroundColor: theme.primary }]}
                 onPress={handleAddRoom}
               >
                 <MaterialCommunityIcons name="plus" size={20} color="#fff" />
@@ -326,7 +327,7 @@ const JudgeRoomsScreen = ({ route }) => {
         
         {/* Floating Action Button for adding new room */}
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: theme.primary }]}
           onPress={handleAddRoom}
         >
           <MaterialCommunityIcons name="plus" size={24} color="#fff" />
@@ -339,20 +340,16 @@ const JudgeRoomsScreen = ({ route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
     padding: 8,
@@ -360,31 +357,25 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   filterButton: {
     padding: 8,
   },
   searchContainer: {
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 46,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   searchInput: {
     flex: 1,
     fontSize: 16,
-    color: '#1e293b',
     marginLeft: 8,
     height: '100%',
   },
@@ -392,11 +383,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   roomCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 10,
@@ -414,7 +403,6 @@ const styles = StyleSheet.create({
   roomNumber: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -429,7 +417,6 @@ const styles = StyleSheet.create({
   judgeName: {
     fontSize: 15,
     fontWeight: '500',
-    color: '#1e293b',
     marginBottom: 4,
   },
   judgesInfo: {
@@ -437,16 +424,13 @@ const styles = StyleSheet.create({
   },
   judgeCount: {
     fontSize: 13,
-    color: '#6b7280',
     fontStyle: 'italic',
   },
   courtName: {
     fontSize: 14,
-    color: '#64748b',
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
     marginBottom: 12,
   },
   deviceInfoContainer: {
@@ -457,7 +441,6 @@ const styles = StyleSheet.create({
     width: 30,
     height: 30,
     borderRadius: 15,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
@@ -470,7 +453,6 @@ const styles = StyleSheet.create({
   },
   deviceCount: {
     fontSize: 14,
-    color: '#64748b',
   },
   detailsButton: {
     flexDirection: 'row',
@@ -479,7 +461,6 @@ const styles = StyleSheet.create({
   detailsText: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1e3a8a',
     marginRight: 4,
   },
   emptyContainer: {
@@ -490,14 +471,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
     textAlign: 'center',
     marginTop: 10,
     marginBottom: 20,
   },
   emptyAddButton: {
     flexDirection: 'row',
-    backgroundColor: '#4f46e5',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -512,7 +491,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-    backgroundColor: '#4f46e5',
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -526,4 +504,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default JudgeRoomsScreen; 
+export default withThemedScreen(JudgeRoomsScreen); 

@@ -1,9 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import BarcodeDisplay from '../../components/BarcodeDisplay';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const DeviceDetailScreen = ({ route, navigation }) => {
+const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode }) => {
   const { device } = route.params;
 
   // Cihaz türüne göre ek detayları belirleme
@@ -51,6 +53,45 @@ const DeviceDetailScreen = ({ route, navigation }) => {
     
     // Düzenleme formuna git
     navigation.navigate('DeviceForm', { deviceType: deviceTypeObj, device });
+  };
+
+  // Barkod ve QR kod paylaşım fonksiyonu
+  const handleShareCodes = async () => {
+    if (!device.barcodeValue) {
+      Alert.alert(
+        "Hata",
+        "Bu cihaz için barkod bilgisi bulunamadı.",
+        [{ text: "Tamam" }]
+      );
+      return;
+    }
+
+    try {
+      // Paylaşılacak içeriği hazırla
+      const qrContent = `BIAT-Cihaz:${device.barcodeValue}\nTür:${device.type}\nMarka:${device.brand || 'Belirtilmemiş'}\nModel:${device.model || 'Belirtilmemiş'}\nSeri No:${device.serialNumber || 'Belirtilmemiş'}`;
+      
+      // Gerçek bir uygulamada bu kısımda PDF oluşturma ve yazdırma işlemleri olurdu
+      // Burada sadece paylaşım işlemi yapıyoruz
+      const result = await Share.share({
+        message: `Cihaz Bilgileri:\nAd: ${device.name}\nTür: ${device.type}\nBarkod: ${device.barcodeValue}\nKonum: ${device.location}\n\n${qrContent}`,
+        title: `${device.name} Barkod Bilgileri`,
+      });
+      
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          // Paylaşıldı
+          console.log(`Shared via ${result.activityType}`);
+        } else {
+          // Paylaşıldı
+          console.log('Shared');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        // İptal edildi
+        console.log('Dismissed');
+      }
+    } catch (error) {
+      Alert.alert("Hata", error.message);
+    }
   };
 
   // Cihaz silme butonu
@@ -101,190 +142,190 @@ const DeviceDetailScreen = ({ route, navigation }) => {
 
   const status = getStatusInfo();
 
-  const deviceContent = (
-    <>
-      <View style={styles.deviceHeader}>
-        <View style={[styles.iconContainer, { backgroundColor: device.typeColor || '#4f46e5' }]}>
-          <Ionicons name={getDeviceTypeIcon()} size={32} color="#FFFFFF" />
-        </View>
-        <View style={styles.titleContainer}>
-          <Text style={styles.deviceName}>{device.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
-            <Text style={styles.statusText}>{status.text}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.infoSection}>
-        <Text style={styles.sectionTitle}>Cihaz Bilgileri</Text>
-        
-        <View style={styles.infoCard}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Tür</Text>
-            <Text style={styles.infoValue}>{
-              {
-                pc: 'Kasa',
-                monitor: 'Monitör',
-                printer: 'Yazıcı',
-                scanner: 'Tarayıcı',
-                segbis: 'SEGBİS',
-                hearing: 'E-Duruşma',
-                microphone: 'Mikrofon',
-                tv: 'TV'
-              }[device.type] || 'Bilinmiyor'
-            }</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Konum</Text>
-            <Text style={styles.infoValue}>{device.location || 'Belirtilmemiş'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Marka</Text>
-            <Text style={styles.infoValue}>{device.brand || 'Belirtilmemiş'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Model</Text>
-            <Text style={styles.infoValue}>{device.model || 'Belirtilmemiş'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Seri No</Text>
-            <Text style={styles.infoValue}>{device.serialNumber || 'Belirtilmemiş'}</Text>
-          </View>
-        </View>
-      </View>
-
-      {isUserDevice && (
-        <View style={styles.infoSection}>
-          <Text style={styles.sectionTitle}>Kullanıcı Bilgileri</Text>
-          
-          <View style={styles.infoCard}>
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Ad Soyad</Text>
-              <Text style={styles.infoValue}>{device.userName || 'Belirtilmemiş'}</Text>
-            </View>
-
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Ünvan</Text>
-              <Text style={styles.infoValue}>{device.userTitle || 'Belirtilmemiş'}</Text>
-            </View>
-
-            <View style={styles.infoItem}>
-              <Text style={styles.infoLabel}>Sicil No</Text>
-              <Text style={styles.infoValue}>{device.userRegistrationNumber || 'Belirtilmemiş'}</Text>
-            </View>
-          </View>
-        </View>
-      )}
-
-      <View style={styles.infoSection}>
-        <Text style={styles.sectionTitle}>Bakım Bilgileri</Text>
-        
-        <View style={styles.infoCard}>
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Son Bakım</Text>
-            <Text style={styles.infoValue}>{device.lastMaintenance || 'Belirtilmemiş'}</Text>
-          </View>
-
-          <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>Sonraki Bakım</Text>
-            <Text style={styles.infoValue}>{device.nextMaintenance || 'Belirtilmemiş'}</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={{ height: 20 }} />
-    </>
-  );
-
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Cihaz Detayı</Text>
-          <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.headerButton} 
-              onPress={handleEdit}
-            >
-              <Ionicons name="create-outline" size={24} color="#4f46e5" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.headerButton} 
-              onPress={handleDelete}
-            >
-              <Ionicons name="trash-outline" size={24} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
+    <>
+      <View style={[styles.header, themedStyles.header]}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, themedStyles.text]}>Cihaz Detayı</Text>
+        <TouchableOpacity style={styles.headerButton} onPress={handleEdit}>
+          <Ionicons name="create-outline" size={24} color={theme.primary} />
+        </TouchableOpacity>
+      </View>
 
-        <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <GestureHandlerRootView>
           <Swipeable renderRightActions={renderRightActions}>
-            <ScrollView 
-              contentContainerStyle={styles.scrollContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {deviceContent}
-            </ScrollView>
+            <View style={[styles.deviceCard, themedStyles.card, themedStyles.shadow]}>
+              <View style={styles.deviceHeader}>
+                <View style={[styles.iconContainer, { backgroundColor: device.typeColor || '#4f46e5' }]}>
+                  <Ionicons name={getDeviceTypeIcon()} size={32} color="#FFFFFF" />
+                </View>
+                <View style={styles.titleContainer}>
+                  <Text style={[styles.deviceName, themedStyles.text]}>{device.name}</Text>
+                  <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+                    <Text style={styles.statusText}>{status.text}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.infoSection}>
+                <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Bilgileri</Text>
+                
+                <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Tür</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{
+                      {
+                        pc: 'Kasa',
+                        monitor: 'Monitör',
+                        printer: 'Yazıcı',
+                        scanner: 'Tarayıcı',
+                        segbis: 'SEGBİS',
+                        hearing: 'E-Duruşma',
+                        microphone: 'Mikrofon',
+                        tv: 'TV'
+                      }[device.type] || 'Bilinmiyor'
+                    }</Text>
+                  </View>
+
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Konum</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.location || 'Belirtilmemiş'}</Text>
+                  </View>
+
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Marka</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.brand || 'Belirtilmemiş'}</Text>
+                  </View>
+
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Model</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.model || 'Belirtilmemiş'}</Text>
+                  </View>
+
+                  <View style={styles.infoItem}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Seri No</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.serialNumber || 'Belirtilmemiş'}</Text>
+                  </View>
+                </View>
+              </View>
+
+              {isUserDevice && (
+                <View style={styles.infoSection}>
+                  <Text style={[styles.sectionTitle, themedStyles.text]}>Kullanıcı Bilgileri</Text>
+                  
+                  <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
+                    <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Kullanıcı</Text>
+                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userName || 'Belirtilmemiş'}</Text>
+                    </View>
+                    
+                    <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
+                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userTitle || 'Belirtilmemiş'}</Text>
+                    </View>
+                    
+                    <View style={styles.infoItem}>
+                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sicil No</Text>
+                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userRegistrationNumber || 'Belirtilmemiş'}</Text>
+                    </View>
+                  </View>
+                </View>
+              )}
+
+              <View style={styles.infoSection}>
+                <Text style={[styles.sectionTitle, themedStyles.text]}>Bakım Bilgileri</Text>
+                
+                <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Son Bakım</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.lastMaintenance || 'Belirtilmemiş'}</Text>
+                  </View>
+                  
+                  <View style={styles.infoItem}>
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sonraki Bakım</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.nextMaintenance || 'Belirtilmemiş'}</Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.barcodeSection}>
+                <Text style={[styles.sectionTitle, themedStyles.text]}>Barkod Bilgileri</Text>
+                
+                <View style={[styles.barcodeCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
+                  {device.barcodeValue && (
+                    <BarcodeDisplay 
+                      value={device.barcodeValue} 
+                      qrValue={`BIAT-Cihaz:${device.barcodeValue}\nTür:${device.type}\nMarka:${device.brand || 'Belirtilmemiş'}\nModel:${device.model || 'Belirtilmemiş'}\nSeri No:${device.serialNumber || 'Belirtilmemiş'}`}
+                      textColor={theme.text}
+                      backgroundColor={theme.card}
+                      borderColor={theme.border}
+                    />
+                  )}
+                  
+                  <TouchableOpacity 
+                    style={[styles.shareButton, { backgroundColor: theme.primary }]} 
+                    onPress={handleShareCodes}
+                  >
+                    <Ionicons name="share-outline" size={22} color="#FFFFFF" />
+                    <Text style={styles.shareButtonText}>Paylaş/Yazdır</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
           </Swipeable>
-        </View>
-      </SafeAreaView>
-    </GestureHandlerRootView>
+        </GestureHandlerRootView>
+        <View style={styles.bottomPadding} />
+      </ScrollView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
-  headerActions: {
-    flexDirection: 'row',
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: 8,
   },
-  scrollContent: {
+  container: {
+    flex: 1,
     padding: 16,
-    backgroundColor: '#f3f4f6',
+  },
+  deviceCard: {
+    borderRadius: 12,
+    padding: 16,
   },
   deviceHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#4f46e5',
+    width: 56,
+    height: 56,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
@@ -293,70 +334,83 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deviceName: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
     alignSelf: 'flex-start',
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '500',
     color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   infoSection: {
-    marginBottom: 20,
+    marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 12,
   },
   infoCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   infoItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
+    paddingHorizontal: 16,
   },
   infoLabel: {
     fontSize: 14,
-    color: '#64748b',
-    fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
-    color: '#1e293b',
-    fontWeight: '600',
-    textAlign: 'right',
-    flex: 1,
+    fontWeight: '500',
+  },
+  barcodeSection: {
+    marginBottom: 24,
+  },
+  barcodeCard: {
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  shareButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  shareButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '500',
     marginLeft: 8,
   },
   deleteButton: {
     backgroundColor: '#ef4444',
-    justifyContent: 'center',
-    alignItems: 'center',
     width: 80,
     height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   deleteText: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontSize: 14,
     marginTop: 4,
   },
+  bottomPadding: {
+    height: 40,
+  }
 });
 
-export default DeviceDetailScreen; 
+export default withThemedScreen(DeviceDetailScreen); 

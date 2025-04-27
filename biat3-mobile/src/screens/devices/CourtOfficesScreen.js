@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const CourtOfficesScreen = ({ navigation }) => {
+const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
   // Örnek mahkeme kalemleri listesi
   const [courtOffices, setCourtOffices] = useState([
     { id: '1', name: '1. Asliye Hukuk Mahkemesi', deviceCount: { pc: 1, printer: 0, other: 0 }, type: 'Asliye Hukuk', location: 'B Blok, 9. Kat', status: 'Aktif', lastCheck: '07.04.2025' },
@@ -89,7 +90,7 @@ const CourtOfficesScreen = ({ navigation }) => {
     return (
       <View style={styles.swipeActions}>
         <TouchableOpacity 
-          style={[styles.actionSwipeButton, { backgroundColor: '#4f46e5' }]}
+          style={[styles.actionSwipeButton, { backgroundColor: theme.primary }]}
           onPress={() => handleEdit(office)}
         >
           <Ionicons name="create-outline" size={20} color="#FFFFFF" />
@@ -110,60 +111,60 @@ const CourtOfficesScreen = ({ navigation }) => {
   const CourtOfficeCard = ({ item }) => (
     <Swipeable renderRightActions={() => renderRightActions(item)}>
       <TouchableOpacity
-        style={styles.courtCard}
+        style={[styles.courtCard, themedStyles.card, themedStyles.shadow]}
         onPress={() => navigation.navigate('CourtOfficeDetail', { office: item })}
       >
         <View style={styles.cardHeader}>
-          <Text style={styles.courtName}>{item.name}</Text>
+          <Text style={[styles.courtName, themedStyles.text]}>{item.name}</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
             <Text style={styles.statusText}>{item.status}</Text>
           </View>
         </View>
         
         <View style={styles.courtTypeRow}>
-          <Ionicons name="briefcase-outline" size={16} color="#64748b" />
-          <Text style={styles.courtTypeText}>{item.type}</Text>
+          <Ionicons name="briefcase-outline" size={16} color={theme.textSecondary} />
+          <Text style={[styles.courtTypeText, themedStyles.textSecondary]}>{item.type}</Text>
         </View>
         
         <View style={styles.courtLocationRow}>
-          <Ionicons name="location-outline" size={16} color="#64748b" />
-          <Text style={styles.courtLocationText}>{item.location}</Text>
+          <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
+          <Text style={[styles.courtLocationText, themedStyles.textSecondary]}>{item.location}</Text>
         </View>
         
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
         
         <View style={styles.deviceInfoRow}>
           <View style={styles.deviceCol}>
-            <Ionicons name="desktop-outline" size={18} color="#1e3a8a" />
-            <Text style={styles.deviceCount}>{item.deviceCount.pc}</Text>
+            <Ionicons name="desktop-outline" size={18} color={theme.primary} />
+            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.pc}</Text>
           </View>
           
           <View style={styles.deviceCol}>
-            <Ionicons name="print-outline" size={18} color="#1e3a8a" />
-            <Text style={styles.deviceCount}>{item.deviceCount.printer}</Text>
+            <Ionicons name="print-outline" size={18} color={theme.primary} />
+            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.printer}</Text>
           </View>
           
           <View style={styles.deviceCol}>
-            <Ionicons name="hardware-chip-outline" size={18} color="#1e3a8a" />
-            <Text style={styles.deviceCount}>{item.deviceCount.other}</Text>
+            <Ionicons name="hardware-chip-outline" size={18} color={theme.primary} />
+            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.other}</Text>
           </View>
         </View>
 
         <View style={styles.cardFooter}>
           <View style={styles.dateContainer}>
-            <Ionicons name="calendar-outline" size={14} color="#64748b" />
-            <Text style={styles.dateText}>{item.lastCheck}</Text>
+            <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
+            <Text style={[styles.dateText, themedStyles.textSecondary]}>{item.lastCheck}</Text>
           </View>
           
           <View style={styles.actionButtons}>
             <TouchableOpacity 
-              style={styles.actionButton}
+              style={[styles.actionButton, { backgroundColor: theme.inputBg }]}
               onPress={() => handleEdit(item)}
             >
-              <Ionicons name="pencil-outline" size={18} color="#1e293b" style={styles.actionIcon} />
+              <Ionicons name="pencil-outline" size={18} color={theme.text} style={styles.actionIcon} />
             </TouchableOpacity>
             <TouchableOpacity 
-              style={styles.actionButton}
+              style={[styles.actionButton, { backgroundColor: theme.inputBg }]}
               onPress={() => handleDelete(item.id)}
             >
               <Ionicons name="trash-outline" size={18} color="#ef4444" style={styles.actionIcon} />
@@ -176,15 +177,15 @@ const CourtOfficesScreen = ({ navigation }) => {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, themedStyles.header]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <Ionicons name="arrow-back" size={24} color="#1e3a8a" />
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Mahkeme Kalemleri</Text>
+          <Text style={[styles.headerTitle, themedStyles.text]}>Mahkeme Kalemleri</Text>
           <TouchableOpacity 
             style={styles.addButton}
             onPress={() => navigation.navigate('CourtOfficeForm')}
@@ -194,29 +195,30 @@ const CourtOfficesScreen = ({ navigation }) => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.subHeader}>
-          <Text style={styles.subHeaderText}>Adliyedeki mahkeme kalemleri ve cihaz durumları</Text>
+        <View style={[styles.subHeader, { backgroundColor: theme.card }]}>
+          <Text style={[styles.subHeaderText, themedStyles.textSecondary]}>Adliyedeki mahkeme kalemleri ve cihaz durumları</Text>
         </View>
 
-        <View style={styles.filterContainer}>
+        <View style={[styles.filterContainer, themedStyles.card, { borderBottomColor: theme.border }]}>
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>MAHKEME TÜRÜ</Text>
+            <Text style={[styles.filterLabel, themedStyles.textSecondary]}>MAHKEME TÜRÜ</Text>
             <TouchableOpacity 
-              style={styles.filterBox}
+              style={[styles.filterBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
               onPress={() => setShowTypeFilter(!showTypeFilter)}
             >
-              <Text style={styles.filterValue}>{selectedType}</Text>
-              <Ionicons name="chevron-down" size={16} color="#64748b" />
+              <Text style={[styles.filterValue, themedStyles.text]}>{selectedType}</Text>
+              <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
             </TouchableOpacity>
             
             {showTypeFilter && (
-              <View style={styles.filterDropdown}>
+              <View style={[styles.filterDropdown, themedStyles.card, { borderColor: theme.border }]}>
                 {courtTypes.map((type) => (
                   <TouchableOpacity 
                     key={type} 
                     style={[
                       styles.filterOption,
-                      selectedType === type && styles.selectedFilterOption
+                      { borderBottomColor: theme.border },
+                      selectedType === type && { backgroundColor: theme.inputBg }
                     ]}
                     onPress={() => {
                       setSelectedType(type);
@@ -225,7 +227,8 @@ const CourtOfficesScreen = ({ navigation }) => {
                   >
                     <Text style={[
                       styles.filterOptionText,
-                      selectedType === type && styles.selectedFilterOptionText
+                      themedStyles.text,
+                      selectedType === type && { color: theme.primary, fontWeight: '600' }
                     ]}>{type}</Text>
                   </TouchableOpacity>
                 ))}
@@ -234,23 +237,24 @@ const CourtOfficesScreen = ({ navigation }) => {
           </View>
 
           <View style={styles.filterSection}>
-            <Text style={styles.filterLabel}>DURUM</Text>
+            <Text style={[styles.filterLabel, themedStyles.textSecondary]}>DURUM</Text>
             <TouchableOpacity 
-              style={styles.filterBox}
+              style={[styles.filterBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
               onPress={() => setShowStatusFilter(!showStatusFilter)}
             >
-              <Text style={styles.filterValue}>{selectedStatus}</Text>
-              <Ionicons name="chevron-down" size={16} color="#64748b" />
+              <Text style={[styles.filterValue, themedStyles.text]}>{selectedStatus}</Text>
+              <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
             </TouchableOpacity>
             
             {showStatusFilter && (
-              <View style={styles.filterDropdown}>
+              <View style={[styles.filterDropdown, themedStyles.card, { borderColor: theme.border }]}>
                 {statusTypes.map((status) => (
                   <TouchableOpacity 
                     key={status} 
                     style={[
                       styles.filterOption,
-                      selectedStatus === status && styles.selectedFilterOption
+                      { borderBottomColor: theme.border },
+                      selectedStatus === status && { backgroundColor: theme.inputBg }
                     ]}
                     onPress={() => {
                       setSelectedStatus(status);
@@ -259,7 +263,8 @@ const CourtOfficesScreen = ({ navigation }) => {
                   >
                     <Text style={[
                       styles.filterOptionText,
-                      selectedStatus === status && styles.selectedFilterOptionText
+                      themedStyles.text,
+                      selectedStatus === status && { color: theme.primary, fontWeight: '600' }
                     ]}>{status}</Text>
                   </TouchableOpacity>
                 ))}
@@ -271,8 +276,8 @@ const CourtOfficesScreen = ({ navigation }) => {
             style={styles.resetFilterButton}
             onPress={resetFilters}
           >
-            <Ionicons name="refresh" size={16} color="#1e3a8a" />
-            <Text style={styles.resetFilterText}>Sıfırla</Text>
+            <Ionicons name="refresh" size={16} color={theme.primary} />
+            <Text style={[styles.resetFilterText, { color: theme.primary }]}>Sıfırla</Text>
           </TouchableOpacity>
         </View>
 
@@ -290,16 +295,12 @@ const CourtOfficesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#ffffff',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
     padding: 8,
@@ -307,7 +308,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   addButton: {
     flexDirection: 'row',
@@ -326,20 +326,16 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingTop: 12,
     paddingBottom: 12,
-    backgroundColor: '#f8fafc',
   },
   subHeaderText: {
     fontSize: 14,
-    color: '#64748b',
   },
   filterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
     zIndex: 100, // Dropdown filters should be on top
   },
   filterSection: {
@@ -350,34 +346,28 @@ const styles = StyleSheet.create({
   filterLabel: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#64748b',
     marginBottom: 4,
   },
   filterBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f8fafc',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     minWidth: 120,
   },
   filterValue: {
     fontSize: 14,
-    color: '#1e293b',
   },
   filterDropdown: {
     position: 'absolute',
     top: 70,
     left: 0,
-    backgroundColor: '#ffffff',
     width: 160,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -388,18 +378,9 @@ const styles = StyleSheet.create({
   filterOption: {
     padding: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
-  },
-  selectedFilterOption: {
-    backgroundColor: '#f1f5f9',
   },
   filterOptionText: {
     fontSize: 14,
-    color: '#1e293b',
-  },
-  selectedFilterOptionText: {
-    fontWeight: '600',
-    color: '#1e3a8a',
   },
   resetFilterButton: {
     flexDirection: 'row',
@@ -409,22 +390,15 @@ const styles = StyleSheet.create({
   resetFilterText: {
     marginLeft: 4,
     fontSize: 14,
-    color: '#1e3a8a',
   },
   cardsContainer: {
     padding: 16,
     paddingBottom: 24,
   },
   courtCard: {
-    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -435,7 +409,6 @@ const styles = StyleSheet.create({
   courtName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
     flex: 1,
   },
   statusBadge: {
@@ -455,7 +428,6 @@ const styles = StyleSheet.create({
   },
   courtTypeText: {
     fontSize: 14,
-    color: '#64748b',
     marginLeft: 6,
   },
   courtLocationRow: {
@@ -465,12 +437,10 @@ const styles = StyleSheet.create({
   },
   courtLocationText: {
     fontSize: 14,
-    color: '#64748b',
     marginLeft: 6,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
     marginVertical: 12,
   },
   deviceInfoRow: {
@@ -484,7 +454,6 @@ const styles = StyleSheet.create({
   deviceCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
     marginTop: 4,
   },
   cardFooter: {
@@ -498,7 +467,6 @@ const styles = StyleSheet.create({
   },
   dateText: {
     fontSize: 12,
-    color: '#64748b',
     marginLeft: 4,
   },
   actionButtons: {
@@ -508,7 +476,6 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
@@ -535,4 +502,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourtOfficesScreen; 
+export default withThemedScreen(CourtOfficesScreen); 

@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import withThemedScreen from '../components/withThemedScreen';
 
 // Ana kategori ekranı
-const DevicesScreen = ({ navigation }) => {
+const DevicesScreen = ({ navigation, theme, themedStyles }) => {
   // Kategori verileri
   const categories = [
     { 
@@ -56,7 +57,12 @@ const DevicesScreen = ({ navigation }) => {
   // Kategori kartı bileşeni
   const CategoryCard = ({ item }) => (
     <TouchableOpacity 
-      style={[styles.categoryCard, item.id === 'add' && styles.addCard]}
+      style={[
+        styles.categoryCard, 
+        themedStyles.card,
+        themedStyles.shadow,
+        item.id === 'add' && styles.addCard
+      ]}
       onPress={() => navigation.navigate(item.screen)}
     >
       <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
@@ -64,46 +70,46 @@ const DevicesScreen = ({ navigation }) => {
       </View>
       <View style={styles.categoryContent}>
         <View style={styles.categoryHeader}>
-          <Text style={styles.categoryTitle}>{item.title}</Text>
+          <Text style={[styles.categoryTitle, themedStyles.text]}>{item.title}</Text>
           {item.count && (
             <View style={styles.countContainer}>
               <Text style={styles.countText}>{item.count}</Text>
             </View>
           )}
         </View>
-        <Text style={styles.categoryDescription}>{item.description}</Text>
+        <Text style={[styles.categoryDescription, themedStyles.textSecondary]}>{item.description}</Text>
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Cihazlar</Text>
-        <TouchableOpacity style={styles.searchButton}>
-          <Ionicons name="search" size={24} color="#1e3a8a" />
+    <>
+      <View style={[styles.header, themedStyles.header]}>
+        <Text style={[styles.headerTitle, themedStyles.text]}>Cihazlar</Text>
+        <TouchableOpacity style={[styles.searchButton, { backgroundColor: theme.inputBg }]}>
+          <Ionicons name="search" size={24} color={theme.primary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <View style={styles.statsContainer}>
+        <View style={[styles.statsContainer, themedStyles.card, themedStyles.shadow]}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>3,724</Text>
-            <Text style={styles.statLabel}>Toplam Cihaz</Text>
+            <Text style={[styles.statValue, themedStyles.text]}>3,724</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Toplam Cihaz</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>3,605</Text>
-            <Text style={styles.statLabel}>Aktif</Text>
+            <Text style={[styles.statValue, themedStyles.text]}>3,605</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Aktif</Text>
           </View>
-          <View style={styles.statDivider} />
+          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>119</Text>
-            <Text style={styles.statLabel}>Arıza/Bakım</Text>
+            <Text style={[styles.statValue, themedStyles.text]}>119</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Arıza/Bakım</Text>
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Kategoriler</Text>
+        <Text style={[styles.sectionTitle, themedStyles.text]}>Kategoriler</Text>
         
         <View style={styles.categoriesContainer}>
           {categories.map((category) => (
@@ -111,34 +117,25 @@ const DevicesScreen = ({ navigation }) => {
           ))}
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   searchButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -148,15 +145,9 @@ const styles = StyleSheet.create({
   },
   statsContainer: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   statItem: {
     flex: 1,
@@ -165,22 +156,18 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 4,
   },
   statLabel: {
     fontSize: 12,
-    color: '#64748b',
   },
   statDivider: {
     width: 1,
     height: 40,
-    backgroundColor: '#e2e8f0',
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 16,
   },
   categoriesContainer: {
@@ -188,28 +175,21 @@ const styles = StyleSheet.create({
   },
   categoryCard: {
     flexDirection: 'row',
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   addCard: {
-    borderWidth: 2,
-    borderColor: '#0891b2',
     borderStyle: 'dashed',
+    borderWidth: 1,
   },
   iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 50,
+    height: 50,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 16,
+    marginRight: 12,
   },
   categoryContent: {
     flex: 1,
@@ -222,24 +202,22 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
-  },
-  countContainer: {
-    backgroundColor: '#f1f5f9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  countText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#1e3a8a',
+    fontWeight: 'bold',
   },
   categoryDescription: {
     fontSize: 14,
-    color: '#64748b',
   },
+  countContainer: {
+    backgroundColor: '#e2e8f0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+  },
+  countText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#64748b',
+  }
 });
 
-export default DevicesScreen; 
+export default withThemedScreen(DevicesScreen); 

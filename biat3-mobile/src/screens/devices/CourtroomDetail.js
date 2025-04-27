@@ -1,60 +1,71 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
-  TouchableOpacity,
   ScrollView,
+  TouchableOpacity,
   Alert,
   StatusBar,
+  SafeAreaView,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const CourtroomDetail = ({ route }) => {
-  const navigation = useNavigation();
+const CourtroomDetail = ({ route, theme, themedStyles }) => {
   const { courtroom } = route.params;
+  const navigation = useNavigation();
   
-  // Cihaz icon ve etiketleri
-  const deviceMap = {
-    kasa: { icon: 'desktop-tower', label: 'Kasa' },
-    monitor: { icon: 'monitor', label: 'Monitör' },
-    segbis: { icon: 'video', label: 'SEGBİS' },
-    kamera: { icon: 'cctv', label: 'Duruşma Kamera' },
-    tv: { icon: 'television', label: 'TV' },
-    mikrofon: { icon: 'microphone', label: 'Mikrofon' },
-  };
-
-  // Durum rengini belirle
+  // Get status color
   const getStatusColor = (status) => {
     switch (status) {
       case 'Aktif':
-        return '#10b981'; // yeşil
+        return '#10b981'; // green
       case 'Arıza':
-        return '#ef4444'; // kırmızı
+        return '#ef4444'; // red
       case 'Bakım':
-        return '#f59e0b'; // turuncu
+        return '#f59e0b'; // amber
       case 'Pasif':
-        return '#6b7280'; // gri
+        return '#64748b'; // slate
       default:
-        return '#6b7280';
+        return '#64748b';
     }
   };
   
-  // Toplam cihaz sayısı
-  const totalDevices = Object.values(courtroom.devices || {}).reduce((sum, count) => sum + count, 0);
-
-  // Düzenleme ekranına git
-  const handleEdit = () => {
-    navigation.navigate('CourtroomForm', { courtroom });
+  // Format date
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Belirtilmemiş';
+    
+    const date = new Date(dateString);
+    return date.toLocaleDateString('tr-TR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+  
+  // Count total devices
+  const getTotalDeviceCount = (devices) => {
+    if (!devices) return 0;
+    return Object.values(devices).reduce((sum, count) => sum + count, 0);
   };
 
-  // Salon silme
-  const handleDelete = () => {
+  // Handle edit courtroom
+  const handleEditCourtroom = () => {
+    navigation.navigate('CourtroomForm', { 
+      editMode: true,
+      courtroom: courtroom 
+    });
+  };
+  
+  // Handle delete courtroom
+  const handleDeleteCourtroom = () => {
     Alert.alert(
-      'Salon Sil',
-      `"${courtroom.name}" salonunu silmek istediğinize emin misiniz?`,
+      'Salonu Sil',
+      `${courtroom.name} salonunu silmek istediğinize emin misiniz?`,
       [
         {
           text: 'İptal',
@@ -64,320 +75,307 @@ const CourtroomDetail = ({ route }) => {
           text: 'Sil',
           style: 'destructive',
           onPress: () => {
-            navigation.navigate('Courtrooms', { deletedCourtroom: courtroom });
+            // Delete the courtroom
+            navigation.navigate('Courtrooms', { 
+              action: 'delete',
+              courtroomId: courtroom.id 
+            });
           },
         },
       ]
     );
   };
-
-  // Cihaz detay sayfasına git
-  const handleDeviceDetail = (deviceType) => {
-    // Eğer cihaz sayısı 0 ise, detay sayfasına gitmeye gerek yok
-    if (!courtroom.devices || courtroom.devices[deviceType] <= 0) {
-      return;
-    }
-    
-    // Cihaz tipine göre detay sayfasına git
-    navigation.navigate('DeviceTypeDetail', { 
-      deviceType,
-      courtroomId: courtroom.id,
-      courtroomName: courtroom.name
-    });
-  };
-
+  
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity
+    <SafeAreaView style={[styles.safeAreaView, { backgroundColor: theme.background }]}>
+      <StatusBar 
+        barStyle={theme.isDark ? 'light-content' : 'dark-content'} 
+        backgroundColor={theme.background}
+      />
+      
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        {/* Header */}
+        <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <TouchableOpacity 
+            style={styles.backButton} 
             onPress={() => navigation.goBack()}
-            style={styles.backButton}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Salon Detayları</Text>
-          <View style={{ width: 32 }} />
+          
+          <Text style={[styles.headerTitle, { color: theme.text }]}>{courtroom.name}</Text>
+          
+          <View style={styles.headerActions}>
+            <TouchableOpacity 
+              style={styles.headerAction}
+              onPress={handleEditCourtroom}
+            >
+              <MaterialCommunityIcons name="pencil" size={24} color={theme.primary} />
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={styles.headerAction}
+              onPress={handleDeleteCourtroom}
+            >
+              <MaterialCommunityIcons name="delete" size={24} color={theme.danger} />
+            </TouchableOpacity>
+          </View>
         </View>
-
-        <ScrollView style={styles.content}>
-          <View style={styles.card}>
-            <View style={styles.titleRow}>
-              <Text style={styles.title}>{courtroom.name}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(courtroom.status) }]}>
-                <Text style={styles.statusText}>{courtroom.status}</Text>
+        
+        <ScrollView 
+          style={styles.scrollView}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Basic Info */}
+          <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="information" size={22} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Salon Bilgileri</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Mahkeme</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{courtroom.court}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Konum</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{courtroom.location}</Text>
+            </View>
+            
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Durum</Text>
+              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(courtroom.status) + '20', borderColor: getStatusColor(courtroom.status) }]}>
+                <Text style={[styles.statusText, { color: getStatusColor(courtroom.status) }]}>{courtroom.status}</Text>
               </View>
             </View>
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="gavel" size={20} color="#64748b" />
-              <Text style={styles.infoText}>{courtroom.court}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="map-marker" size={20} color="#64748b" />
-              <Text style={styles.infoText}>{courtroom.location}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="calendar-check" size={20} color="#64748b" />
-              <Text style={styles.infoText}>Son Kontrol: {courtroom.lastCheck}</Text>
-            </View>
-
-            <View style={styles.divider} />
-
-            <Text style={styles.sectionTitle}>Cihazlar ({totalDevices})</Text>
             
-            <View style={styles.deviceGrid}>
-              {Object.entries(deviceMap).map(([key, { icon, label }]) => (
-                <TouchableOpacity 
-                  key={key} 
-                  style={styles.deviceItem}
-                  onPress={() => handleDeviceDetail(key)}
-                  disabled={!courtroom.devices || courtroom.devices[key] <= 0}
-                >
-                  <View style={[
-                    styles.deviceIconContainer,
-                    { backgroundColor: courtroom.devices && courtroom.devices[key] > 0 ? '#eef2ff' : '#f1f5f9' }
-                  ]}>
-                    <MaterialCommunityIcons 
-                      name={icon} 
-                      size={24} 
-                      color={courtroom.devices && courtroom.devices[key] > 0 ? '#4f46e5' : '#94a3b8'} 
-                    />
-                  </View>
-                  <Text style={[
-                    styles.deviceItemText,
-                    { color: courtroom.devices && courtroom.devices[key] > 0 ? '#1e293b' : '#94a3b8' }
-                  ]}>
-                    {label}
-                  </Text>
-                  {courtroom.devices && courtroom.devices[key] > 0 ? (
-                    <View style={styles.deviceCountTag}>
-                      <Text style={styles.deviceCountText}>{courtroom.devices[key]}</Text>
-                    </View>
-                  ) : (
-                    <View style={styles.deviceMissingTag}>
-                      <Text style={styles.deviceMissingText}>0</Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              ))}
+            <View style={styles.infoRow}>
+              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Son Kontrol</Text>
+              <Text style={[styles.infoValue, { color: theme.text }]}>{formatDate(courtroom.lastCheck)}</Text>
             </View>
-
-            {courtroom.notes && (
-              <>
-                <View style={styles.divider} />
-                <Text style={styles.sectionTitle}>Notlar</Text>
-                <Text style={styles.notesText}>{courtroom.notes}</Text>
-              </>
+          </View>
+          
+          {/* Devices */}
+          <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="devices" size={22} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cihazlar ({getTotalDeviceCount(courtroom.devices)})</Text>
+            </View>
+            
+            <View style={styles.deviceList}>
+              {courtroom.devices && Object.entries(courtroom.devices).map(([key, count]) => {
+                if (count <= 0) return null; // Sadece sayısı 0'dan büyük olanları göster
+                
+                let iconName = 'help-circle-outline';
+                let deviceLabel = 'Bilinmeyen';
+                
+                switch(key) {
+                  case 'kasa':
+                    iconName = 'desktop-tower';
+                    deviceLabel = 'Kasa';
+                    break;
+                  case 'monitor':
+                    iconName = 'monitor';
+                    deviceLabel = 'Monitör';
+                    break;
+                  case 'segbis':
+                    iconName = 'video';
+                    deviceLabel = 'SEGBİS';
+                    break;
+                  case 'kamera':
+                    iconName = 'cctv';
+                    deviceLabel = 'Kamera';
+                    break;
+                  case 'tv':
+                    iconName = 'television';
+                    deviceLabel = 'TV';
+                    break;
+                  case 'mikrofon':
+                    iconName = 'microphone';
+                    deviceLabel = 'Mikrofon';
+                    break;
+                }
+                
+                return (
+                  <View key={key} style={[styles.deviceItem, { borderBottomColor: theme.border }]}>
+                    <View style={styles.deviceInfo}>
+                      <View style={[styles.deviceIconContainer, { backgroundColor: theme.primary + '20' }]}>
+                        <MaterialCommunityIcons name={iconName} size={20} color={theme.primary} />
+                      </View>
+                      <Text style={[styles.deviceName, { color: theme.text }]}>{deviceLabel}</Text>
+                    </View>
+                    <View style={[styles.deviceCountBadge, { backgroundColor: theme.backgroundSecondary }]}>
+                      <Text style={[styles.deviceCount, { color: theme.text }]}>{count}</Text>
+                    </View>
+                  </View>
+                );
+              })}
+              
+              {(!courtroom.devices || getTotalDeviceCount(courtroom.devices) === 0) && (
+                <View style={styles.emptyDevices}>
+                  <MaterialCommunityIcons name="alert-circle-outline" size={32} color={theme.textSecondary} />
+                  <Text style={[styles.emptyDevicesText, { color: theme.textSecondary }]}>Bu salonda kayıtlı cihaz bulunmamaktadır</Text>
+                </View>
+              )}
+            </View>
+          </View>
+          
+          {/* Notes */}
+          <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
+            <View style={styles.sectionHeader}>
+              <MaterialCommunityIcons name="note-text" size={22} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Notlar</Text>
+            </View>
+            
+            {courtroom.notes ? (
+              <Text style={[styles.notesText, { color: theme.text }]}>
+                {courtroom.notes}
+              </Text>
+            ) : (
+              <Text style={[styles.emptyNotesText, { color: theme.textSecondary }]}>
+                Bu salon için not bulunmamaktadır
+              </Text>
             )}
           </View>
         </ScrollView>
-
-        <View style={styles.footer}>
-          <TouchableOpacity 
-            style={styles.deleteButton}
-            onPress={handleDelete}
-          >
-            <MaterialCommunityIcons name="delete" size={20} color="#ef4444" />
-            <Text style={styles.deleteButtonText}>Sil</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={handleEdit}
-          >
-            <MaterialCommunityIcons name="pencil" size={20} color="#ffffff" />
-            <Text style={styles.editButtonText}>Düzenle</Text>
-          </TouchableOpacity>
-        </View>
       </View>
     </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  safeAreaView: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#ffffff',
+    borderBottomWidth: 1,
+  },
+  backButton: {
+    padding: 4,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+  },
+  headerAction: {
+    padding: 4,
+    marginLeft: 16,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+  },
+  section: {
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingBottom: 12,
+    marginBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
   },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
-  },
-  content: {
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1e293b',
-    flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  statusText: {
-    color: '#ffffff',
-    fontWeight: '500',
-    fontSize: 12,
+    marginLeft: 8,
   },
   infoRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    fontSize: 16,
-    color: '#1e293b',
-    marginLeft: 8,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: '#e2e8f0',
-    marginVertical: 16,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#1e293b',
     marginBottom: 12,
   },
-  deviceGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
+  infoLabel: {
+    fontSize: 15,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+    borderWidth: 1,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  deviceList: {
+    marginTop: 4,
   },
   deviceItem: {
-    width: '33.333%',
-    padding: 6,
-    marginBottom: 12,
-    position: 'relative',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+  },
+  deviceInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   deviceIconContainer: {
-    height: 56,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 4,
   },
-  deviceItemText: {
+  deviceName: {
+    fontSize: 16,
+    marginLeft: 12,
+  },
+  deviceCountBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deviceCount: {
     fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  deviceCountTag: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#4f46e5',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deviceCountText: {
-    color: '#ffffff',
-    fontSize: 12,
     fontWeight: 'bold',
   },
-  deviceMissingTag: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#e2e8f0',
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
+  emptyDevices: {
     alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 24,
   },
-  deviceMissingText: {
-    color: '#94a3b8',
-    fontSize: 12,
-    fontWeight: 'bold',
+  emptyDevicesText: {
+    fontSize: 14,
+    marginTop: 8,
   },
   notesText: {
     fontSize: 16,
-    color: '#4b5563',
     lineHeight: 24,
   },
-  footer: {
-    flexDirection: 'row',
-    padding: 16,
-    backgroundColor: '#ffffff',
-    borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
-  },
-  deleteButton: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 8,
-    backgroundColor: '#fef2f2',
-    marginRight: 8,
-  },
-  deleteButtonText: {
-    color: '#ef4444',
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  editButton: {
-    flex: 2,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#4f46e5',
-    borderRadius: 8,
-  },
-  editButtonText: {
-    color: '#ffffff',
-    fontWeight: '500',
-    marginLeft: 8,
+  emptyNotesText: {
+    fontSize: 16,
+    fontStyle: 'italic',
   },
 });
 
-export default CourtroomDetail; 
+export default withThemedScreen(CourtroomDetail); 

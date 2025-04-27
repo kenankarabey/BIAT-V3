@@ -3,6 +3,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { View, Text, Platform } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Ekranları içe aktarma
 import HomeScreen from '../screens/HomeScreen';
@@ -25,48 +26,84 @@ import CourtOfficePersonnelForm from '../screens/CourtOfficePersonnelForm';
 import CourtroomForm from '../screens/devices/CourtroomForm';
 import CourtroomDetail from '../screens/devices/CourtroomDetail';
 import DeviceTypeDetail from '../screens/devices/DeviceTypeDetail';
+import IssueReportScreen from '../screens/issues/IssueReportScreen';
+import IssueListScreen from '../screens/issues/IssueListScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
 
 const Tab = createBottomTabNavigator();
 const DevicesStack = createStackNavigator();
+const IssuesStack = createStackNavigator();
+const HomeStack = createStackNavigator();
 
-// Cihazlar Navigator
-const DevicesNavigator = () => {
-  return (
-    <DevicesStack.Navigator screenOptions={{ headerShown: false }}>
-      <DevicesStack.Screen name="DevicesMain" component={DevicesScreen} />
-      <DevicesStack.Screen name="AllDevices" component={AllDevicesScreen} />
-      <DevicesStack.Screen name="CourtOffices" component={CourtOfficesScreen} />
-      <DevicesStack.Screen name="Courtrooms" component={Courtrooms} />
-      <DevicesStack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
-      <DevicesStack.Screen name="JudgeRoomDetail" component={JudgeRoomDetail} />
-      <DevicesStack.Screen name="JudgeRoomForm" component={JudgeRoomForm} />
-      <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
-      <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
-      <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
-      <DevicesStack.Screen name="CourtOfficeForm" component={CourtOfficeForm} />
-      <DevicesStack.Screen name="CourtOfficeDetail" component={CourtOfficeDetailScreen} />
-      <DevicesStack.Screen name="CourtOfficePersonnelForm" component={CourtOfficePersonnelForm} />
-      <DevicesStack.Screen name="CourtroomForm" component={CourtroomForm} />
-      <DevicesStack.Screen name="CourtroomDetail" component={CourtroomDetail} />
-      <DevicesStack.Screen name="DeviceTypeDetail" component={DeviceTypeDetail} />
-    </DevicesStack.Navigator>
-  );
+// Stack navigator options that use the theme
+const createThemedStackNavigator = (Stack) => {
+  const { theme } = useTheme();
+  
+  return () => {
+    return (
+      <Stack.Navigator 
+        screenOptions={{ 
+          headerShown: false,
+          cardStyle: { backgroundColor: theme.background },
+        }}
+        initialRouteName={Stack === DevicesStack ? "DevicesMain" : Stack === HomeStack ? "HomeMain" : "IssuesMain"}
+      >
+        {Stack === HomeStack ? (
+          <>
+            <HomeStack.Screen name="HomeMain" component={HomeScreen} />
+            <HomeStack.Screen name="Notifications" component={NotificationsScreen} />
+          </>
+        ) : Stack === DevicesStack ? (
+          <>
+            <DevicesStack.Screen name="DevicesMain" component={DevicesScreen} />
+            <DevicesStack.Screen name="AllDevices" component={AllDevicesScreen} />
+            <DevicesStack.Screen name="CourtOffices" component={CourtOfficesScreen} />
+            <DevicesStack.Screen name="Courtrooms" component={Courtrooms} />
+            <DevicesStack.Screen name="JudgeRooms" component={JudgeRoomsScreen} />
+            <DevicesStack.Screen name="JudgeRoomDetail" component={JudgeRoomDetail} />
+            <DevicesStack.Screen name="JudgeRoomForm" component={JudgeRoomForm} />
+            <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
+            <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
+            <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
+            <DevicesStack.Screen name="CourtOfficeForm" component={CourtOfficeForm} />
+            <DevicesStack.Screen name="CourtOfficeDetail" component={CourtOfficeDetailScreen} />
+            <DevicesStack.Screen name="CourtOfficePersonnelForm" component={CourtOfficePersonnelForm} />
+            <DevicesStack.Screen name="CourtroomForm" component={CourtroomForm} />
+            <DevicesStack.Screen name="CourtroomDetail" component={CourtroomDetail} />
+            <DevicesStack.Screen name="DeviceTypeDetail" component={DeviceTypeDetail} />
+          </>
+        ) : (
+          <>
+            <IssuesStack.Screen name="IssuesMain" component={IssuesScreen} />
+            <IssuesStack.Screen name="IssueList" component={IssueListScreen} />
+            <IssuesStack.Screen name="IssueReport" component={IssueReportScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    );
+  };
 };
 
 const TabNavigator = () => {
+  const { theme } = useTheme();
+  
+  const HomeNavigator = createThemedStackNavigator(HomeStack);
+  const DevicesNavigator = createThemedStackNavigator(DevicesStack);
+  const IssuesNavigator = createThemedStackNavigator(IssuesStack);
+  
   return (
     <Tab.Navigator
       initialRouteName="Home"
       screenOptions={{
-        tabBarActiveTintColor: '#1e3a8a',
-        tabBarInactiveTintColor: '#64748b',
+        tabBarActiveTintColor: theme.tabBarActiveColor,
+        tabBarInactiveTintColor: theme.tabBarInactiveColor,
         tabBarStyle: {
           height: Platform.OS === 'ios' ? 80 : 60,
           paddingBottom: Platform.OS === 'ios' ? 20 : 5,
           paddingTop: 5,
-          backgroundColor: '#ffffff',
+          backgroundColor: theme.tabBarBackground,
           borderTopWidth: 1,
-          borderTopColor: '#e2e8f0',
+          borderTopColor: theme.border,
           elevation: 10,
           shadowColor: '#000000',
           shadowOffset: { width: 0, height: -3 },
@@ -84,7 +121,7 @@ const TabNavigator = () => {
     >
       <Tab.Screen 
         name="Home" 
-        component={HomeScreen} 
+        component={HomeNavigator} 
         options={{
           tabBarLabel: 'Ana Sayfa',
           tabBarIcon: ({ color, size, focused }) => (
@@ -105,10 +142,17 @@ const TabNavigator = () => {
             </View>
           ),
         }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // Reset to initial route when tab is pressed
+            e.preventDefault();
+            navigation.navigate('Devices', { screen: 'DevicesMain' });
+          },
+        })}
       />
       <Tab.Screen 
         name="Issues" 
-        component={IssuesScreen} 
+        component={IssuesNavigator} 
         options={{
           tabBarLabel: 'Arıza Takip',
           tabBarIcon: ({ color, size, focused }) => (

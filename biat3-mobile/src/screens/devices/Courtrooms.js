@@ -11,11 +11,14 @@ import {
   Animated,
   SafeAreaView,
   Platform,
-  ScrollView
+  ScrollView,
+  ActivityIndicator,
+  useWindowDimensions
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Swipeable } from 'react-native-gesture-handler';
+import withThemedScreen from '../../components/withThemedScreen';
 
 // Mock data for courtrooms
 const MOCK_COURTROOMS = [
@@ -151,40 +154,47 @@ const SwipeableRow = ({ item, onEdit, onDelete, children }) => {
   );
 };
 
-const Courtrooms = ({ route }) => {
+const CourtroomsScreen = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
+  const { width } = useWindowDimensions();
   const [courtrooms, setCourtrooms] = useState(MOCK_COURTROOMS);
   const [filteredCourtrooms, setFilteredCourtrooms] = useState(MOCK_COURTROOMS);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('Tümü');
+  const [loading, setLoading] = useState(false);
 
   // Process courtroom updates when screen is focused
   useFocusEffect(
     useCallback(() => {
-      // Handle new courtroom added
-      if (route?.params?.action === 'add' && route?.params?.courtroom) {
-        setCourtrooms(prev => [route.params.courtroom, ...prev]);
-        navigation.setParams({ action: null, courtroom: null });
-      }
-      
-      // Handle courtroom updated
-      if (route?.params?.action === 'update' && route?.params?.courtroom) {
-        setCourtrooms(prev => 
-          prev.map(item => 
-            item.id === route.params.courtroom.id 
-              ? route.params.courtroom 
-              : item
-          )
-        );
-        navigation.setParams({ action: null, courtroom: null });
-      }
-      
-      // Handle courtroom deleted
-      if (route?.params?.deletedCourtroom) {
-        setCourtrooms(prev => 
-          prev.filter(item => item.id !== route.params.deletedCourtroom.id)
-        );
-        navigation.setParams({ deletedCourtroom: null });
+      // Handle courtroom actions
+      if (route?.params) {
+        // Handle new courtroom added
+        if (route.params.action === 'add' && route.params.courtroom) {
+          setCourtrooms(prev => [route.params.courtroom, ...prev]);
+        }
+        
+        // Handle courtroom updated
+        else if (route.params.action === 'update' && route.params.courtroom) {
+          setCourtrooms(prev => 
+            prev.map(item => 
+              item.id === route.params.courtroom.id 
+                ? route.params.courtroom 
+                : item
+            )
+          );
+        }
+        
+        // Handle courtroom deleted
+        else if (route.params.action === 'delete' && route.params.courtroomId) {
+          setCourtrooms(prev => 
+            prev.filter(item => item.id !== route.params.courtroomId)
+          );
+        }
+        
+        // Clear route params after processing
+        if (route.params.action) {
+          navigation.setParams({ action: null, courtroom: null, courtroomId: null });
+        }
       }
     }, [route?.params, navigation])
   );
@@ -221,6 +231,8 @@ const Courtrooms = ({ route }) => {
         return '#ef4444'; // red
       case 'Bakım':
         return '#f59e0b'; // amber
+      case 'Pasif':
+        return '#64748b'; // slate
       default:
         return '#64748b'; // slate
     }
@@ -257,6 +269,25 @@ const Courtrooms = ({ route }) => {
     navigation.navigate('CourtroomForm');
   };
 
+  // Render empty component
+  const renderEmptyComponent = () => (
+    <View style={styles.emptyContainer}>
+      <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.textSecondary} />
+      <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
+        {searchQuery || statusFilter !== 'Tümü'
+          ? 'Aramanızla eşleşen duruşma salonu bulunamadı.'
+          : 'Henüz duruşma salonu eklenmemiş.'}
+      </Text>
+      <TouchableOpacity 
+        style={[styles.emptyAddButton, { backgroundColor: theme.primary }]}
+        onPress={handleAddCourtroom}
+      >
+        <MaterialCommunityIcons name="plus" size={20} color="#fff" />
+        <Text style={styles.emptyAddButtonText}>Salon Ekle</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   // Render courtroom card
   const renderCourtroomCard = ({ item }) => {
     const statusColor = getStatusColor(item.status);
@@ -266,13 +297,13 @@ const Courtrooms = ({ route }) => {
     
     const card = (
       <TouchableOpacity 
-        style={styles.card}
+        style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
         onPress={() => navigation.navigate('CourtroomDetail', { courtroom: item })}
       >
         <View style={styles.cardHeader}>
           <View>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.cardSubtitle}>{item.court}</Text>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>{item.name}</Text>
+            <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>{item.court}</Text>
           </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
             <Text style={styles.statusText}>{item.status}</Text>
@@ -281,71 +312,73 @@ const Courtrooms = ({ route }) => {
         
         <View style={styles.cardInfoRow}>
           <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="map-marker" size={18} color="#666" />
-            <Text style={styles.infoText}>{item.location}</Text>
+            <MaterialCommunityIcons name="map-marker" size={18} color={theme.textSecondary} />
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{item.location}</Text>
           </View>
           <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="devices" size={18} color="#666" />
-            <Text style={styles.infoText}>{totalDevices} Cihaz</Text>
+            <MaterialCommunityIcons name="devices" size={18} color={theme.textSecondary} />
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{totalDevices} Cihaz</Text>
           </View>
         </View>
         
-        <View style={styles.deviceGrid}>
-          {item.devices && Object.entries(item.devices).map(([key, count]) => {
-            if (count <= 0) return null; // Sadece sayısı 0'dan büyük olanları göster
-            
-            let iconName = 'help-circle-outline';
-            let deviceLabel = 'Bilinmeyen';
-            
-            switch(key) {
-              case 'kasa':
-                iconName = 'desktop-tower';
-                deviceLabel = 'Kasa';
-                break;
-              case 'monitor':
-                iconName = 'monitor';
-                deviceLabel = 'Monitör';
-                break;
-              case 'segbis':
-                iconName = 'video';
-                deviceLabel = 'SEGBİS';
-                break;
-              case 'kamera':
-                iconName = 'cctv';
-                deviceLabel = 'Kamera';
-                break;
-              case 'tv':
-                iconName = 'television';
-                deviceLabel = 'TV';
-                break;
-              case 'mikrofon':
-                iconName = 'microphone';
-                deviceLabel = 'Mikrofon';
-                break;
-            }
-            
-            return (
-              <View key={key} style={styles.deviceItem}>
-                <MaterialCommunityIcons 
-                  name={iconName} 
-                  size={16} 
-                  color="#4f46e5"
-                />
-                <Text style={styles.deviceText}>
-                  {deviceLabel}
-                </Text>
-                <View style={styles.deviceCountBadge}>
-                  <Text style={styles.deviceCountText}>{count}</Text>
+        {totalDevices > 0 && (
+          <View style={[styles.deviceGrid, { borderTopColor: theme.border }]}>
+            {item.devices && Object.entries(item.devices).map(([key, count]) => {
+              if (count <= 0) return null; // Sadece sayısı 0'dan büyük olanları göster
+              
+              let iconName = 'help-circle-outline';
+              let deviceLabel = 'Bilinmeyen';
+              
+              switch(key) {
+                case 'kasa':
+                  iconName = 'desktop-tower';
+                  deviceLabel = 'Kasa';
+                  break;
+                case 'monitor':
+                  iconName = 'monitor';
+                  deviceLabel = 'Monitör';
+                  break;
+                case 'segbis':
+                  iconName = 'video';
+                  deviceLabel = 'SEGBİS';
+                  break;
+                case 'kamera':
+                  iconName = 'cctv';
+                  deviceLabel = 'Kamera';
+                  break;
+                case 'tv':
+                  iconName = 'television';
+                  deviceLabel = 'TV';
+                  break;
+                case 'mikrofon':
+                  iconName = 'microphone';
+                  deviceLabel = 'Mikrofon';
+                  break;
+              }
+              
+              return (
+                <View key={key} style={styles.deviceItem}>
+                  <MaterialCommunityIcons 
+                    name={iconName} 
+                    size={16} 
+                    color={theme.primary} 
+                  />
+                  <Text style={[styles.deviceText, { color: theme.text }]}>
+                    {deviceLabel}
+                  </Text>
+                  <View style={[styles.deviceCountBadge, { backgroundColor: theme.backgroundSecondary }]}>
+                    <Text style={[styles.deviceCountText, { color: theme.text }]}>{count}</Text>
+                  </View>
                 </View>
-              </View>
-            );
-          })}
-        </View>
+              );
+            })}
+          </View>
+        )}
         
         <View style={styles.cardInfoRow}>
           <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="clock-outline" size={18} color="#666" />
-            <Text style={styles.infoText}>Son Kontrol: {item.lastCheck}</Text>
+            <MaterialCommunityIcons name="clock-outline" size={18} color={theme.textSecondary} />
+            <Text style={[styles.infoText, { color: theme.textSecondary }]}>Son Kontrol: {item.lastCheck}</Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -363,26 +396,26 @@ const Courtrooms = ({ route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Duruşma Salonları</Text>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Duruşma Salonları</Text>
         </View>
         
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <MaterialCommunityIcons name="magnify" size={22} color="#64748b" />
+        <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <View style={[styles.searchBar, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
+            <MaterialCommunityIcons name="magnify" size={22} color={theme.textSecondary} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: theme.text }]}
               placeholder="Salon adı, mahkeme veya konum ara..."
               value={searchQuery}
               onChangeText={setSearchQuery}
-              placeholderTextColor="#a1a1aa"
+              placeholderTextColor={theme.textSecondary}
             />
             {searchQuery ? (
               <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <MaterialCommunityIcons name="close-circle" size={20} color="#64748b" />
+                <MaterialCommunityIcons name="close-circle" size={20} color={theme.textSecondary} />
               </TouchableOpacity>
             ) : null}
           </View>
@@ -392,17 +425,18 @@ const Courtrooms = ({ route }) => {
             showsHorizontalScrollIndicator={false} 
             contentContainerStyle={styles.filterScrollContainer}
           >
-            {['Tümü', 'Aktif', 'Arıza', 'Bakım'].map(status => (
+            {['Tümü', 'Aktif', 'Arıza', 'Bakım', 'Pasif'].map(status => (
               <TouchableOpacity
                 key={status}
                 style={[
                   styles.filterButton,
+                  { borderColor: theme.border },
                   statusFilter === status && { 
                     backgroundColor: status === 'Tümü' 
-                      ? '#4f46e5' 
+                      ? theme.primary 
                       : getStatusColor(status),
                     borderColor: status === 'Tümü' 
-                      ? '#4f46e5' 
+                      ? theme.primary 
                       : getStatusColor(status),
                   }
                 ]}
@@ -411,6 +445,7 @@ const Courtrooms = ({ route }) => {
                 <Text 
                   style={[
                     styles.filterText,
+                    { color: theme.textSecondary },
                     statusFilter === status && { color: '#fff' }
                   ]}
                 >
@@ -421,33 +456,23 @@ const Courtrooms = ({ route }) => {
           </ScrollView>
         </View>
         
-        <FlatList
-          data={filteredCourtrooms}
-          keyExtractor={item => item.id}
-          renderItem={renderCourtroomCard}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <MaterialCommunityIcons name="alert-circle-outline" size={48} color="#ccc" />
-              <Text style={styles.emptyText}>
-                {searchQuery || statusFilter !== 'Tümü'
-                  ? 'Aramanızla eşleşen duruşma salonu bulunamadı.'
-                  : 'Henüz duruşma salonu eklenmemiş.'}
-              </Text>
-              <TouchableOpacity 
-                style={styles.emptyAddButton}
-                onPress={handleAddCourtroom}
-              >
-                <MaterialCommunityIcons name="plus" size={20} color="#fff" />
-                <Text style={styles.emptyAddButtonText}>Salon Ekle</Text>
-              </TouchableOpacity>
-            </View>
-          }
-        />
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : (
+          <FlatList
+            data={filteredCourtrooms}
+            keyExtractor={item => item.id}
+            renderItem={renderCourtroomCard}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={renderEmptyComponent}
+          />
+        )}
         
         {/* Fixed Action Button for adding new courtroom */}
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: theme.primary }]}
           onPress={handleAddCourtroom}
         >
           <MaterialCommunityIcons name="plus" size={24} color="#fff" />
@@ -460,11 +485,9 @@ const Courtrooms = ({ route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     flexDirection: 'row',
@@ -472,43 +495,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   searchContainer: {
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
-    elevation: 1,
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
     paddingHorizontal: 15,
     borderRadius: 12,
     height: 50,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   searchInput: {
     flex: 1,
     marginLeft: 10,
     fontSize: 16,
-    color: '#1e293b',
     height: '100%',
   },
   filterScrollContainer: {
@@ -524,28 +533,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#ddd',
     backgroundColor: 'transparent',
     marginHorizontal: 4,
   },
   filterText: {
     fontSize: 14,
-    color: '#64748b',
     fontWeight: '500',
   },
   listContent: {
     padding: 15,
   },
   card: {
-    backgroundColor: '#fff',
     borderRadius: 10,
     padding: 15,
     marginBottom: 15,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    borderWidth: 1,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -556,11 +558,9 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333',
   },
   cardSubtitle: {
     fontSize: 14,
-    color: '#666',
     marginTop: 2,
   },
   statusBadge: {
@@ -584,8 +584,12 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 14,
-    color: '#666',
     marginLeft: 5,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -595,7 +599,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#888',
     textAlign: 'center',
     marginTop: 10,
   },
@@ -605,7 +608,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 5,
     borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
     paddingTop: 10,
   },
   deviceItem: {
@@ -616,11 +618,7 @@ const styles = StyleSheet.create({
   },
   deviceText: {
     fontSize: 12,
-    color: '#333',
     marginLeft: 4,
-  },
-  inactiveDevice: {
-    color: '#999',
   },
   swipeActions: {
     flexDirection: 'row',
@@ -645,7 +643,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom: 20,
-    backgroundColor: '#4f46e5',
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -659,7 +656,6 @@ const styles = StyleSheet.create({
   },
   emptyAddButton: {
     flexDirection: 'row',
-    backgroundColor: '#4f46e5',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 8,
@@ -675,14 +671,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingVertical: 2,
     borderRadius: 10,
-    backgroundColor: '#f3f4f6',
     marginLeft: 4,
   },
   deviceCountText: {
     fontSize: 12,
     fontWeight: 'bold',
-    color: '#4b5563',
   },
 });
 
-export default Courtrooms; 
+export default withThemedScreen(CourtroomsScreen); 

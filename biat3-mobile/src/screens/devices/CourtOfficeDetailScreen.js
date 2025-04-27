@@ -10,8 +10,9 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const CourtOfficeDetailScreen = ({ route, navigation }) => {
+const CourtOfficeDetailScreen = ({ route, navigation, theme, themedStyles }) => {
   const { office } = route.params;
   
   // Personel verileri - Normalde API'den gelecek
@@ -82,18 +83,18 @@ const CourtOfficeDetailScreen = ({ route, navigation }) => {
   
   // Personel kartı
   const PersonnelCard = ({ item }) => (
-    <View style={styles.personnelCard}>
+    <View style={[styles.personnelCard, themedStyles.card, themedStyles.shadow]}>
       <View style={styles.personnelHeader}>
         <View style={styles.personnelInfo}>
-          <Text style={styles.personnelName}>{item.name}</Text>
-          <Text style={styles.personnelTitle}>{item.title}</Text>
+          <Text style={[styles.personnelName, themedStyles.text]}>{item.name}</Text>
+          <Text style={[styles.personnelTitle, themedStyles.textSecondary]}>{item.title}</Text>
         </View>
         <View style={styles.personnelActions}>
-          <TouchableOpacity style={styles.actionButton}>
-            <Ionicons name="create-outline" size={18} color="#1e293b" />
+          <TouchableOpacity style={[styles.actionButton, { backgroundColor: theme.inputBg }]}>
+            <Ionicons name="create-outline" size={18} color={theme.text} />
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.actionButton}
+            style={[styles.actionButton, { backgroundColor: theme.inputBg }]}
             onPress={() => {
               Alert.alert(
                 "Personeli Sil",
@@ -113,40 +114,61 @@ const CourtOfficeDetailScreen = ({ route, navigation }) => {
         </View>
       </View>
       
-      <Text style={styles.registrationNumber}>Sicil No: {item.registrationNumber}</Text>
+      <Text style={[styles.registrationNumber, themedStyles.textSecondary]}>Sicil No: {item.registrationNumber}</Text>
       
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.border }]} />
       
-      <Text style={styles.devicesTitle}>Kullandığı Cihazlar</Text>
+      <Text style={[styles.devicesTitle, themedStyles.text]}>Kullandığı Cihazlar</Text>
       
       {item.devices.map((device, index) => (
-        <View key={index} style={styles.deviceItem}>
-          <Ionicons name={getDeviceIcon(device.type)} size={20} color="#1e3a8a" style={styles.deviceIcon} />
+        <TouchableOpacity 
+          key={index} 
+          style={styles.deviceItem}
+          onPress={() => navigation.navigate('DeviceDetail', { 
+            device: {
+              ...device,
+              userName: item.name,
+              userTitle: item.title,
+              userRegistrationNumber: item.registrationNumber,
+              status: 'Aktif'
+            } 
+          })}
+        >
+          <Ionicons name={getDeviceIcon(device.type)} size={20} color={theme.primary} style={styles.deviceIcon} />
           <View style={styles.deviceInfo}>
-            <Text style={styles.deviceType}>
+            <Text style={[styles.deviceType, themedStyles.text]}>
               {device.type === 'pc' ? 'Bilgisayar' : device.type === 'monitor' ? 'Monitör' : device.type}
             </Text>
-            <Text style={styles.deviceDetails}>
+            <Text style={[styles.deviceDetails, themedStyles.textSecondary]}>
               {device.brand} {device.model} (SN: {device.serial})
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </View>
   );
   
   // Ortak cihaz kartı
   const SharedDeviceCard = ({ item }) => (
-    <View style={styles.sharedDeviceCard}>
+    <TouchableOpacity 
+      style={[styles.sharedDeviceCard, themedStyles.card, themedStyles.shadow]}
+      onPress={() => navigation.navigate('DeviceDetail', { 
+        device: {
+          ...item,
+          serialNumber: item.serial,
+          type: item.type
+        } 
+      })}
+    >
       <View style={styles.sharedDeviceHeader}>
-        <View style={styles.sharedDeviceIconContainer}>
-          <Ionicons name={getDeviceIcon(item.type)} size={22} color="#1e3a8a" />
+        <View style={[styles.sharedDeviceIconContainer, { backgroundColor: theme.inputBg }]}>
+          <Ionicons name={getDeviceIcon(item.type)} size={22} color={theme.primary} />
         </View>
         <View style={styles.sharedDeviceInfo}>
-          <Text style={styles.sharedDeviceType}>
+          <Text style={[styles.sharedDeviceType, themedStyles.text]}>
             {item.type === 'printer' ? 'Yazıcı' : item.type === 'scanner' ? 'Tarayıcı' : item.type}
           </Text>
-          <Text style={styles.sharedDeviceDetails}>
+          <Text style={[styles.sharedDeviceDetails, themedStyles.textSecondary]}>
             {item.brand} {item.model}
           </Text>
         </View>
@@ -155,67 +177,67 @@ const CourtOfficeDetailScreen = ({ route, navigation }) => {
         </View>
       </View>
       
-      <View style={styles.serialContainer}>
-        <Text style={styles.serialText}>Seri No: {item.serial}</Text>
+      <View style={[styles.serialContainer, { borderTopColor: theme.border }]}>
+        <Text style={[styles.serialText, themedStyles.textSecondary]}>Seri No: {item.serial}</Text>
       </View>
-    </View>
+    </TouchableOpacity>
   );
   
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, themedStyles.header]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Mahkeme Detayı</Text>
+        <Text style={[styles.headerTitle, themedStyles.text]}>Mahkeme Detayı</Text>
         <TouchableOpacity onPress={() => navigation.navigate('CourtOfficeForm', { office })}>
-          <Ionicons name="create-outline" size={24} color="#1e293b" />
+          <Ionicons name="create-outline" size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
       
       <ScrollView style={styles.scrollView}>
         <View style={styles.courtHeader}>
-          <Text style={styles.courtName}>{office.name}</Text>
+          <Text style={[styles.courtName, themedStyles.text]}>{office.name}</Text>
           <View style={[styles.statusBadge, { backgroundColor: getStatusColor(office.status) }]}>
             <Text style={styles.statusText}>{office.status}</Text>
           </View>
         </View>
         
-        <View style={styles.infoSection}>
+        <View style={[styles.infoSection, themedStyles.card, themedStyles.shadow]}>
           <View style={styles.infoItem}>
-            <Ionicons name="briefcase-outline" size={20} color="#64748b" />
-            <Text style={styles.infoText}>{office.type}</Text>
+            <Ionicons name="briefcase-outline" size={20} color={theme.textSecondary} />
+            <Text style={[styles.infoText, themedStyles.text]}>{office.type}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Ionicons name="location-outline" size={20} color="#64748b" />
-            <Text style={styles.infoText}>{office.location}</Text>
+            <Ionicons name="location-outline" size={20} color={theme.textSecondary} />
+            <Text style={[styles.infoText, themedStyles.text]}>{office.location}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Ionicons name="calendar-outline" size={20} color="#64748b" />
-            <Text style={styles.infoText}>Son Kontrol: {office.lastCheck}</Text>
+            <Ionicons name="calendar-outline" size={20} color={theme.textSecondary} />
+            <Text style={[styles.infoText, themedStyles.text]}>Son Kontrol: {office.lastCheck}</Text>
           </View>
         </View>
         
         <View style={styles.deviceCountRow}>
-          <View style={styles.deviceCountCard}>
-            <Ionicons name="desktop-outline" size={24} color="#1e3a8a" />
-            <Text style={styles.deviceCountNumber}>{office.deviceCount.pc}</Text>
-            <Text style={styles.deviceCountLabel}>Bilgisayar</Text>
+          <View style={[styles.deviceCountCard, themedStyles.card, themedStyles.shadow]}>
+            <Ionicons name="desktop-outline" size={24} color={theme.primary} />
+            <Text style={[styles.deviceCountNumber, themedStyles.text]}>{office.deviceCount.pc}</Text>
+            <Text style={[styles.deviceCountLabel, themedStyles.textSecondary]}>Bilgisayar</Text>
           </View>
-          <View style={styles.deviceCountCard}>
-            <Ionicons name="print-outline" size={24} color="#1e3a8a" />
-            <Text style={styles.deviceCountNumber}>{office.deviceCount.printer}</Text>
-            <Text style={styles.deviceCountLabel}>Yazıcı</Text>
+          <View style={[styles.deviceCountCard, themedStyles.card, themedStyles.shadow]}>
+            <Ionicons name="print-outline" size={24} color={theme.primary} />
+            <Text style={[styles.deviceCountNumber, themedStyles.text]}>{office.deviceCount.printer}</Text>
+            <Text style={[styles.deviceCountLabel, themedStyles.textSecondary]}>Yazıcı</Text>
           </View>
-          <View style={styles.deviceCountCard}>
-            <Ionicons name="hardware-chip-outline" size={24} color="#1e3a8a" />
-            <Text style={styles.deviceCountNumber}>{office.deviceCount.other}</Text>
-            <Text style={styles.deviceCountLabel}>Diğer</Text>
+          <View style={[styles.deviceCountCard, themedStyles.card, themedStyles.shadow]}>
+            <Ionicons name="hardware-chip-outline" size={24} color={theme.primary} />
+            <Text style={[styles.deviceCountNumber, themedStyles.text]}>{office.deviceCount.other}</Text>
+            <Text style={[styles.deviceCountLabel, themedStyles.textSecondary]}>Diğer</Text>
           </View>
         </View>
         
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Personel ({personnel.length})</Text>
+          <Text style={[styles.sectionTitle, themedStyles.text]}>Personel ({personnel.length})</Text>
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleAddPersonnel}
@@ -230,7 +252,7 @@ const CourtOfficeDetailScreen = ({ route, navigation }) => {
         ))}
         
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Ortak Cihazlar ({sharedDevices.length})</Text>
+          <Text style={[styles.sectionTitle, themedStyles.text]}>Ortak Cihazlar ({sharedDevices.length})</Text>
           <TouchableOpacity style={styles.addButton}>
             <Ionicons name="add" size={18} color="#fff" />
             <Text style={styles.addButtonText}>Cihaz Ekle</Text>
@@ -243,28 +265,23 @@ const CourtOfficeDetailScreen = ({ route, navigation }) => {
         
         <View style={{ height: 30 }} />
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   scrollView: {
     flex: 1,
@@ -279,7 +296,6 @@ const styles = StyleSheet.create({
   courtName: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#1e293b',
     flex: 1,
   },
   statusBadge: {
@@ -293,15 +309,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   infoSection: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   infoItem: {
     flexDirection: 'row',
@@ -310,7 +320,6 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 15,
-    color: '#1e293b',
     marginLeft: 8,
   },
   deviceCountRow: {
@@ -320,26 +329,18 @@ const styles = StyleSheet.create({
   },
   deviceCountCard: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     marginHorizontal: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   deviceCountNumber: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginTop: 8,
   },
   deviceCountLabel: {
     fontSize: 12,
-    color: '#64748b',
     marginTop: 4,
   },
   sectionHeader: {
@@ -352,7 +353,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   addButton: {
     flexDirection: 'row',
@@ -368,15 +368,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   personnelCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   personnelHeader: {
     flexDirection: 'row',
@@ -389,11 +383,9 @@ const styles = StyleSheet.create({
   personnelName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
   },
   personnelTitle: {
     fontSize: 14,
-    color: '#64748b',
   },
   personnelActions: {
     flexDirection: 'row',
@@ -402,25 +394,21 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 8,
   },
   registrationNumber: {
     fontSize: 14,
-    color: '#64748b',
     marginBottom: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
     marginVertical: 12,
   },
   devicesTitle: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 8,
   },
   deviceItem: {
@@ -437,22 +425,14 @@ const styles = StyleSheet.create({
   deviceType: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1e293b',
   },
   deviceDetails: {
     fontSize: 13,
-    color: '#64748b',
   },
   sharedDeviceCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   sharedDeviceHeader: {
     flexDirection: 'row',
@@ -462,7 +442,6 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#f1f5f9',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 12,
@@ -473,22 +452,18 @@ const styles = StyleSheet.create({
   sharedDeviceType: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
   },
   sharedDeviceDetails: {
     fontSize: 14,
-    color: '#64748b',
   },
   serialContainer: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
   },
   serialText: {
     fontSize: 13,
-    color: '#64748b',
   },
 });
 
-export default CourtOfficeDetailScreen; 
+export default withThemedScreen(CourtOfficeDetailScreen); 

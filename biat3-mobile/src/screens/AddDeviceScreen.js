@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import withThemedScreen from '../components/withThemedScreen';
 
-const AddDeviceScreen = ({ navigation }) => {
+const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
   // Cihaz türleri
   const deviceTypes = [
     {
@@ -84,17 +85,17 @@ const AddDeviceScreen = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#1e293b" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Cihaz Türü Seçin</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Cihaz Türü Seçin</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <Text style={styles.sectionTitle}>
+        <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>
           Eklemek istediğiniz cihaz türünü seçin
         </Text>
 
@@ -102,14 +103,22 @@ const AddDeviceScreen = ({ navigation }) => {
           {deviceTypes.map((deviceType) => (
             <TouchableOpacity 
               key={deviceType.id}
-              style={styles.typeCard}
+              style={[
+                styles.typeCard, 
+                { 
+                  backgroundColor: theme.cardBackground,
+                  borderColor: theme.border,
+                  borderWidth: 1,
+                  elevation: 0
+                }
+              ]}
               onPress={() => handleSelectDeviceType(deviceType)}
             >
               <View style={[styles.iconContainer, { backgroundColor: deviceType.color }]}>
                 <Ionicons name={deviceType.icon} size={24} color="#FFFFFF" />
               </View>
-              <Text style={styles.typeName}>{deviceType.name}</Text>
-              <Text style={styles.typeDescription}>{deviceType.description}</Text>
+              <Text style={[styles.typeName, { color: theme.text }]}>{deviceType.name}</Text>
+              <Text style={[styles.typeDescription, { color: theme.textSecondary }]}>{deviceType.description}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -121,21 +130,17 @@ const AddDeviceScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   scrollView: {
     flex: 1,
@@ -143,7 +148,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    color: '#64748b',
     marginBottom: 16,
     textAlign: 'center',
   },
@@ -154,16 +158,10 @@ const styles = StyleSheet.create({
   },
   typeCard: {
     width: '48%',
-    backgroundColor: 'white',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   iconContainer: {
     width: 56,
@@ -176,15 +174,13 @@ const styles = StyleSheet.create({
   typeName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 4,
     textAlign: 'center',
   },
   typeDescription: {
     fontSize: 12,
-    color: '#64748b',
     textAlign: 'center',
   },
 });
 
-export default AddDeviceScreen; 
+export default withThemedScreen(AddDeviceScreen); 

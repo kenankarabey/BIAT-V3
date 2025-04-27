@@ -15,11 +15,12 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import withThemedScreen from '../../components/withThemedScreen';
 
 // Available status options
 const statusOptions = ['Aktif', 'Arıza', 'Bakım', 'Pasif'];
 
-const CourtroomForm = () => {
+const CourtroomForm = ({ theme, themedStyles }) => {
   const navigation = useNavigation();
   const route = useRoute();
   const editItem = route.params?.courtroom;
@@ -153,21 +154,21 @@ const CourtroomForm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={{ flex: 1 }}
         >
-          <View style={styles.header}>
+          <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
-              <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
               {isEditing ? 'Salon Düzenle' : 'Yeni Salon Ekle'}
             </Text>
             <View style={{ width: 32 }} />
@@ -175,49 +176,64 @@ const CourtroomForm = () => {
 
           <ScrollView style={styles.formContainer}>
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Salon Adı *</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Salon Adı *</Text>
               <TextInput
                 style={[
                   styles.input,
-                  errors.name && styles.inputError,
+                  { 
+                    backgroundColor: theme.inputBg, 
+                    borderColor: errors.name ? "#ef4444" : theme.border,
+                    color: theme.text
+                  },
                 ]}
                 value={formData.name}
                 onChangeText={(text) => handleChange('name', text)}
                 placeholder="Örn: 101 Nolu Salon"
+                placeholderTextColor={theme.textSecondary}
               />
               {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Mahkeme Adı *</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Mahkeme Adı *</Text>
               <TextInput
                 style={[
                   styles.input,
-                  errors.court && styles.inputError,
+                  { 
+                    backgroundColor: theme.inputBg, 
+                    borderColor: errors.court ? "#ef4444" : theme.border,
+                    color: theme.text
+                  },
                 ]}
                 value={formData.court}
                 onChangeText={(text) => handleChange('court', text)}
                 placeholder="Örn: İş Mahkemesi"
+                placeholderTextColor={theme.textSecondary}
               />
               {errors.court && <Text style={styles.errorText}>{errors.court}</Text>}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Konum *</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Konum *</Text>
               <TextInput
                 style={[
                   styles.input,
-                  errors.location && styles.inputError,
+                  { 
+                    backgroundColor: theme.inputBg, 
+                    borderColor: errors.location ? "#ef4444" : theme.border,
+                    color: theme.text
+                  },
                 ]}
                 value={formData.location}
                 onChangeText={(text) => handleChange('location', text)}
                 placeholder="Örn: 1. Kat, Sağ Koridor"
+                placeholderTextColor={theme.textSecondary}
               />
               {errors.location && <Text style={styles.errorText}>{errors.location}</Text>}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Durum</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Durum</Text>
               <View style={styles.statusOptions}>
                 {statusOptions.map((statusOption) => (
                   <TouchableOpacity
@@ -245,20 +261,20 @@ const CourtroomForm = () => {
               </View>
             </View>
 
-            <Text style={styles.sectionTitle}>Salon Cihazları</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Salon Cihazları</Text>
 
-            <View style={styles.deviceList}>
+            <View style={[styles.deviceList, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
               {Object.entries(deviceMap).map(([key, { icon, label }]) => (
-                <View key={key} style={styles.deviceToggleRow}>
+                <View key={key} style={[styles.deviceToggleRow, { borderBottomColor: theme.border }]}>
                   <View style={styles.deviceInfo}>
                     <MaterialCommunityIcons 
                       name={icon} 
                       size={22} 
-                      color={formData.devices && formData.devices[key] > 0 ? "#4f46e5" : "#64748b"} 
+                      color={formData.devices && formData.devices[key] > 0 ? theme.primary : theme.textSecondary} 
                     />
-                    <Text style={styles.deviceLabel}>{label}</Text>
+                    <Text style={[styles.deviceLabel, { color: theme.text }]}>{label}</Text>
                   </View>
-                  <View style={styles.deviceCounterContainer}>
+                  <View style={[styles.deviceCounterContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
                     <TouchableOpacity 
                       style={[
                         styles.deviceCountButton, 
@@ -267,10 +283,10 @@ const CourtroomForm = () => {
                       onPress={() => handleDeviceCountChange(key, false)}
                       disabled={!formData.devices || formData.devices[key] <= 0}
                     >
-                      <MaterialCommunityIcons name="minus" size={16} color="#4f46e5" />
+                      <MaterialCommunityIcons name="minus" size={16} color={theme.primary} />
                     </TouchableOpacity>
                     
-                    <Text style={styles.deviceCountText}>
+                    <Text style={[styles.deviceCountText, { color: theme.text }]}>
                       {formData.devices && formData.devices[key] ? formData.devices[key] : 0}
                     </Text>
                     
@@ -278,7 +294,7 @@ const CourtroomForm = () => {
                       style={styles.deviceCountButton}
                       onPress={() => handleDeviceCountChange(key, true)}
                     >
-                      <MaterialCommunityIcons name="plus" size={16} color="#4f46e5" />
+                      <MaterialCommunityIcons name="plus" size={16} color={theme.primary} />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -286,22 +302,39 @@ const CourtroomForm = () => {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Son Kontrol Tarihi</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Son Kontrol Tarihi</Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  { 
+                    backgroundColor: theme.inputBg, 
+                    borderColor: theme.border,
+                    color: theme.text
+                  },
+                ]}
                 value={formData.lastCheck}
                 onChangeText={(text) => handleChange('lastCheck', text)}
                 placeholder="GG.AA.YYYY"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Notlar</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Notlar</Text>
               <TextInput
-                style={[styles.input, styles.textarea]}
+                style={[
+                  styles.input, 
+                  styles.textarea,
+                  { 
+                    backgroundColor: theme.inputBg, 
+                    borderColor: theme.border,
+                    color: theme.text
+                  },
+                ]}
                 value={formData.notes}
                 onChangeText={(text) => handleChange('notes', text)}
                 placeholder="Salon hakkında notlar..."
+                placeholderTextColor={theme.textSecondary}
                 multiline
                 numberOfLines={4}
                 textAlignVertical="top"
@@ -309,12 +342,12 @@ const CourtroomForm = () => {
             </View>
           </ScrollView>
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, { backgroundColor: theme.cardBackground, borderTopColor: theme.border }]}>
             <TouchableOpacity 
-              style={styles.cancelButton}
+              style={[styles.cancelButton, { backgroundColor: theme.isDark ? '#374151' : '#f1f5f9', borderColor: theme.border }]}
               onPress={() => navigation.goBack()}
             >
-              <Text style={styles.cancelButtonText}>İptal</Text>
+              <Text style={[styles.cancelButtonText, { color: theme.textSecondary }]}>İptal</Text>
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.saveButton}
@@ -332,20 +365,16 @@ const CourtroomForm = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
     padding: 8,
@@ -353,7 +382,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   formContainer: {
     padding: 16,
@@ -364,18 +392,14 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#4b5563',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
-    color: '#1e293b',
   },
   inputError: {
     borderColor: '#ef4444',
@@ -388,7 +412,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginTop: 8,
     marginBottom: 16,
   },
@@ -410,14 +433,11 @@ const styles = StyleSheet.create({
   },
   statusOptionText: {
     fontSize: 14,
-    color: '#4b5563',
   },
   deviceList: {
-    backgroundColor: '#ffffff',
     borderRadius: 8,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     marginBottom: 16,
   },
   deviceToggleRow: {
@@ -426,7 +446,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   deviceInfo: {
     flexDirection: 'row',
@@ -434,7 +453,6 @@ const styles = StyleSheet.create({
   },
   deviceLabel: {
     fontSize: 16,
-    color: '#1e293b',
     marginLeft: 12,
   },
   textarea: {
@@ -444,19 +462,15 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: '#f1f5f9',
     paddingVertical: 12,
     borderRadius: 8,
     marginRight: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   saveButton: {
     flex: 2,
@@ -468,7 +482,6 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#4b5563',
   },
   saveButtonText: {
     fontSize: 16,
@@ -478,10 +491,8 @@ const styles = StyleSheet.create({
   deviceCounterContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f1f5f9',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#e2e8f0',
   },
   deviceCountButton: {
     width: 32,
@@ -492,11 +503,10 @@ const styles = StyleSheet.create({
   },
   deviceCountText: {
     fontSize: 16,
-    color: '#1e293b',
     fontWeight: '500',
     minWidth: 30,
     textAlign: 'center',
   },
 });
 
-export default CourtroomForm; 
+export default withThemedScreen(CourtroomForm); 

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
+import withThemedScreen from '../../components/withThemedScreen';
 
 const deviceTypes = [
   { id: 'pc', title: 'Kasa', icon: 'desktop', color: '#4f46e5' },
@@ -30,7 +31,16 @@ const mockDevices = [
     userRegistrationNumber: '12345',
     lastMaintenance: '15.01.2023',
     nextMaintenance: '15.01.2024',
-    typeColor: '#4f46e5'
+    typeColor: '#4f46e5',
+    barcodeValue: 'PC2022XYZ101',
+    qrValue: JSON.stringify({
+      id: 'PC2022XYZ101',
+      type: 'pc',
+      brand: 'HP',
+      model: 'EliteDesk 800 G6',
+      serialNumber: 'PC202201101',
+      timestamp: 1673758800000
+    })
   },
   { 
     id: '2', 
@@ -46,7 +56,16 @@ const mockDevices = [
     userRegistrationNumber: '23456',
     lastMaintenance: '20.02.2023',
     nextMaintenance: '20.02.2024',
-    typeColor: '#10b981'
+    typeColor: '#10b981',
+    barcodeValue: 'MON2022XYZ102',
+    qrValue: JSON.stringify({
+      id: 'MON2022XYZ102',
+      type: 'monitor',
+      brand: 'Dell',
+      model: 'P2419H',
+      serialNumber: 'MON202201102',
+      timestamp: 1676844000000
+    })
   },
   { 
     id: '3', 
@@ -59,7 +78,16 @@ const mockDevices = [
     serialNumber: 'PRN202201103',
     lastMaintenance: '10.03.2023',
     nextMaintenance: '10.03.2024',
-    typeColor: '#f59e0b'
+    typeColor: '#f59e0b',
+    barcodeValue: 'PRN2022XYZ103',
+    qrValue: JSON.stringify({
+      id: 'PRN2022XYZ103',
+      type: 'printer',
+      brand: 'HP',
+      model: 'LaserJet Pro M428',
+      serialNumber: 'PRN202201103',
+      timestamp: 1678453200000
+    })
   },
   { 
     id: '4', 
@@ -72,7 +100,16 @@ const mockDevices = [
     serialNumber: 'SCN202201104',
     lastMaintenance: '05.04.2023',
     nextMaintenance: '05.04.2024',
-    typeColor: '#ef4444'
+    typeColor: '#ef4444',
+    barcodeValue: 'SCN2022XYZ104',
+    qrValue: JSON.stringify({
+      id: 'SCN2022XYZ104',
+      type: 'scanner',
+      brand: 'Canon',
+      model: 'DR-C225',
+      serialNumber: 'SCN202201104',
+      timestamp: 1680652800000
+    })
   },
   { 
     id: '5', 
@@ -85,7 +122,16 @@ const mockDevices = [
     serialNumber: 'SEG202201105',
     lastMaintenance: '18.05.2023',
     nextMaintenance: '18.05.2024',
-    typeColor: '#6366f1'
+    typeColor: '#6366f1',
+    barcodeValue: 'SEG2022XYZ105',
+    qrValue: JSON.stringify({
+      id: 'SEG2022XYZ105',
+      type: 'segbis',
+      brand: 'Logitech',
+      model: 'Rally Plus',
+      serialNumber: 'SEG202201105',
+      timestamp: 1684364400000
+    })
   },
   { 
     id: '6', 
@@ -98,7 +144,16 @@ const mockDevices = [
     serialNumber: 'EDR202201106',
     lastMaintenance: '25.06.2023',
     nextMaintenance: '25.06.2024',
-    typeColor: '#8b5cf6'
+    typeColor: '#8b5cf6',
+    barcodeValue: 'EDR2022XYZ106',
+    qrValue: JSON.stringify({
+      id: 'EDR2022XYZ106',
+      type: 'hearing',
+      brand: 'Poly',
+      model: 'Studio X50',
+      serialNumber: 'EDR202201106',
+      timestamp: 1687651200000
+    })
   },
   { 
     id: '7', 
@@ -111,7 +166,16 @@ const mockDevices = [
     serialNumber: 'MIC202201107',
     lastMaintenance: '30.07.2023',
     nextMaintenance: '30.07.2024',
-    typeColor: '#ec4899'
+    typeColor: '#ec4899',
+    barcodeValue: 'MIC2022XYZ107',
+    qrValue: JSON.stringify({
+      id: 'MIC2022XYZ107',
+      type: 'microphone',
+      brand: 'Shure',
+      model: 'MX418',
+      serialNumber: 'MIC202201107',
+      timestamp: 1690675200000
+    })
   },
   { 
     id: '8', 
@@ -124,16 +188,54 @@ const mockDevices = [
     serialNumber: 'TV202201108',
     lastMaintenance: '12.08.2023',
     nextMaintenance: '12.08.2024',
-    typeColor: '#14b8a6'
+    typeColor: '#14b8a6',
+    barcodeValue: 'TV2022XYZ108',
+    qrValue: JSON.stringify({
+      id: 'TV2022XYZ108',
+      type: 'tv',
+      brand: 'Samsung',
+      model: 'QE55Q80T',
+      serialNumber: 'TV202201108',
+      timestamp: 1691798400000
+    })
   },
 ];
 
-export default function AllDevicesScreen({ navigation }) {
+function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }) {
   const [selectedType, setSelectedType] = useState(null);
+  const [devices, setDevices] = useState(mockDevices);
+
+  // Check if a new device was added or updated
+  useEffect(() => {
+    if (route.params?.updatedDevice) {
+      // Handle the updated device (in a real app this would update the database)
+      const updatedDevice = route.params.updatedDevice;
+      const existingDeviceIndex = devices.findIndex(d => d.id === updatedDevice.id);
+      
+      if (existingDeviceIndex !== -1) {
+        // Update existing device
+        const updatedDevices = [...devices];
+        updatedDevices[existingDeviceIndex] = {
+          ...updatedDevices[existingDeviceIndex],
+          ...updatedDevice
+        };
+        setDevices(updatedDevices);
+      } else {
+        // Add new device with generated ID
+        const newDevice = {
+          ...updatedDevice,
+          id: (devices.length + 1).toString(),
+          name: `${updatedDevice.type.toUpperCase()}-${100 + devices.length + 1}`,
+          typeColor: deviceTypes.find(t => t.id === updatedDevice.type)?.color || '#4f46e5'
+        };
+        setDevices([...devices, newDevice]);
+      }
+    }
+  }, [route.params?.updatedDevice]);
 
   const filteredDevices = selectedType
-    ? mockDevices.filter(device => device.type === selectedType)
-    : mockDevices;
+    ? devices.filter(device => device.type === selectedType)
+    : devices;
 
   // Düzenleme işlevi
   const handleEdit = (device) => {
@@ -154,7 +256,9 @@ export default function AllDevicesScreen({ navigation }) {
         { 
           text: "Sil", 
           onPress: () => {
-            // Burada gerçek silme işlemi API'ye gönderilecek
+            // Filter out the device to delete
+            const updatedDevices = devices.filter(d => d.id !== device.id);
+            setDevices(updatedDevices);
             Alert.alert("Başarılı", "Cihaz başarıyla silindi");
           },
           style: "destructive"
@@ -164,233 +268,276 @@ export default function AllDevicesScreen({ navigation }) {
   };
 
   // Sola kaydırma aksiyonları
-  const renderRightActions = (device) => {
-    return (
-      <View style={styles.swipeActions}>
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: '#4f46e5' }]}
-          onPress={() => handleEdit(device)}
-        >
-          <Ionicons name="create-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.actionText}>Düzenle</Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
-          onPress={() => handleDelete(device)}
-        >
-          <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.actionText}>Sil</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  };
+  const renderRightActions = (device, closeRow) => (
+    <View style={styles.rightActionsContainer}>
+      <TouchableOpacity 
+        style={[styles.actionButton, { backgroundColor: theme.primary }]} 
+        onPress={() => {
+          closeRow();
+          handleEdit(device);
+        }}
+      >
+        <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+      <TouchableOpacity 
+        style={[styles.actionButton, { backgroundColor: '#ef4444' }]} 
+        onPress={() => {
+          closeRow();
+          handleDelete(device);
+        }}
+      >
+        <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
+    </View>
+  );
 
   const DeviceTypeCard = ({ item }) => (
-    <TouchableOpacity
-      style={styles.typeCard}
-      onPress={() => setSelectedType(selectedType === item.id ? null : item.id)}
+    <TouchableOpacity 
+      style={[
+        styles.typeCard, 
+        { backgroundColor: item.color + '20' }, 
+        selectedType === item.id && { borderColor: item.color, borderWidth: 2 }
+      ]} 
+      onPress={() => setSelectedType(item.id === selectedType ? null : item.id)}
     >
-      <View style={[
-        styles.typeIconContainer,
-        selectedType === item.id && styles.selectedTypeIconContainer
-      ]}>
-        <Ionicons 
-          name={item.icon} 
-          size={24} 
-          color={selectedType === item.id ? '#FFFFFF' : item.color} 
-        />
-      </View>
-      <Text style={[
-        styles.typeTitle,
-        selectedType === item.id && styles.selectedTypeTitle
-      ]}>
-        {item.title}
-      </Text>
+      <Ionicons name={item.icon} size={24} color={item.color} />
+      <Text style={[styles.typeTitle, themedStyles.text]}>{item.title}</Text>
     </TouchableOpacity>
   );
 
   const DeviceItem = ({ item }) => {
-    const statusColors = {
-      active: '#22c55e',
-      maintenance: '#f59e0b',
-      error: '#ef4444'
+    const getStatusColor = (status) => {
+      switch(status) {
+        case 'active': return '#16a34a';
+        case 'maintenance': return '#f59e0b';
+        case 'error': return '#ef4444';
+        default: return '#64748b';
+      }
     };
 
-    const statusText = {
-      active: 'Aktif',
-      maintenance: 'Bakımda',
-      error: 'Arızalı'
+    const getStatusText = (status) => {
+      switch(status) {
+        case 'active': return 'Aktif';
+        case 'maintenance': return 'Bakımda';
+        case 'error': return 'Arızalı';
+        default: return 'Bilinmiyor';
+      }
+    };
+
+    const rowRef = React.useRef(null);
+
+    const closeRow = () => {
+      if (rowRef.current) {
+        rowRef.current.close();
+      }
     };
 
     return (
-      <Swipeable renderRightActions={() => renderRightActions(item)}>
-        <TouchableOpacity 
-          style={styles.deviceItem}
-          onPress={() => navigation.navigate('DeviceDetail', { device: item })}
+      <GestureHandlerRootView>
+        <Swipeable
+          ref={rowRef}
+          renderRightActions={() => renderRightActions(item, closeRow)}
+          overshootRight={false}
         >
-          <View style={styles.deviceInfo}>
-            <Text style={styles.deviceName}>{item.name}</Text>
-            <Text style={styles.deviceLocation}>{item.location}</Text>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColors[item.status] }]}>
-            <Text style={styles.statusText}>{statusText[item.status]}</Text>
-          </View>
-        </TouchableOpacity>
-      </Swipeable>
+          <TouchableOpacity 
+            style={[styles.deviceItem, themedStyles.card, themedStyles.shadow]} 
+            onPress={() => navigation.navigate('DeviceDetail', { device: item })}
+          >
+            <View style={[styles.deviceIcon, { backgroundColor: item.typeColor + '20' }]}>
+              <Ionicons 
+                name={deviceTypes.find(type => type.id === item.type)?.icon || 'help-circle'} 
+                size={24} 
+                color={item.typeColor} 
+              />
+            </View>
+            <View style={styles.deviceInfo}>
+              <View style={styles.deviceHeader}>
+                <Text style={[styles.deviceName, themedStyles.text]}>{item.name}</Text>
+                <View style={styles.statusContainer}>
+                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
+                  <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                </View>
+              </View>
+              <View style={styles.deviceDetails}>
+                <Text style={[styles.deviceType, themedStyles.textSecondary]}>
+                  {deviceTypes.find(type => type.id === item.type)?.title || 'Bilinmiyor'}
+                </Text>
+                <Text style={[styles.deviceLocation, themedStyles.textSecondary]}>{item.location}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        </Swipeable>
+      </GestureHandlerRootView>
     );
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Tüm Cihazlar</Text>
-          <TouchableOpacity>
-            <Ionicons name="search" size={24} color="#1e293b" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
-          <View style={styles.typeScroll}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.typeContainer}
-            >
-              {deviceTypes.map(type => (
-                <DeviceTypeCard key={type.id} item={type} />
-              ))}
-            </ScrollView>
-          </View>
-
-          <FlatList
-            data={filteredDevices}
-            renderItem={({ item }) => <DeviceItem item={item} />}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.deviceList}
-            showsVerticalScrollIndicator={false}
-          />
-        </View>
+    <>
+      <View style={[styles.header, themedStyles.header]}>
+        <TouchableOpacity 
+          style={styles.backButton} 
+          onPress={() => navigation.goBack()}
+        >
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.headerTitle, themedStyles.text]}>Tüm Cihazlar</Text>
+        <TouchableOpacity style={styles.actionButton}>
+          <Ionicons name="search" size={24} color={theme.primary} />
+        </TouchableOpacity>
       </View>
-    </GestureHandlerRootView>
+
+      <View style={styles.container}>
+        <View style={styles.filtersContainer}>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false} 
+            contentContainerStyle={styles.typeCardContainer}
+          >
+            {deviceTypes.map(item => (
+              <DeviceTypeCard key={item.id} item={item} />
+            ))}
+          </ScrollView>
+        </View>
+        
+        <FlatList
+          data={filteredDevices}
+          renderItem={({ item }) => <DeviceItem item={item} />}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Ionicons name="desktop-outline" size={50} color={theme.textSecondary} />
+              <Text style={[styles.emptyText, themedStyles.text]}>Cihaz bulunamadı</Text>
+            </View>
+          }
+        />
+      </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
-  typeScroll: {
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-    paddingVertical: 8,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  typeContainer: {
-    paddingHorizontal: 8,
+  actionButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  container: {
+    flex: 1,
+  },
+  filtersContainer: {
+    paddingVertical: 16,
+  },
+  typeCardContainer: {
+    paddingHorizontal: 16,
     gap: 8,
-    flexDirection: 'row',
   },
   typeCard: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    width: 80,
-    height: 80,
-  },
-  typeIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 6,
-    backgroundColor: '#f3f4f6',
-  },
-  selectedTypeIconContainer: {
-    backgroundColor: '#1e293b',
+    marginRight: 8,
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   typeTitle: {
-    fontSize: 11,
+    marginLeft: 8,
     fontWeight: '500',
-    color: '#64748b',
-    textAlign: 'center',
-    paddingHorizontal: 4,
   },
-  selectedTypeTitle: {
-    color: '#1e293b',
-    fontWeight: '600',
-  },
-  deviceList: {
+  listContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingBottom: 16,
   },
   deviceItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 12,
+    padding: 16,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#e2e8f0',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  deviceIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
   },
   deviceInfo: {
     flex: 1,
   },
-  deviceName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1e293b',
+  deviceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 4,
   },
-  deviceLocation: {
-    fontSize: 14,
-    color: '#64748b',
+  deviceName: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 4,
   },
   statusText: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#FFFFFF',
+    color: '#64748b',
   },
-  swipeActions: {
+  deviceDetails: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
   },
-  actionButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 80,
+  deviceType: {
+    fontSize: 14,
+  },
+  deviceLocation: {
+    fontSize: 14,
+  },
+  rightActionsContainer: {
+    flexDirection: 'row',
+    width: 100,
     height: '100%',
-    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingRight: 16,
   },
-  actionText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    marginTop: 4,
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 40,
   },
-}); 
+  emptyText: {
+    fontSize: 16,
+    marginTop: 12,
+  }
+});
+
+export default withThemedScreen(AllDevicesScreen); 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,46 +9,120 @@ import {
   SafeAreaView,
   StatusBar,
   Image,
+  ActivityIndicator,
+  RefreshControl,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../contexts/ThemeContext';
+
+// Enable layout animations for Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 
 const { width, height } = Dimensions.get('window');
 
-const HomeScreen = () => {
-  const statsData = [
+const HomeScreen = ({ navigation }) => {
+  const { theme, isDarkMode } = useTheme();
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [statsData, setStatsData] = useState([
     { title: 'Toplam Mahkeme', value: '148', icon: 'business', color: '#4C51BF' },
     { title: 'Aktif Cihazlar', value: '3,724', icon: 'desktop', color: '#38B2AC' },
     { title: 'Aktif Arıza', value: '17', icon: 'warning', color: '#ED8936' },
     { title: 'Bakım', value: '42', icon: 'build', color: '#48BB78' },
-  ];
+  ]);
 
-  const performanceData = [
+  const [performanceData, setPerformanceData] = useState([
     { month: 'Oca', value: 75 },
     { month: 'Şub', value: 82 },
     { month: 'Mar', value: 78 },
     { month: 'Nis', value: 89 },
     { month: 'May', value: 92 },
     { month: 'Haz', value: 87 },
-  ];
+  ]);
 
-  const issueDistribution = [
+  const [issueDistribution, setIssueDistribution] = useState([
     { type: 'Donanım', percentage: 45, color: '#4C51BF' },
     { type: 'Yazılım', percentage: 30, color: '#38B2AC' },
     { type: 'Ağ', percentage: 15, color: '#ED8936' },
     { type: 'Diğer', percentage: 10, color: '#48BB78' },
-  ];
+  ]);
+
+  // Simulate loading data
+  useEffect(() => {
+    const loadData = async () => {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 800));
+      setIsLoading(false);
+      
+      // Animate the layout change
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    };
+    
+    loadData();
+  }, []);
+  
+  // Handle refresh
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Update data with some random variations
+    setStatsData(prev => prev.map(item => ({
+      ...item,
+      value: Math.random() > 0.5 
+        ? (parseInt(item.value.replace(',', '')) + Math.floor(Math.random() * 10)).toString()
+        : item.value
+    })));
+    
+    setPerformanceData(prev => prev.map(item => ({
+      ...item,
+      value: Math.min(100, Math.max(70, item.value + Math.floor(Math.random() * 10) - 5))
+    })));
+    
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setRefreshing(false);
+  };
 
   const renderStatsCards = () => {
+    // Calculate card width based on screen size
+    const cardWidth = width < 380 ? '100%' : '48%';
+    
     return (
       <View style={styles.statsContainer}>
         {statsData.map((item, index) => (
-          <TouchableOpacity key={index} style={styles.statCard}>
+          <TouchableOpacity 
+            key={index} 
+            style={[
+              styles.statCard, 
+              { 
+                width: cardWidth, 
+                backgroundColor: theme.card,
+                shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+              }
+            ]}
+            onPress={() => {
+              // Navigate to respective sections based on card type
+              if (item.title === 'Toplam Mahkeme') {
+                navigation.navigate('Devices', { screen: 'CourtOffices' });
+              } else if (item.title === 'Aktif Cihazlar') {
+                navigation.navigate('Devices', { screen: 'AllDevices' });
+              } else if (item.title === 'Aktif Arıza' || item.title === 'Bakım') {
+                navigation.navigate('Issues');
+              }
+            }}
+          >
             <View style={[styles.iconContainer, { backgroundColor: item.color }]}>
               <Ionicons name={item.icon} size={24} color="#FFFFFF" />
             </View>
             <View style={styles.statContent}>
-              <Text style={styles.statValue}>{item.value}</Text>
-              <Text style={styles.statTitle}>{item.title}</Text>
+              <Text style={[styles.statValue, { color: theme.text }]}>{item.value}</Text>
+              <Text style={[styles.statTitle, { color: theme.textSecondary }]}>{item.title}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -60,33 +134,49 @@ const HomeScreen = () => {
     const maxValue = Math.max(...performanceData.map(item => item.value));
     
     return (
-      <View style={styles.cardContainer}>
+      <View style={[
+        styles.cardContainer, 
+        { 
+          backgroundColor: theme.card,
+          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+        }
+      ]}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Performans Metrikleri</Text>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>Performans Metrikleri</Text>
           <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#64748B" />
+            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.chartContainer}>
-          {performanceData.map((item, index) => (
-            <View key={index} style={styles.barContainer}>
-              <View style={styles.barLabelContainer}>
-                <Text style={styles.barLabel}>{item.month}</Text>
+          {performanceData.map((item, index) => {
+            // Calculate bar height with animation delay
+            const barHeight = (item.value / maxValue) * 150;
+            const barColor = item.value > 85 
+              ? '#48BB78' 
+              : item.value > 75 
+                ? '#4C51BF' 
+                : '#ED8936';
+                
+            return (
+              <View key={index} style={styles.barContainer}>
+                <View style={styles.barWrapper}>
+                  <View 
+                    style={[
+                      styles.bar, 
+                      { 
+                        height: barHeight,
+                        backgroundColor: barColor
+                      }
+                    ]} 
+                  />
+                  <Text style={[styles.barValue, { color: theme.textSecondary }]}>{item.value}%</Text>
+                </View>
+                <View style={styles.barLabelContainer}>
+                  <Text style={[styles.barLabel, { color: theme.textSecondary }]}>{item.month}</Text>
+                </View>
               </View>
-              <View style={styles.barWrapper}>
-                <View 
-                  style={[
-                    styles.bar, 
-                    { 
-                      height: (item.value / maxValue) * 150,
-                      backgroundColor: item.value > 85 ? '#48BB78' : item.value > 75 ? '#4C51BF' : '#ED8936'
-                    }
-                  ]} 
-                />
-                <Text style={styles.barValue}>{item.value}%</Text>
-              </View>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     );
@@ -94,37 +184,33 @@ const HomeScreen = () => {
 
   const renderIssueDistribution = () => {
     return (
-      <View style={styles.cardContainer}>
+      <View style={[
+        styles.cardContainer, 
+        { 
+          backgroundColor: theme.card,
+          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+        }
+      ]}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Arıza Dağılımı</Text>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>Arıza Dağılımı</Text>
           <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#64748B" />
+            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.pieChartContainer}>
-          <View style={styles.pieChart}>
-            {issueDistribution.map((item, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.pieSlice,
-                  {
-                    backgroundColor: item.color,
-                    transform: [
-                      { rotateZ: `${index * 90}deg` },
-                      { scaleX: item.percentage / 25 }
-                    ]
-                  }
-                ]}
-              />
-            ))}
-            <View style={styles.pieCenter} />
+          <View style={styles.pieChartWrapper}>
+            <View style={styles.simplePieChart}>
+              <View style={[styles.pieSection, { backgroundColor: '#4C51BF', flex: 0.45 }]} />
+              <View style={[styles.pieSection, { backgroundColor: '#38B2AC', flex: 0.3 }]} />
+              <View style={[styles.pieSection, { backgroundColor: '#ED8936', flex: 0.15 }]} />
+              <View style={[styles.pieSection, { backgroundColor: '#48BB78', flex: 0.1 }]} />
+            </View>
           </View>
           <View style={styles.legendContainer}>
             {issueDistribution.map((item, index) => (
               <View key={index} style={styles.legendItem}>
                 <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                <Text style={styles.legendText}>{item.type}: %{item.percentage}</Text>
+                <Text style={[styles.legendText, { color: theme.text }]}>{item.type}: %{item.percentage}</Text>
               </View>
             ))}
           </View>
@@ -135,67 +221,165 @@ const HomeScreen = () => {
   
   const renderMonthlySummary = () => {
     return (
-      <View style={styles.cardContainer}>
+      <View style={[
+        styles.cardContainer, 
+        { 
+          backgroundColor: theme.card,
+          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)' 
+        }
+      ]}>
         <View style={styles.cardHeader}>
-          <Text style={styles.cardTitle}>Aylık Özet</Text>
+          <Text style={[styles.cardTitle, { color: theme.text }]}>Aylık Özet</Text>
           <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color="#64748B" />
+            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.summaryContainer}>
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>94%</Text>
-            <Text style={styles.summaryLabel}>Çözüm Oranı</Text>
+            <Text style={[styles.summaryValue, { color: theme.text }]}>94%</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Çözüm Oranı</Text>
           </View>
-          <View style={styles.summaryDivider} />
+          <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>2.4 saat</Text>
-            <Text style={styles.summaryLabel}>Ortalama Müdahale</Text>
+            <Text style={[styles.summaryValue, { color: theme.text }]}>2.4 saat</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Ortalama Müdahale</Text>
           </View>
-          <View style={styles.summaryDivider} />
+          <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>112</Text>
-            <Text style={styles.summaryLabel}>Toplam Destek</Text>
+            <Text style={[styles.summaryValue, { color: theme.text }]}>112</Text>
+            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Toplam Destek</Text>
           </View>
         </View>
-        <View style={styles.summaryFooter}>
+        <View style={[styles.summaryFooter, { borderTopColor: theme.border }]}>
           <View style={styles.summaryFooterItem}>
             <Ionicons name="trending-up" size={18} color="#48BB78" />
-            <Text style={styles.summaryFooterText}>Bir önceki aya göre %12 artış</Text>
+            <Text style={[styles.summaryFooterText, { color: theme.textSecondary }]}>Bir önceki aya göre %12 artış</Text>
           </View>
         </View>
       </View>
     );
   };
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+        <StatusBar barStyle={theme.statusBar} backgroundColor={theme.navBackground} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={[styles.loadingText, { color: theme.text }]}>Yükleniyor...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F3F4F6" />
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>BIAT Kontrol Paneli</Text>
-          <Text style={styles.headerSubtitle}>Hoşgeldiniz, Kenan</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.navBackground} />
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <View style={styles.headerLeft}>
+          <Image
+            source={require('../../images/BIAT-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <View style={styles.headerTextContainer}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>BIAT Kontrol Paneli</Text>
+            <Text style={[styles.headerSubtitle, { color: theme.textSecondary }]}>Merhaba, Kenan</Text>
+          </View>
         </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.iconButton}>
-            <Ionicons name="notifications-outline" size={24} color="#1E3A8A" />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
-            <Image 
-              source={require('../../images/BIAT-logo.png')} 
-              style={styles.profileImage} 
-              resizeMode="contain"
-            />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={[styles.notificationButton, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
+          onPress={() => navigation.navigate('Notifications')}
+        >
+          <Ionicons name="notifications-outline" size={24} color={theme.text} />
+          <View style={[styles.notificationBadge, { borderColor: theme.card }]}>
+            <Text style={styles.notificationText}>3</Text>
+          </View>
+        </TouchableOpacity>
       </View>
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
+        }
+      >
+        <View style={styles.welcomeSection}>
+          <Text style={[styles.welcomeText, { color: theme.text }]}>Genel Bakış</Text>
+          <Text style={[styles.dateText, { color: theme.textSecondary }]}>
+            {new Date().toLocaleDateString('tr-TR', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </Text>
+        </View>
+
         {renderStatsCards()}
-        {renderIssueDistribution()}
-        {renderPerformanceMetrics()}
         {renderMonthlySummary()}
-        <View style={styles.bottomPadding} />
+        {renderPerformanceMetrics()}
+        {renderIssueDistribution()}
+        
+        <View style={styles.quickAccessSection}>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Hızlı Erişim</Text>
+          <View style={styles.quickAccessItems}>
+            <TouchableOpacity 
+              style={[
+                styles.quickAccessItem, 
+                { 
+                  backgroundColor: theme.card, 
+                  borderColor: theme.border, 
+                  borderWidth: 1,
+                  shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+                }
+              ]}
+              onPress={() => navigation.navigate('Scanner')}
+            >
+              <Ionicons name="qr-code" size={28} color={theme.primary} />
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>QR Tara</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[
+                styles.quickAccessItem, 
+                { 
+                  backgroundColor: theme.card, 
+                  borderColor: theme.border, 
+                  borderWidth: 1,
+                  shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+                }
+              ]}
+              onPress={() => navigation.navigate('Issues', { screen: 'IssueReport' })}
+            >
+              <Ionicons name="warning" size={28} color={theme.primary} />
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>Arıza Bildir</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[
+                styles.quickAccessItem, 
+                { 
+                  backgroundColor: theme.card, 
+                  borderColor: theme.border, 
+                  borderWidth: 1,
+                  shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
+                }
+              ]}
+              onPress={() => navigation.navigate('Devices', { screen: 'AddDevice' })}
+            >
+              <Ionicons name="add-circle" size={28} color={theme.primary} />
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>Cihaz Ekle</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -204,7 +388,16 @@ const HomeScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: '#f3f4f6',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
   },
   scrollView: {
     flex: 1,
@@ -216,24 +409,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 30,
+    height: 30,
+    marginRight: 8,
+  },
+  headerTextContainer: {
+    flexDirection: 'column',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1E3A8A',
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#64748B',
   },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  iconButton: {
+  notificationButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -243,11 +441,24 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8FAFC',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    position: 'relative',
   },
-  profileImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  notificationBadge: {
+    position: 'absolute',
+    right: -2,
+    top: -2,
+    backgroundColor: '#ef4444',
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
+  notificationText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   statsContainer: {
     flexDirection: 'row',
@@ -256,7 +467,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   statCard: {
-    width: '48%',
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
@@ -278,6 +488,7 @@ const styles = StyleSheet.create({
   },
   statContent: {
     marginLeft: 12,
+    flex: 1,
   },
   statValue: {
     fontSize: 18,
@@ -316,6 +527,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'flex-end',
     height: 200,
+    paddingTop: 20,
   },
   barContainer: {
     alignItems: 'center',
@@ -325,6 +537,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     height: 150,
+    marginBottom: 8,
   },
   bar: {
     width: 20,
@@ -346,32 +559,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    height: 200,
+    paddingVertical: 20,
   },
-  pieChart: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
-    position: 'relative',
-    overflow: 'hidden',
+  pieChartWrapper: {
+    width: 140,
+    height: 140,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  pieSlice: {
-    position: 'absolute',
-    width: '50%',
-    height: '50%',
-    top: 0,
-    left: '50%',
-    transformOrigin: 'left bottom',
+  simplePieChart: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    transform: [{ rotate: '180deg' }]
   },
-  pieCenter: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#FFFFFF',
-    position: 'absolute',
-    zIndex: 1,
+  pieSection: {
+    height: '100%',
   },
   legendContainer: {
     flex: 1,
@@ -432,8 +637,44 @@ const styles = StyleSheet.create({
     color: '#64748B',
     marginLeft: 4,
   },
-  bottomPadding: {
-    height: 24,
+  welcomeSection: {
+    padding: 16,
+  },
+  welcomeText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  dateText: {
+    fontSize: 14,
+    color: '#64748B',
+  },
+  quickAccessSection: {
+    padding: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
+  quickAccessItems: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  quickAccessItem: {
+    width: '30%',
+    height: 100,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickAccessText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginTop: 8,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
 });
 

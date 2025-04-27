@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import withThemedScreen from '../components/withThemedScreen';
 
-const CourtOfficePersonnelForm = ({ route, navigation }) => {
+const CourtOfficePersonnelForm = ({ route, navigation, theme, themedStyles }) => {
   const { officeId, officeName } = route.params;
   
   // Form verisi
@@ -115,146 +116,149 @@ const CourtOfficePersonnelForm = ({ route, navigation }) => {
   };
   
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.keyboardAvoidingView}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, themedStyles.header]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Personel Ekle</Text>
+          <Text style={[styles.headerTitle, themedStyles.text]}>Personel Ekle</Text>
           <View style={{ width: 24 }} />
         </View>
         
         <ScrollView style={styles.scrollView}>
-          <View style={styles.infoText}>
-            <Text style={styles.infoTextContent}>
-              <Text style={styles.officeName}>{officeName}</Text> kalemine yeni personel ekleniyor.
+          <View style={[styles.infoText, { backgroundColor: theme.inputBg, borderLeftColor: theme.primary }]}>
+            <Text style={[styles.infoTextContent, { color: theme.textSecondary }]}>
+              <Text style={[styles.officeName, { color: theme.text }]}>{officeName}</Text> kalemine yeni personel ekleniyor.
             </Text>
           </View>
           
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Personel Bilgileri</Text>
+          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
+            <Text style={[styles.sectionTitle, themedStyles.text]}>Personel Bilgileri</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Adı Soyadı *</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Adı Soyadı *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={formData.name}
                 onChangeText={(text) => handleInputChange('name', text)}
                 placeholder="Personelin adını ve soyadını girin"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Ünvan</Text>
-              <View style={styles.pickerContainer}>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Ünvan</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
                 <Picker
                   selectedValue={formData.title}
                   onValueChange={(value) => handleInputChange('title', value)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: theme.text }]}
+                  dropdownIconColor={theme.text}
                 >
                   {titles.map(title => (
-                    <Picker.Item key={title} label={title} value={title} />
+                    <Picker.Item key={title} label={title} value={title} color={theme.text} />
                   ))}
                 </Picker>
               </View>
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Sicil Numarası *</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Sicil Numarası *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={formData.registrationNumber}
                 onChangeText={(text) => handleInputChange('registrationNumber', text)}
                 placeholder="Personel sicil numarasını girin"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="number-pad"
               />
             </View>
           </View>
           
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Bilgisayar</Text>
+          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
+            <Text style={[styles.sectionTitle, themedStyles.text]}>Bilgisayar</Text>
             
             {!formData.computer.selected ? (
               <View style={styles.deviceSelection}>
-                <Text style={styles.deviceSelectionText}>Kullanacağı bilgisayarı seçin:</Text>
+                <Text style={[styles.deviceSelectionText, themedStyles.textSecondary]}>Kullanacağı bilgisayarı seçin:</Text>
                 {availableComputers.map(computer => (
                   <TouchableOpacity
                     key={computer.id}
-                    style={styles.deviceOption}
+                    style={[styles.deviceOption, { borderBottomColor: theme.border }]}
                     onPress={() => handleDeviceSelect('computer', computer)}
                   >
-                    <Ionicons name="desktop-outline" size={22} color="#1e3a8a" style={styles.deviceIcon} />
+                    <Ionicons name="desktop-outline" size={22} color={theme.primary} style={styles.deviceIcon} />
                     <View style={styles.deviceOptionInfo}>
-                      <Text style={styles.deviceOptionTitle}>{computer.brand} {computer.model}</Text>
-                      <Text style={styles.deviceOptionSerial}>SN: {computer.serialNumber}</Text>
+                      <Text style={[styles.deviceOptionTitle, themedStyles.text]}>{computer.brand} {computer.model}</Text>
+                      <Text style={[styles.deviceOptionSerial, themedStyles.textSecondary]}>SN: {computer.serialNumber}</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#64748b" />
+                    <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                   </TouchableOpacity>
                 ))}
               </View>
             ) : (
               <View style={styles.selectedDevice}>
                 <View style={styles.selectedDeviceHeader}>
-                  <Text style={styles.selectedDeviceText}>Seçilen Bilgisayar:</Text>
+                  <Text style={[styles.selectedDeviceText, themedStyles.textSecondary]}>Seçilen Bilgisayar:</Text>
                   <TouchableOpacity
                     onPress={() => handleInputChange('computer.selected', false)}
-                    style={styles.changeButton}
+                    style={[styles.changeButton, { backgroundColor: theme.inputBg }]}
                   >
-                    <Text style={styles.changeButtonText}>Değiştir</Text>
+                    <Text style={[styles.changeButtonText, { color: theme.primary }]}>Değiştir</Text>
                   </TouchableOpacity>
                 </View>
-                <View style={styles.deviceDetails}>
-                  <Ionicons name="desktop-outline" size={22} color="#1e3a8a" style={styles.deviceIcon} />
+                <View style={[styles.deviceDetails, { backgroundColor: theme.inputBg }]}>
+                  <Ionicons name="desktop-outline" size={22} color={theme.primary} style={styles.deviceIcon} />
                   <View style={styles.deviceInfo}>
-                    <Text style={styles.deviceBrandModel}>{formData.computer.brand} {formData.computer.model}</Text>
-                    <Text style={styles.deviceSerial}>SN: {formData.computer.serialNumber}</Text>
+                    <Text style={[styles.deviceBrandModel, themedStyles.text]}>{formData.computer.brand} {formData.computer.model}</Text>
+                    <Text style={[styles.deviceSerial, themedStyles.textSecondary]}>SN: {formData.computer.serialNumber}</Text>
                   </View>
                 </View>
               </View>
             )}
           </View>
           
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Monitör</Text>
+          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
+            <Text style={[styles.sectionTitle, themedStyles.text]}>Monitör</Text>
             
             {!formData.monitor.selected ? (
               <View style={styles.deviceSelection}>
-                <Text style={styles.deviceSelectionText}>Kullanacağı monitörü seçin:</Text>
+                <Text style={[styles.deviceSelectionText, themedStyles.textSecondary]}>Kullanacağı monitörü seçin:</Text>
                 {availableMonitors.map(monitor => (
                   <TouchableOpacity
                     key={monitor.id}
-                    style={styles.deviceOption}
+                    style={[styles.deviceOption, { borderBottomColor: theme.border }]}
                     onPress={() => handleDeviceSelect('monitor', monitor)}
                   >
-                    <Ionicons name="tv-outline" size={22} color="#1e3a8a" style={styles.deviceIcon} />
+                    <Ionicons name="tv-outline" size={22} color={theme.primary} style={styles.deviceIcon} />
                     <View style={styles.deviceOptionInfo}>
-                      <Text style={styles.deviceOptionTitle}>{monitor.brand} {monitor.model}</Text>
-                      <Text style={styles.deviceOptionSerial}>SN: {monitor.serialNumber}</Text>
+                      <Text style={[styles.deviceOptionTitle, themedStyles.text]}>{monitor.brand} {monitor.model}</Text>
+                      <Text style={[styles.deviceOptionSerial, themedStyles.textSecondary]}>SN: {monitor.serialNumber}</Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color="#64748b" />
+                    <Ionicons name="chevron-forward" size={20} color={theme.textSecondary} />
                   </TouchableOpacity>
                 ))}
               </View>
             ) : (
               <View style={styles.selectedDevice}>
                 <View style={styles.selectedDeviceHeader}>
-                  <Text style={styles.selectedDeviceText}>Seçilen Monitör:</Text>
+                  <Text style={[styles.selectedDeviceText, themedStyles.textSecondary]}>Seçilen Monitör:</Text>
                   <TouchableOpacity
                     onPress={() => handleInputChange('monitor.selected', false)}
-                    style={styles.changeButton}
+                    style={[styles.changeButton, { backgroundColor: theme.inputBg }]}
                   >
-                    <Text style={styles.changeButtonText}>Değiştir</Text>
+                    <Text style={[styles.changeButtonText, { color: theme.primary }]}>Değiştir</Text>
                   </TouchableOpacity>
                 </View>
-                <View style={styles.deviceDetails}>
-                  <Ionicons name="tv-outline" size={22} color="#1e3a8a" style={styles.deviceIcon} />
+                <View style={[styles.deviceDetails, { backgroundColor: theme.inputBg }]}>
+                  <Ionicons name="tv-outline" size={22} color={theme.primary} style={styles.deviceIcon} />
                   <View style={styles.deviceInfo}>
-                    <Text style={styles.deviceBrandModel}>{formData.monitor.brand} {formData.monitor.model}</Text>
-                    <Text style={styles.deviceSerial}>SN: {formData.monitor.serialNumber}</Text>
+                    <Text style={[styles.deviceBrandModel, themedStyles.text]}>{formData.monitor.brand} {formData.monitor.model}</Text>
+                    <Text style={[styles.deviceSerial, themedStyles.textSecondary]}>SN: {formData.monitor.serialNumber}</Text>
                   </View>
                 </View>
               </View>
@@ -269,14 +273,13 @@ const CourtOfficePersonnelForm = ({ route, navigation }) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -286,50 +289,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   scrollView: {
     flex: 1,
     padding: 16,
   },
   infoText: {
-    backgroundColor: '#f0f9ff',
     borderRadius: 12,
     padding: 16,
     borderLeftWidth: 4,
-    borderLeftColor: '#0ea5e9',
     marginBottom: 16,
   },
   infoTextContent: {
     fontSize: 14,
-    color: '#0c4a6e',
     lineHeight: 20,
   },
   officeName: {
     fontWeight: 'bold',
   },
   formSection: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 16,
   },
   formGroup: {
@@ -337,22 +326,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#1e293b',
   },
   pickerContainer: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     borderRadius: 8,
   },
   picker: {
@@ -363,7 +346,6 @@ const styles = StyleSheet.create({
   },
   deviceSelectionText: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 12,
   },
   deviceOption: {
@@ -371,7 +353,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f1f5f9',
   },
   deviceIcon: {
     marginRight: 12,
@@ -382,11 +363,9 @@ const styles = StyleSheet.create({
   deviceOptionTitle: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1e293b',
   },
   deviceOptionSerial: {
     fontSize: 12,
-    color: '#64748b',
     marginTop: 2,
   },
   selectedDevice: {
@@ -400,23 +379,19 @@ const styles = StyleSheet.create({
   },
   selectedDeviceText: {
     fontSize: 14,
-    color: '#4b5563',
   },
   changeButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: '#f1f5f9',
     borderRadius: 6,
   },
   changeButtonText: {
     fontSize: 12,
-    color: '#1e3a8a',
     fontWeight: '500',
   },
   deviceDetails: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f8fafc',
     padding: 12,
     borderRadius: 8,
   },
@@ -426,11 +401,9 @@ const styles = StyleSheet.create({
   deviceBrandModel: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#1e293b',
   },
   deviceSerial: {
     fontSize: 12,
-    color: '#64748b',
     marginTop: 2,
   },
   submitButton: {
@@ -447,4 +420,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourtOfficePersonnelForm; 
+export default withThemedScreen(CourtOfficePersonnelForm); 

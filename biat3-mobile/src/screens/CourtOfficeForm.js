@@ -13,8 +13,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import withThemedScreen from '../components/withThemedScreen';
 
-const CourtOfficeForm = ({ route, navigation }) => {
+const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
   // Eğer düzenleme modundaysa office parametresi olacak
   const { office } = route.params || {};
   const isEditMode = !!office;
@@ -112,108 +113,115 @@ const CourtOfficeForm = ({ route, navigation }) => {
   };
   
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoidingView}
       >
-        <View style={styles.header}>
+        <View style={[styles.header, themedStyles.header]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#1e293b" />
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
+          <Text style={[styles.headerTitle, themedStyles.text]}>
             {isEditMode ? 'Mahkeme Kalemi Düzenle' : 'Yeni Mahkeme Kalemi Ekle'}
           </Text>
           <View style={{ width: 24 }} />
         </View>
         
         <ScrollView style={styles.scrollView}>
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Mahkeme Bilgileri</Text>
+          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
+            <Text style={[styles.sectionTitle, themedStyles.text]}>Mahkeme Bilgileri</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Mahkeme Adı *</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Adı *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={formData.name}
                 onChangeText={(text) => handleInputChange('name', text)}
                 placeholder="Mahkeme adını girin"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Mahkeme Türü *</Text>
-              <View style={styles.pickerContainer}>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Türü *</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
                 <Picker
                   selectedValue={formData.type}
                   onValueChange={(value) => handleInputChange('type', value)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: theme.text }]}
+                  dropdownIconColor={theme.text}
                 >
                   {courtTypes.map(type => (
-                    <Picker.Item key={type} label={type} value={type} />
+                    <Picker.Item key={type} label={type} value={type} color={theme.text} />
                   ))}
                 </Picker>
               </View>
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Konum *</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Konum *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={formData.location}
                 onChangeText={(text) => handleInputChange('location', text)}
                 placeholder="Mahkemenin konumunu girin"
+                placeholderTextColor={theme.textSecondary}
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Durum</Text>
-              <View style={styles.pickerContainer}>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Durum</Text>
+              <View style={[styles.pickerContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
                 <Picker
                   selectedValue={formData.status}
                   onValueChange={(value) => handleInputChange('status', value)}
-                  style={styles.picker}
+                  style={[styles.picker, { color: theme.text }]}
+                  dropdownIconColor={theme.text}
                 >
-                  <Picker.Item label="Aktif" value="Aktif" />
-                  <Picker.Item label="Bakım" value="Bakım" />
-                  <Picker.Item label="Arıza" value="Arıza" />
+                  <Picker.Item label="Aktif" value="Aktif" color={theme.text} />
+                  <Picker.Item label="Bakım" value="Bakım" color={theme.text} />
+                  <Picker.Item label="Arıza" value="Arıza" color={theme.text} />
                 </Picker>
               </View>
             </View>
           </View>
           
-          <View style={styles.formSection}>
-            <Text style={styles.sectionTitle}>Cihaz Sayıları</Text>
+          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
+            <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Sayıları</Text>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Bilgisayar Sayısı</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Bilgisayar Sayısı</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={String(formData.deviceCount.pc)}
                 onChangeText={(text) => handleInputChange('deviceCount.pc', parseInt(text) || 0)}
                 placeholder="PC sayısını girin"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Yazıcı Sayısı</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Yazıcı Sayısı</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={String(formData.deviceCount.printer)}
                 onChangeText={(text) => handleInputChange('deviceCount.printer', parseInt(text) || 0)}
                 placeholder="Yazıcı sayısını girin"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
               />
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Diğer Cihaz Sayısı</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Diğer Cihaz Sayısı</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
                 value={String(formData.deviceCount.other)}
                 onChangeText={(text) => handleInputChange('deviceCount.other', parseInt(text) || 0)}
                 placeholder="Diğer cihaz sayısını girin"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
               />
             </View>
@@ -229,14 +237,13 @@ const CourtOfficeForm = ({ route, navigation }) => {
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   keyboardAvoidingView: {
     flex: 1,
@@ -246,34 +253,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   scrollView: {
     flex: 1,
     padding: 16,
   },
   formSection: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1e293b',
     marginBottom: 16,
   },
   formGroup: {
@@ -281,22 +277,16 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: '#4b5563',
     marginBottom: 6,
   },
   input: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     borderRadius: 8,
     padding: 12,
     fontSize: 14,
-    color: '#1e293b',
   },
   pickerContainer: {
-    backgroundColor: '#f9fafb',
     borderWidth: 1,
-    borderColor: '#e2e8f0',
     borderRadius: 8,
   },
   picker: {
@@ -316,4 +306,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CourtOfficeForm; 
+export default withThemedScreen(CourtOfficeForm); 

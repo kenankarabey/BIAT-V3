@@ -1,0 +1,120 @@
+diff --git a/node_modules/react-native-qrcode-svg/src/LogoSVG/index.native.js b/node_modules/react-native-qrcode-svg/src/LogoSVG/index.native.js
+index 6c5b14a..56ba61b 100644
+--- a/node_modules/react-native-qrcode-svg/src/LogoSVG/index.native.js
++++ b/node_modules/react-native-qrcode-svg/src/LogoSVG/index.native.js
+@@ -1,24 +1,101 @@
+ import React from "react";
+-import { LocalSvg } from "react-native-svg/css";
++import { LocalSvg } from "react-native-svg";
+ import { SvgUri, SvgXml } from "react-native-svg";
+ import { isString, isUrlString } from "../utils";
+ 
+-const LogoSVG = ({ svg, logoSize, logoColor }) => {
+-  if (isString(svg)) {
+-    if (isUrlString(svg)) {
+-      return (
+-        <SvgUri uri={svg} fill={logoColor} width={logoSize} height={logoSize} />
+-      );
+-    }
++// //@ts-ignore
++// let LocalSvg;
++// try {
++//   const SVGRenderer = require('react-native-svg');
++//   LocalSvg = SVGRenderer.LocalSvg;
++// } catch (e) {
++//   console.warn('Error importing LocalSvg', e);
++//   // Fallback or empty component
++//   LocalSvg = () => null;
++// }
+ 
++const qrcodeWarningMessage =
++  "Warning: react-native-qrcode-svg: logo load failed. Did you configure metro.config.js? The error could also happen for wrong path or unsupported file type.";
++
++const qrcodeErrorMessage = "Error: react-native-qrcode-svg: logo load failed.";
++
++/**
++ * @typedef LogoBase
++ * @property {any} logo
++ * @property {number} size
++ * @property {string} backgroundColor
++ * @property {number} padding
++ * @property {number} borderRadius
++ */
++
++/**
++ * @param {LogoBase} props
++ */
++export function LogoSVG(props) {
++  const { logo, size, backgroundColor, padding, borderRadius } = props;
++
++  if (!logo) {
++    return null;
++  }
++
++  // logo is url string
++  if (isUrlString(logo)) {
+     return (
+-      <SvgXml xml={svg} fill={logoColor} width={logoSize} height={logoSize} />
++      <SvgUri
++        uri={logo}
++        width={size}
++        height={size}
++        style={[
++          {
++            backgroundColor,
++            padding,
++            borderRadius,
++          },
++        ]}
++      />
+     );
+   }
+ 
+-  return (
+-    <LocalSvg asset={svg} fill={logoColor} width={logoSize} height={logoSize} />
+-  );
+-};
++  // logo is string containing base64 image data
++  // logo is string containing SVG markup data
++  if (isString(logo)) {
++    return (
++      <SvgXml
++        xml={logo}
++        width={size}
++        height={size}
++        style={[
++          {
++            backgroundColor,
++            padding,
++            borderRadius,
++          },
++        ]}
++      />
++    );
++  }
++
++  // logo is require from local path
++  // TODO: Not working on Android
++  try {
++    return (
++      <LocalSvg
++        width={size}
++        height={size}
++        style={[
++          {
++            backgroundColor,
++            padding,
++            borderRadius,
++          },
++        ]}
++        asset={logo}
++      />
++    );
++  } catch (e) {
++    console.warn(qrcodeWarningMessage);
++    console.warn(e && e.message);
+ 
+-export default LogoSVG;
++    throw new Error(qrcodeErrorMessage);
++  }
++}

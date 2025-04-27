@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import withThemedScreen from '../../components/withThemedScreen';
 
-const JudgeRoomDetail = ({ route }) => {
+const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
   const { judgeRoom = {} } = route?.params || {};
   
@@ -35,9 +36,9 @@ const JudgeRoomDetail = ({ route }) => {
       case 'Bakım':
         return '#f59e0b'; // turuncu
       case 'Pasif':
-        return '#6b7280'; // gri
+        return '#64748b'; // gri
       default:
-        return '#6b7280';
+        return '#64748b';
     }
   };
   
@@ -121,24 +122,24 @@ const JudgeRoomDetail = ({ route }) => {
   // If judgeRoom is undefined or null, show an error state
   if (!judgeRoom || Object.keys(judgeRoom).length === 0) {
     return (
-      <SafeAreaView style={styles.safeArea}>
-        <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-        <View style={styles.container}>
-          <View style={styles.header}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+        <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+        <View style={[styles.container, { backgroundColor: theme.background }]}>
+          <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
               style={styles.backButton}
             >
-              <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+              <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Hakim Odası Detayları</Text>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>Hakim Odası Detayları</Text>
             <View style={{ width: 32 }} />
           </View>
           <View style={styles.errorContainer}>
-            <MaterialCommunityIcons name="alert-circle-outline" size={60} color="#ef4444" />
-            <Text style={styles.errorText}>Hakim odası bilgileri bulunamadı.</Text>
+            <MaterialCommunityIcons name="alert-circle-outline" size={60} color={theme.danger} />
+            <Text style={[styles.errorText, { color: theme.text }]}>Hakim odası bilgileri bulunamadı.</Text>
             <TouchableOpacity 
-              style={styles.backButtonLarge}
+              style={[styles.backButtonLarge, { backgroundColor: theme.primary }]}
               onPress={() => navigation.goBack()}
             >
               <Text style={styles.backButtonText}>Geri Dön</Text>
@@ -150,54 +151,57 @@ const JudgeRoomDetail = ({ route }) => {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      <View style={styles.container}>
-        <View style={styles.header}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
+      <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
+      <View style={[styles.container, { backgroundColor: theme.background }]}>
+        <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
           <TouchableOpacity
             onPress={() => navigation.goBack()}
             style={styles.backButton}
           >
-            <MaterialCommunityIcons name="arrow-left" size={24} color="#1e293b" />
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Hakim Odası Detayları</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Hakim Odası Detayları</Text>
           <View style={{ width: 32 }} />
         </View>
 
         <ScrollView style={styles.content}>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
             <View style={styles.titleRow}>
-              <Text style={styles.title}>Oda {String(judgeRoom?.roomNumber || 'Belirtilmemiş')}</Text>
+              <Text style={[styles.title, { color: theme.text }]}>Oda {String(judgeRoom?.roomNumber || 'Belirtilmemiş')}</Text>
               <View style={[styles.statusBadge, { backgroundColor: getStatusColor(judgeRoom?.status) }]}>
                 <Text style={styles.statusText}>{String(judgeRoom?.status || 'Belirsiz')}</Text>
               </View>
             </View>
 
             <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="account" size={20} color="#4f46e5" />
-              <Text style={styles.sectionTitle}>Hakim Bilgileri</Text>
+              <MaterialCommunityIcons name="account" size={20} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Hakim Bilgileri</Text>
             </View>
 
             {/* Eğer judges dizisi varsa onları göster, yoksa eski yöntemi kullan */}
             {judgeRoom?.judges && judgeRoom.judges.length > 0 ? (
               judgeRoom.judges.map((judge, index) => (
-                <View key={judge.id || index} style={[styles.judgeCard, index > 0 && styles.judgeCardSeparator]}>
+                <View key={judge.id || index} style={[
+                  styles.judgeCard, 
+                  index > 0 && [styles.judgeCardSeparator, { borderTopColor: theme.border }]
+                ]}>
                   <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="account-tie" size={20} color="#64748b" />
-                    <Text style={styles.infoText}>{String(judge.name || 'Belirtilmemiş')}</Text>
+                    <MaterialCommunityIcons name="account-tie" size={20} color={theme.textSecondary} />
+                    <Text style={[styles.infoText, { color: theme.text }]}>{String(judge.name || 'Belirtilmemiş')}</Text>
                   </View>
 
                   {judge.regId ? (
                     <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="card-account-details" size={20} color="#64748b" />
-                      <Text style={styles.infoText}>Sicil No: {String(judge.regId)}</Text>
+                      <MaterialCommunityIcons name="card-account-details" size={20} color={theme.textSecondary} />
+                      <Text style={[styles.infoText, { color: theme.text }]}>Sicil No: {String(judge.regId)}</Text>
                     </View>
                   ) : null}
 
                   {judge.title ? (
                     <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="badge-account" size={20} color="#64748b" />
-                      <Text style={styles.infoText}>{String(judge.title)}</Text>
+                      <MaterialCommunityIcons name="badge-account" size={20} color={theme.textSecondary} />
+                      <Text style={[styles.infoText, { color: theme.text }]}>{String(judge.title)}</Text>
                     </View>
                   ) : null}
                 </View>
@@ -205,32 +209,32 @@ const JudgeRoomDetail = ({ route }) => {
             ) : (
               <>
                 <View style={styles.infoRow}>
-                  <MaterialCommunityIcons name="account-tie" size={20} color="#64748b" />
-                  <Text style={styles.infoText}>{String(judgeRoom?.judgeName || 'Belirtilmemiş')}</Text>
+                  <MaterialCommunityIcons name="account-tie" size={20} color={theme.textSecondary} />
+                  <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.judgeName || 'Belirtilmemiş')}</Text>
                 </View>
 
                 <View style={styles.infoRow}>
-                  <MaterialCommunityIcons name="card-account-details" size={20} color="#64748b" />
-                  <Text style={styles.infoText}>Sicil No: {String(judgeRoom?.judgeId || 'Belirtilmemiş')}</Text>
+                  <MaterialCommunityIcons name="card-account-details" size={20} color={theme.textSecondary} />
+                  <Text style={[styles.infoText, { color: theme.text }]}>Sicil No: {String(judgeRoom?.judgeId || 'Belirtilmemiş')}</Text>
                 </View>
               </>
             )}
 
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="gavel" size={20} color="#64748b" />
-              <Text style={styles.infoText}>{String(judgeRoom?.court || 'Belirtilmemiş')}</Text>
+              <MaterialCommunityIcons name="gavel" size={20} color={theme.textSecondary} />
+              <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.court || 'Belirtilmemiş')}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="map-marker" size={20} color="#64748b" />
-              <Text style={styles.infoText}>{String(judgeRoom?.roomNumber || 'Belirtilmemiş')} Nolu Oda, {String(judgeRoom?.location || 'Adliye')}</Text>
+              <MaterialCommunityIcons name="map-marker" size={20} color={theme.textSecondary} />
+              <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.roomNumber || 'Belirtilmemiş')} Nolu Oda, {String(judgeRoom?.location || 'Adliye')}</Text>
             </View>
 
-            <View style={styles.divider} />
+            <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
             <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="devices" size={20} color="#4f46e5" />
-              <Text style={styles.sectionTitle}>Cihazlar ({totalDevices})</Text>
+              <MaterialCommunityIcons name="devices" size={20} color={theme.primary} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cihazlar ({totalDevices})</Text>
             </View>
             
             <View style={styles.deviceGrid}>
@@ -247,27 +251,30 @@ const JudgeRoomDetail = ({ route }) => {
                   >
                     <View style={[
                       styles.deviceIconContainer,
-                      { backgroundColor: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? '#eef2ff' : '#f1f5f9' }
+                      { backgroundColor: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
+                          theme.primary + '20' : theme.backgroundSecondary }
                     ]}>
                       <MaterialCommunityIcons 
                         name={icon} 
                         size={24} 
-                        color={judgeRoom?.devices && judgeRoom.devices[key] > 0 ? '#4f46e5' : '#94a3b8'} 
+                        color={judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
+                          theme.primary : theme.textSecondary} 
                       />
                     </View>
                     <Text style={[
                       styles.deviceItemText,
-                      { color: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? '#1e293b' : '#94a3b8' }
+                      { color: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
+                          theme.text : theme.textSecondary }
                     ]}>
                       {label}
                     </Text>
                     {judgeRoom?.devices && judgeRoom.devices[key] > 0 ? (
-                      <View style={styles.deviceCountTag}>
+                      <View style={[styles.deviceCountTag, { backgroundColor: theme.primary }]}>
                         <Text style={styles.deviceCountText}>{judgeRoom.devices[key]}</Text>
                       </View>
                     ) : (
-                      <View style={styles.deviceMissingTag}>
-                        <Text style={styles.deviceMissingText}>0</Text>
+                      <View style={[styles.deviceMissingTag, { backgroundColor: theme.backgroundSecondary }]}>
+                        <Text style={[styles.deviceMissingText, { color: theme.textSecondary }]}>0</Text>
                       </View>
                     )}
                   </TouchableOpacity>
@@ -277,27 +284,30 @@ const JudgeRoomDetail = ({ route }) => {
 
             {judgeRoom?.notes && (
               <>
-                <View style={styles.divider} />
+                <View style={[styles.divider, { backgroundColor: theme.border }]} />
                 <View style={styles.sectionHeader}>
-                  <MaterialCommunityIcons name="note-text" size={20} color="#4f46e5" />
-                  <Text style={styles.sectionTitle}>Notlar</Text>
+                  <MaterialCommunityIcons name="note-text" size={20} color={theme.primary} />
+                  <Text style={[styles.sectionTitle, { color: theme.text }]}>Notlar</Text>
                 </View>
-                <Text style={styles.notesText}>{judgeRoom.notes}</Text>
+                <Text style={[styles.notesText, { color: theme.textSecondary }]}>{judgeRoom.notes}</Text>
               </>
             )}
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: theme.cardBackground, borderTopColor: theme.border }]}>
           <TouchableOpacity 
-            style={styles.deleteButton}
+            style={[styles.deleteButton, { 
+              borderColor: theme.isDark ? '#991b1b' : '#fecaca', 
+              backgroundColor: theme.isDark ? '#7f1d1d' : '#fef2f2'
+            }]}
             onPress={handleDelete}
           >
             <MaterialCommunityIcons name="delete" size={20} color="#ef4444" />
             <Text style={styles.deleteButtonText}>Sil</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={styles.editButton}
+            style={[styles.editButton, { backgroundColor: theme.primary }]}
             onPress={handleEdit}
           >
             <MaterialCommunityIcons name="pencil" size={20} color="#ffffff" />
@@ -312,20 +322,16 @@ const JudgeRoomDetail = ({ route }) => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
   },
   backButton: {
     padding: 8,
@@ -333,7 +339,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
   },
   content: {
     padding: 16,
@@ -347,13 +352,11 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginTop: 20,
     marginBottom: 20,
     textAlign: 'center',
   },
   backButtonLarge: {
-    backgroundColor: '#4f46e5',
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 8,
@@ -364,7 +367,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   card: {
-    backgroundColor: '#ffffff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -383,7 +385,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
     flex: 1,
   },
   statusBadge: {
@@ -404,7 +405,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1e293b',
     marginLeft: 8,
   },
   infoRow: {
@@ -415,12 +415,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    color: '#1e293b',
     marginLeft: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: '#e2e8f0',
     marginVertical: 16,
   },
   deviceGrid: {
@@ -450,7 +448,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#4f46e5',
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -466,7 +463,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
-    backgroundColor: '#e2e8f0',
     width: 20,
     height: 20,
     borderRadius: 10,
@@ -474,21 +470,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deviceMissingText: {
-    color: '#94a3b8',
     fontSize: 12,
     fontWeight: 'bold',
   },
   notesText: {
     fontSize: 16,
-    color: '#4b5563',
     lineHeight: 24,
   },
   footer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#ffffff',
     borderTopWidth: 1,
-    borderTopColor: '#e2e8f0',
   },
   deleteButton: {
     flex: 1,
@@ -497,9 +489,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderWidth: 1,
-    borderColor: '#fecaca',
     borderRadius: 8,
-    backgroundColor: '#fef2f2',
     marginRight: 8,
   },
   deleteButtonText: {
@@ -513,7 +503,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 12,
-    backgroundColor: '#4f46e5',
     borderRadius: 8,
   },
   editButtonText: {
@@ -526,10 +515,9 @@ const styles = StyleSheet.create({
   },
   judgeCardSeparator: {
     borderTopWidth: 1,
-    borderTopColor: '#f1f5f9',
     marginTop: 8,
     paddingTop: 12,
   },
 });
 
-export default JudgeRoomDetail; 
+export default withThemedScreen(JudgeRoomDetail);
