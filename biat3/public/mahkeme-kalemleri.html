@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahkeme Kalemleri - BIAT</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
@@ -118,7 +119,7 @@
             <!-- Page Header -->
             <div class="page-header">
                 <h1>Mahkeme Kalemleri</h1>
-                <button class="btn btn-primary">
+                <button id="addOfficeBtn" class="btn btn-primary">
                     <i class="fas fa-plus"></i>
                     Yeni Kalem Ekle
                 </button>
@@ -225,6 +226,10 @@
                                 <option value="9. Kat">9. Kat</option>
                                 <option value="10. Kat">10. Kat</option>
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="mahkemeHakimi">Mahkeme Hakimi</label>
+                            <input type="text" name="mahkemeHakimi" id="mahkemeHakimi" class="form-control" required>
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary">İptal</button>

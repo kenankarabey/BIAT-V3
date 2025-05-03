@@ -1,33 +1,10 @@
+// Supabase bağlantısı
+const SUPABASE_URL = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // Mahkeme Kalemleri verilerini tutacak dizi
-let mahkemeKalemleri = JSON.parse(localStorage.getItem('mahkemeKalemleri')) || [
-    { 
-        id: '1', 
-        ad: 'Ağır Ceza Mahkemesi Kalemi', 
-        tip: 'Ağır Ceza',
-        konum: 'A Blok, 2. Kat',
-        durum: 'Aktif',
-        createdAt: new Date().toLocaleDateString('tr-TR'),
-        cihazSayisi: 0
-    },
-    { 
-        id: '2', 
-        ad: 'Asliye Ceza Mahkemesi Kalemi', 
-        tip: 'Asliye Ceza',
-        konum: 'B Blok, 1. Kat',
-        durum: 'Aktif',
-        createdAt: new Date().toLocaleDateString('tr-TR'),
-        cihazSayisi: 0
-    },
-    { 
-        id: '3', 
-        ad: 'Asliye Hukuk Mahkemesi Kalemi', 
-        tip: 'Asliye Hukuk',
-        konum: 'C Blok, 3. Kat',
-        durum: 'Aktif',
-        createdAt: new Date().toLocaleDateString('tr-TR'),
-        cihazSayisi: 0
-    }
-];
+let mahkemeKalemleri = [];
 
 // Cihaz verisi
 let devices = JSON.parse(localStorage.getItem('devices')) || [];
@@ -42,23 +19,30 @@ let currentFilters = {
 // Mahkeme kalemlerini filtreleme
 function filterMahkemeKalemleri(kalemler) {
     return kalemler.filter(kalem => {
-        const tipMatch = currentFilters.tip === 'all' || kalem.tip === currentFilters.tip;
-        const durumMatch = currentFilters.durum === 'all' || kalem.durum === currentFilters.durum;
-        const searchMatch = kalem.ad.toLowerCase().includes(currentFilters.search.toLowerCase()) ||
-                          kalem.konum.toLowerCase().includes(currentFilters.search.toLowerCase());
-        
-        return tipMatch && durumMatch && searchMatch;
+        const turMatch = currentFilters.tip === 'all' || (kalem.mahkeme_turu && kalem.mahkeme_turu === currentFilters.tip);
+        // Eğer durum alanı yoksa, her zaman true kabul et
+        const durumMatch = true;
+        const searchMatch =
+            (kalem.mahkeme_turu && kalem.mahkeme_turu.toLowerCase().includes(currentFilters.search.toLowerCase())) ||
+            (kalem.mahkeme_no && kalem.mahkeme_no.toString().toLowerCase().includes(currentFilters.search.toLowerCase())) ||
+            (kalem.blok && kalem.blok.toLowerCase().includes(currentFilters.search.toLowerCase())) ||
+            (kalem.kat && kalem.kat.toLowerCase().includes(currentFilters.search.toLowerCase()));
+
+        return turMatch && durumMatch && searchMatch;
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     // Modal elementlerini seç
     const addOfficeModal = document.querySelector('#addOfficeModal');
     const addDeviceModal = document.querySelector('#addDeviceModal');
-    const addButton = document.querySelector('.page-header .btn-primary');
+    const addButton = document.getElementById('addOfficeBtn');
     const closeButtons = document.querySelectorAll('.close-modal');
     const cancelButtons = document.querySelectorAll('.btn-secondary');
     const form = document.querySelector('#mahkemeKalemiForm');
+
+    // Debug log
+    console.log('addButton:', addButton);
 
     // Filtre elementlerini seç
     const tipFilter = document.querySelector('#tipFilter');
@@ -105,9 +89,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Supabase'dan veri çek ve render et
+    mahkemeKalemleri = await fetchMahkemeKalemleri();
+    renderMahkemeKalemleri();
+
     // Yeni Kalem Ekle butonuna tıklandığında
     if (addButton) {
         addButton.addEventListener('click', function() {
+            console.log('Yeni Kalem Ekle butonuna tıklandı');
             // Form submit handler'ı varsayılan haline getir
             if (form) {
                 form.onsubmit = function(e) {
@@ -150,13 +139,11 @@ document.addEventListener('DOMContentLoaded', function() {
             saveMahkemeKalemi();
         };
     }
-
-    // Kartları ilk yükleme
-    renderMahkemeKalemleri();
 });
 
 // Kalem ekleme modalını açma
 function openOfficeModal() {
+    console.log('openOfficeModal çağrıldı');
     const modal = document.querySelector('#addOfficeModal');
     if (modal) {
         modal.classList.add('show');
@@ -190,41 +177,51 @@ function closeDeviceModal() {
     }
 }
 
+// Mahkeme kalemlerini Supabase'dan çek
+async function fetchMahkemeKalemleri() {
+    const { data, error } = await supabase
+        .from('mahkeme_kalemleri')
+        .select('*')
+        .order('id', { ascending: true });
+    if (error) {
+        console.error('Veri çekme hatası:', error);
+        return [];
+    }
+    return data;
+}
+
 // Yeni mahkeme kalemi kaydetme
-function saveMahkemeKalemi() {
+async function saveMahkemeKalemi() {
     const form = document.querySelector('#mahkemeKalemiForm');
-    const mahkemeTuru = form.querySelector('#mahkemeTuru').value;
-    const mahkemeNo = form.querySelector('#tip').value;
+    const mahkeme_turu = form.querySelector('#mahkemeTuru').value;
+    const mahkeme_no = form.querySelector('#tip').value;
     const blok = form.querySelector('#blok').value;
     const kat = form.querySelector('#konum').value;
-    
-    // Mahkeme adını formatla
-    let formattedAd = '';
-    if (mahkemeTuru === 'İcra') {
-        formattedAd = `${mahkemeNo}. İcra Müdürlüğü`;
-    } else {
-        formattedAd = `${mahkemeNo}. ${mahkemeTuru} Mahkemesi`;
-    }
-    
+    const mahkeme_hakimi = form.querySelector('#mahkemeHakimi').value;
+
     const yeniKalem = {
-        id: Date.now().toString(),
-        ad: formattedAd,
-        tip: mahkemeTuru,
-        mahkemeNo: mahkemeNo,
-        blok: blok,
-        kat: kat,
-        konum: `${blok}, ${kat}`,
-        durum: 'Aktif',
-        createdAt: new Date().toLocaleDateString('tr-TR'),
-        cihazSayisi: 0
+        mahkeme_turu,
+        mahkeme_no,
+        blok,
+        kat,
+        mahkeme_hakimi
     };
 
-    mahkemeKalemleri.push(yeniKalem);
-    localStorage.setItem('mahkemeKalemleri', JSON.stringify(mahkemeKalemleri));
-    
-    renderMahkemeKalemleri();
-    closeOfficeModal();
+    const { data, error } = await supabase
+        .from('mahkeme_kalemleri')
+        .insert([yeniKalem])
+        .select();
+
+    if (error) {
+        showNotification('Kayıt eklenemedi: ' + error.message, 'error');
+        return;
+    }
+
     showNotification('Mahkeme kalemi başarıyla eklendi', 'success');
+    form.reset();
+    closeOfficeModal();
+    mahkemeKalemleri = await fetchMahkemeKalemleri();
+    renderMahkemeKalemleri();
 }
 
 // Mahkeme kalemlerini kartlara render etme
@@ -247,46 +244,31 @@ function renderMahkemeKalemleri() {
     }
 
     filteredKalemler.forEach(kalem => {
-        const officeDevices = devices.filter(d => d.officeId === kalem.id.toString());
         const card = document.createElement('div');
         card.className = 'court-office-card';
         card.innerHTML = `
             <div class="card-header">
-                <h3>${kalem.ad}</h3>
-                <span class="status-badge ${kalem.durum.toLowerCase()}">${kalem.durum}</span>
+                <h3>${kalem.mahkeme_no}. ${kalem.mahkeme_turu} Mahkemesi</h3>
+                <span class="status-badge aktif">Aktif</span>
             </div>
             <div class="card-body">
                 <div class="info-row">
                     <i class="fas fa-gavel"></i>
-                    <span>${kalem.tip}</span>
+                    <span>Mahkeme No: ${kalem.mahkeme_no}</span>
                 </div>
                 <div class="info-row">
                     <i class="fas fa-map-marker-alt"></i>
-                    <span>${kalem.konum}</span>
-                </div>
-                <div class="device-stats">
-                    <div class="device-stat">
-                        <i class="fas fa-desktop"></i>
-                        <span>${officeDevices.filter(d => d.type === 'computer').length}</span>
-                    </div>
-                    <div class="device-stat">
-                        <i class="fas fa-print"></i>
-                        <span>${officeDevices.filter(d => d.type === 'printer').length}</span>
-                    </div>
-                    <div class="device-stat">
-                        <i class="fas fa-scanner"></i>
-                        <span>${officeDevices.filter(d => d.type === 'scanner').length}</span>
-                    </div>
+                    <span>${kalem.blok}, ${kalem.kat}</span>
                 </div>
                 <div class="info-row">
-                    <i class="fas fa-calendar"></i>
-                    <span>${kalem.createdAt}</span>
+                    <i class="fas fa-user-tie"></i>
+                    <span>Hakim: ${kalem.mahkeme_hakimi || '-'}</span>
                 </div>
             </div>
             <div class="card-footer">
-                <button class="btn-icon" onclick="openAddDeviceModal('${kalem.id}')" title="Cihaz Ekle">
+                <!--<button class="btn-icon" onclick="openAddDeviceModal('${kalem.id}')" title="Cihaz Ekle">
                     <i class="fas fa-plus"></i>
-                </button>
+                </button>-->
                 <button class="btn-icon edit" onclick="editKalem('${kalem.id}')" title="Düzenle">
                     <i class="fas fa-edit"></i>
                 </button>
@@ -310,80 +292,53 @@ function deleteKalem(id) {
 }
 
 // Mahkeme kalemi düzenleme
-function editKalem(id) {
-    const kalem = mahkemeKalemleri.find(k => k.id.toString() === id.toString());
+async function editKalem(id) {
+    const kalem = mahkemeKalemleri.find(k => String(k.id) === String(id));
     if (!kalem) return;
 
     const form = document.querySelector('#mahkemeKalemiForm');
-    
-    // Mahkeme adını parçalara ayır
-    let mahkemeNo = kalem.mahkemeNo || '';
-    
-    if (!mahkemeNo) {
-        if (kalem.tip === 'İcra') {
-            // "2. İcra Müdürlüğü" formatından ayıklama
-            const match = kalem.ad.match(/(\d+)\.\s*İcra\s*Müdürlüğü/i);
-            if (match) {
-                mahkemeNo = match[1];
-            }
-        } else {
-            // "2. Ağır Ceza Mahkemesi" formatından ayıklama
-            const match = kalem.ad.match(/(\d+)\.\s*.*?\s*Mahkemesi/i);
-            if (match) {
-                mahkemeNo = match[1];
-            }
-        }
-    }
-    
-    form.querySelector('#mahkemeTuru').value = kalem.tip;
-    form.querySelector('#tip').value = mahkemeNo;
-    
-    // Konum bilgilerini ayır ve form alanlarına yerleştir
-    if (kalem.blok && kalem.kat) {
-        form.querySelector('#blok').value = kalem.blok;
-        form.querySelector('#konum').value = kalem.kat;
-    } else if (kalem.konum) {
-        const [blok, kat] = kalem.konum.split(', ');
-        form.querySelector('#blok').value = blok || '';
-        form.querySelector('#konum').value = kat || '';
-    }
-    
+    form.querySelector('#mahkemeTuru').value = kalem.mahkeme_turu || '';
+    form.querySelector('#tip').value = kalem.mahkeme_no || '';
+    form.querySelector('#blok').value = kalem.blok || '';
+    form.querySelector('#konum').value = kalem.kat || '';
+    form.querySelector('#mahkemeHakimi').value = kalem.mahkeme_hakimi || '';
+
     // Mevcut form submit event listener'ını kaldır
-    const oldSubmitHandler = form.onsubmit;
-    form.removeEventListener('submit', oldSubmitHandler);
-    
+    form.onsubmit = null;
+
     // Yeni submit handler ekle
-    form.onsubmit = function(e) {
+    form.onsubmit = async function(e) {
         e.preventDefault();
-        const mahkemeTuru = form.querySelector('#mahkemeTuru').value;
-        const mahkemeNo = form.querySelector('#tip').value;
+        const mahkeme_turu = form.querySelector('#mahkemeTuru').value;
+        const mahkeme_no = form.querySelector('#tip').value;
         const blok = form.querySelector('#blok').value;
         const kat = form.querySelector('#konum').value;
-        
-        // Mahkeme adını formatla
-        let formattedAd = '';
-        if (mahkemeTuru === 'İcra') {
-            formattedAd = `${mahkemeNo}. İcra Müdürlüğü`;
-        } else {
-            formattedAd = `${mahkemeNo}. ${mahkemeTuru} Mahkemesi`;
+        const mahkeme_hakimi = form.querySelector('#mahkemeHakimi').value;
+
+        const updatedKalem = {
+            mahkeme_turu,
+            mahkeme_no,
+            blok,
+            kat,
+            mahkeme_hakimi
+        };
+
+        // Supabase'da güncelle
+        const { error } = await supabase
+            .from('mahkeme_kalemleri')
+            .update(updatedKalem)
+            .eq('id', kalem.id);
+        if (error) {
+            showNotification('Güncelleme hatası: ' + error.message, 'error');
+            return;
         }
-        
-        kalem.ad = formattedAd;
-        kalem.tip = mahkemeTuru;
-        kalem.mahkemeNo = mahkemeNo;
-        kalem.blok = blok;
-        kalem.kat = kat;
-        kalem.konum = `${blok}, ${kat}`;
-        
-        localStorage.setItem('mahkemeKalemleri', JSON.stringify(mahkemeKalemleri));
-        renderMahkemeKalemleri();
-        closeOfficeModal();
         showNotification('Mahkeme kalemi başarıyla güncellendi', 'success');
-        
-        // Form submit işleyicisini varsayılana döndür
-        form.onsubmit = oldSubmitHandler;
+        form.reset();
+        closeOfficeModal();
+        mahkemeKalemleri = await fetchMahkemeKalemleri();
+        renderMahkemeKalemleri();
     };
-    
+
     openOfficeModal();
 }
 
