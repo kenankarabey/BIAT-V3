@@ -607,11 +607,19 @@ function renderDevices(activeTab = 'computer') {
     tbody.innerHTML = '';
     
     // Render devices
+    const deviceTabsWithMahkemeNo = [
+        'computer', 'laptop', 'screen', 'printer', 'scanner',
+        'tv', 'camera', 'segbis', 'microphone', 'e_durusma'
+    ];
     filteredDevices.forEach(device => {
         const row = document.createElement('tr');
         let cells = [];
-        
-        // Common field
+
+        // Add Mahkeme No only for device tabs
+        if (deviceTabsWithMahkemeNo.includes(activeTab)) {
+            cells.push(`<td>${device.mahkeme_no || ''}</td>`);
+        }
+        // Birim column (always)
         cells.push(`<td>${device.birim || ''}</td>`);
         
         // Device specific fields
@@ -912,6 +920,8 @@ function showDeviceDetails(deviceId, deviceType) {
 
     // Ortak alanlar
     document.getElementById('detailUnit').textContent = device.birim || '';
+    document.getElementById('detailMahkemeNo').textContent = device.mahkeme_no || '';
+    document.getElementById('detailOdaTipi').textContent = device.oda_tipi || '';
 
     // Cihaz türüne göre alanlar
     let brand = '', model = '', serial = '';
@@ -1122,6 +1132,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'computer',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 unvan: device.unvan,
                 adi_soyadi: device.adi_soyadi,
                 sicil_no: device.sicil_no,
@@ -1140,6 +1152,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'laptop',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 unvan: device.unvan,
                 adi_soyadi: device.adi_soyadi,
                 sicil_no: device.sicil_no,
@@ -1154,6 +1168,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'screen',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 unvan: device.unvan,
                 adi_soyadi: device.adi_soyadi,
                 sicil_no: device.sicil_no,
@@ -1168,6 +1184,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'printer',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 yazici_marka: device.yazici_marka,
                 yazici_model: device.yazici_model,
                 yazici_seri_no: device.yazici_seri_no,
@@ -1179,6 +1197,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'scanner',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 tarayici_marka: device.tarayici_marka,
                 tarayici_model: device.tarayici_model,
                 tarayici_seri_no: device.tarayici_seri_no,
@@ -1190,6 +1210,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'tv',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 tv_marka: device.tv_marka,
                 tv_model: device.tv_model,
                 tv_seri_no: device.tv_seri_no,
@@ -1201,6 +1223,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'camera',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 kamera_marka: device.kamera_marka,
                 kamera_model: device.kamera_model,
                 kamera_seri_no: device.kamera_seri_no,
@@ -1212,6 +1236,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'segbis',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 segbis_marka: device.segbis_marka,
                 segbis_model: device.segbis_model,
                 segbis_seri_no: device.segbis_seri_no,
@@ -1223,6 +1249,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'e_durusma',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 edurusma_marka: device.edurusma_marka,
                 edurusma_model: device.edurusma_model,
                 edurusma_seri_no: device.edurusma_seri_no,
@@ -1234,6 +1262,8 @@ function mapDeviceKeys(device, type) {
                 id: device.id,
                 type: 'microphone',
                 birim: device.birim,
+                mahkeme_no: device.mahkeme_no,
+                oda_tipi: device.oda_tipi,
                 mikrofon_marka: device.mikrofon_marka,
                 mikrofon_model: device.mikrofon_model,
                 mikrofon_seri_no: device.mikrofon_seri_no,
@@ -1264,16 +1294,16 @@ async function fetchDevices() {
         };
         // Tablo adı -> select alanları eşlemesi (tamamen snake_case!)
         const tableSelectMap = {
-            computers: 'id, birim, unvan, adi_soyadi, sicil_no, kasa_marka, kasa_model, kasa_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, ilk_temizlik_tarihi, son_temizlik_tarihi, qr_kod, barkod',
-            laptops: 'id, birim, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, qr_kod, barkod',
-            screens: 'id, birim, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, qr_kod, barkod',
-            printers: 'id, birim, yazici_marka, yazici_model, yazici_seri_no, qr_kod, barkod',
-            scanners: 'id, birim, tarayici_marka, tarayici_model, tarayici_seri_no, qr_kod, barkod',
-            tvs: 'id, birim, tv_marka, tv_model, tv_seri_no, qr_kod, barkod',
-            cameras: 'id, birim, kamera_marka, kamera_model, kamera_seri_no, qr_kod, barkod',
-            segbis: 'id, birim, segbis_marka, segbis_model, segbis_seri_no, qr_kod, barkod',
-            microphones: 'id, birim, mikrofon_marka, mikrofon_model, mikrofon_seri_no, qr_kod, barkod',
-            e_durusma: 'id, birim, edurusma_marka, edurusma_model, edurusma_seri_no, qr_kod, barkod'
+            computers: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, kasa_marka, kasa_model, kasa_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, ilk_temizlik_tarihi, son_temizlik_tarihi, qr_kod, barkod',
+            laptops: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, qr_kod, barkod',
+            screens: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, qr_kod, barkod',
+            printers: 'id, birim, mahkeme_no, oda_tipi, yazici_marka, yazici_model, yazici_seri_no, qr_kod, barkod',
+            scanners: 'id, birim, mahkeme_no, oda_tipi, tarayici_marka, tarayici_model, tarayici_seri_no, qr_kod, barkod',
+            tvs: 'id, birim, mahkeme_no, oda_tipi, tv_marka, tv_model, tv_seri_no, qr_kod, barkod',
+            cameras: 'id, birim, mahkeme_no, oda_tipi, kamera_marka, kamera_model, kamera_seri_no, qr_kod, barkod',
+            segbis: 'id, birim, mahkeme_no, oda_tipi, segbis_marka, segbis_model, segbis_seri_no, qr_kod, barkod',
+            microphones: 'id, birim, mahkeme_no, oda_tipi, mikrofon_marka, mikrofon_model, mikrofon_seri_no, qr_kod, barkod',
+            e_durusma: 'id, birim, mahkeme_no, oda_tipi, edurusma_marka, edurusma_model, edurusma_seri_no, qr_kod, barkod'
         };
         const tables = Object.keys(tableTypeMap);
         let allDevices = [];

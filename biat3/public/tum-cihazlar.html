@@ -285,6 +285,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Unvan</th>
                                             <th>Adı Soyadı</th>
@@ -311,9 +312,19 @@
                                     <div class="device-details new-horizontal-grid">
                                         <div class="info-cards-row">
                                             <div class="info-mini-card">
+                                                <i class="fas fa-gavel"></i>
+                                                <div class="info-label">Mahkeme No</div>
+                                                <div class="info-value" id="detailMahkemeNo"></div>
+                                            </div>
+                                            <div class="info-mini-card">
                                                 <i class="fas fa-building"></i>
                                                 <div class="info-label">Birim</div>
                                                 <div class="info-value" id="detailUnit"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-door-open"></i>
+                                                <div class="info-label">Oda Tipi</div>
+                                                <div class="info-value" id="detailOdaTipi"></div>
                                             </div>
                                             <div class="info-mini-card" id="detailUnvanRow" style="display:none;">
                                                 <i class="fas fa-user-tie"></i>
@@ -453,6 +464,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Unvan</th>
                                             <th>Adı Soyadı</th>
@@ -474,6 +486,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Unvan</th>
                                             <th>Adı Soyadı</th>
@@ -495,6 +508,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Yazıcı Marka</th>
                                             <th>Yazıcı Model</th>
@@ -513,6 +527,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Tarayıcı Marka</th>
                                             <th>Tarayıcı Model</th>
@@ -531,6 +546,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>TV Marka</th>
                                             <th>TV Model</th>
@@ -549,6 +565,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Kamera Marka</th>
                                             <th>Kamera Model</th>
@@ -567,6 +584,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>SEGBIS Marka</th>
                                             <th>SEGBIS Model</th>
@@ -585,6 +603,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>Mikrofon Marka</th>
                                             <th>Mikrofon Model</th>
@@ -603,6 +622,7 @@
                                 <table class="devices-table">
                                     <thead>
                                         <tr>
+                                            <th>Mahkeme No</th>
                                             <th>Birim</th>
                                             <th>E-Duruşma Marka</th>
                                             <th>E-Duruşma Model</th>
@@ -658,7 +678,61 @@
                                     <i class="fas fa-building"></i>
                                     Birim
                                 </label>
-                                <input type="text" id="birim" class="modern-input" placeholder="Birim adını girin" required>
+                                <select id="birim" class="modern-select" required>
+                                    <option value="">Birim seçin</option>
+                                    <option value="Sulh Hukuk Mahkemesi">Sulh Hukuk Mahkemesi</option>
+                                    <option value="Hukuk Ön Büro">Hukuk Ön Büro</option>
+                                    <option value="Hukuk Vezne">Hukuk Vezne</option>
+                                    <option value="Asliye Hukuk Mahkemesi">Asliye Hukuk Mahkemesi</option>
+                                    <option value="Tüketici Mahkemesi">Tüketici Mahkemesi</option>
+                                    <option value="Kadastro Mahkemesi">Kadastro Mahkemesi</option>
+                                    <option value="İş Mahkemesi">İş Mahkemesi</option>
+                                    <option value="Aile Mahkemesi">Aile Mahkemesi</option>
+                                    <option value="Ağır Ceza Mahkemesi">Ağır Ceza Mahkemesi</option>
+                                    <option value="Adalet Komisyonu Başkanlığı">Adalet Komisyonu Başkanlığı</option>
+                                    <option value="Sulh Ceza Hakimliği">Sulh Ceza Hakimliği</option>
+                                    <option value="İnfaz Hakimliği">İnfaz Hakimliği</option>
+                                    <option value="Çocuk Mahkemesi">Çocuk Mahkemesi</option>
+                                    <option value="Savcılık İnfaz Bürosu">Savcılık İnfaz Bürosu</option>
+                                    <option value="Asliye Ceza Mahkemesi">Asliye Ceza Mahkemesi</option>
+                                    <option value="Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları">Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları</option>
+                                    <option value="Ceza Ön Büro">Ceza Ön Büro</option>
+                                    <option value="Ceza Vezne">Ceza Vezne</option>
+                                    <option value="Soruşturma Bürosu">Soruşturma Bürosu</option>
+                                    <option value="İdari İşler Müdürlüğü">İdari İşler Müdürlüğü</option>
+                                    <option value="Müracaat Bürosu">Müracaat Bürosu</option>
+                                    <option value="Muhabere Bürosu">Muhabere Bürosu</option>
+                                    <option value="Talimat Bürosu">Talimat Bürosu</option>
+                                    <option value="Emanet Bürosu">Emanet Bürosu</option>
+                                    <option value="Nöbetçi Sulh Ceza Hakimliği">Nöbetçi Sulh Ceza Hakimliği</option>
+                                    <option value="Cumhuriyet Başsavcılığı">Cumhuriyet Başsavcılığı</option>
+                                    <option value="Bakanlık Muhabere Bürosu">Bakanlık Muhabere Bürosu</option>
+                                    <option value="CMK">CMK</option>
+                                    <option value="Maaş">Maaş</option>
+                                    <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
+                                    <option value="Adli Sicil Şefliği">Adli Sicil Şefliği</option>
+                                    <option value="İcra Hukuk Mahkemesi">İcra Hukuk Mahkemesi</option>
+                                    <option value="İcra Ceza Mahkemesi">İcra Ceza Mahkemesi</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="mahkeme_no">
+                                    <i class="fas fa-gavel"></i>
+                                    Mahkeme No
+                                </label>
+                                <input type="number" id="mahkeme_no" class="modern-input" placeholder="Mahkeme numarasını girin" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="oda_tipi">
+                                    <i class="fas fa-door-open"></i>
+                                    Oda Tipi
+                                </label>
+                                <select id="oda_tipi" class="modern-select" required>
+                                    <option value="">Oda tipi seçin</option>
+                                    <option value="mahkeme_kalemi">Mahkeme Kalemi</option>
+                                    <option value="hakim_savci_odasi">Hakim-Savcı Odası</option>
+                                    <option value="durusma_salonu">Duruşma Salonu</option>
+                                </select>
                             </div>
                         </div>
 
