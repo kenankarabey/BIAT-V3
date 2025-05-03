@@ -155,9 +155,9 @@
                         <i class="fas fa-user"></i>
                         <span>Profil Bilgileri</span>
                     </button>
-                    <button class="nav-item" data-section="security">
-                        <i class="fas fa-shield-alt"></i>
-                        <span>Güvenlik</span>
+                    <button class="nav-item" data-section="password">
+                        <i class="fas fa-key"></i>
+                        <span>Şifre Değiştir</span>
                     </button>
                     <button class="nav-item" data-section="notifications">
                         <i class="fas fa-bell"></i>
@@ -198,6 +198,7 @@
                             <div class="form-group">
                                 <label>Şifre</label>
                                 <input type="password" name="sifre" id="sifre" value="********" disabled>
+                                <small style="display: block; margin-top: 5px; color: #666;">Şifrenizi değiştirmek için "Şifre Değiştir" sekmesini kullanın.</small>
                             </div>
                             <div class="form-group">
                                 <label>Telefon</label>
@@ -214,40 +215,28 @@
                         </div>
                     </div>
 
-                    <!-- Security Section -->
-                    <div class="profile-section" id="security">
+                    <!-- Password Change Section -->
+                    <div class="profile-section" id="password">
                         <div class="section-header">
-                            <h2>Güvenlik Ayarları</h2>
+                            <h2>Şifre Değiştir</h2>
                         </div>
-                        <div class="security-settings">
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>Şifre Değiştir</h3>
-                                    <p>En son şifre değişikliği: 3 ay önce</p>
+                        <div class="password-change-form">
+                            <div class="form-group">
+                                <label for="currentPasswordField">Mevcut Şifre</label>
+                                <input type="password" id="currentPasswordField" required>
                                 </div>
-                                <button class="btn btn-outline" onclick="showPasswordDialog()">
+                            <div class="form-group">
+                                <label for="newPasswordField">Yeni Şifre</label>
+                                <input type="password" id="newPasswordField" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="confirmPasswordField">Yeni Şifre (Tekrar)</label>
+                                <input type="password" id="confirmPasswordField" required>
+                            </div>
+                            <div class="form-actions">
+                                <button class="btn btn-primary" onclick="changePasswordDirect()">
                                     <i class="fas fa-key"></i>
-                                    <span>Değiştir</span>
-                                </button>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>İki Faktörlü Doğrulama</h3>
-                                    <p>Hesabınızı daha güvenli hale getirin</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="twoFactorAuth" onchange="toggleNotification('twoFactorAuth')">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>Oturum Geçmişi</h3>
-                                    <p>Son giriş yapılan cihazları görüntüleyin</p>
-                                </div>
-                                <button class="btn btn-outline" onclick="viewSessions()">
-                                    <i class="fas fa-desktop"></i>
-                                    <span>Görüntüle</span>
+                                    <span>Şifreyi Değiştir</span>
                                 </button>
                             </div>
                         </div>
@@ -377,49 +366,6 @@
                 </div>
             </div>
         </main>
-    </div>
-
-    <!-- Password Change Dialog -->
-    <div id="passwordDialog" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Şifre Değiştir</h2>
-                <button class="close-modal" onclick="closePasswordDialog()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="currentPassword">Mevcut Şifre</label>
-                    <input type="password" id="currentPassword" required>
-                </div>
-                <div class="form-group">
-                    <label for="newPassword">Yeni Şifre</label>
-                    <input type="password" id="newPassword" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirmPassword">Yeni Şifre (Tekrar)</label>
-                    <input type="password" id="confirmPassword" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closePasswordDialog()">İptal</button>
-                <button class="btn btn-primary" onclick="changePassword()">Değiştir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Sessions Dialog -->
-    <div id="sessionsDialog" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Oturum Geçmişi</h2>
-                <button class="close-modal" onclick="closeSessionsDialog()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="sessions-list">
-                    <!-- Sessions will be loaded dynamically -->
-                </div>
-            </div>
-        </div>
     </div>
 
     <script src="https://unpkg.com/@supabase/supabase-js"></script>

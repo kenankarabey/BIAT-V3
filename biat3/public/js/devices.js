@@ -1,46 +1,128 @@
+// Supabase client initialization
+const SUPABASE_URL = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
 // Sample device data
-let devices = [
-    // ... existing devices ...
-];
+let devices = [];
 
 // DOM Elements
-const tabButtons = document.querySelectorAll('.tab-button');
-const tabPanes = document.querySelectorAll('.tab-pane');
+let tabButtons;
+let tabPanes;
 let isFilterVisible = false;
+let currentDeviceId = null;
 
-// Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    updateDeviceStats();
-    renderDevices();
+// Update son temizlik tarihi when ilk temizlik tarihi changes
+function updateSonTemizlikTarihi() {
+    const ilkTemizlikTarihi = document.getElementById('ilk_temizlik_tarihi').value;
+    if (ilkTemizlikTarihi) {
+        const ilkTarih = new Date(ilkTemizlikTarihi);
+        const sonTarih = new Date(ilkTarih);
+        sonTarih.setFullYear(sonTarih.getFullYear() + 1);
+        
+        // Format the date as YYYY-MM-DD
+        const sonTemizlikTarihi = sonTarih.toISOString().split('T')[0];
+        document.getElementById('son_temizlik_tarihi').value = sonTemizlikTarihi;
+    }
+}
+
+// Show/hide temizlik fields only for kasa (computer)
+function updateFormFieldsForDeviceType(deviceType) {
+    const temizlikGroups = document.querySelectorAll('.temizlik-group');
+    if (deviceType === 'computer') {
+        temizlikGroups.forEach(el => el.style.display = '');
+    } else {
+        temizlikGroups.forEach(el => el.style.display = 'none');
+    }
+}
+
+// Initialize the page
+async function initializePage() {
+    console.log('Sayfa başlatılıyor...');
     
-    // Tab switching
+    // DOM elementlerini seç
+    tabButtons = document.querySelectorAll('.tab-button');
+    tabPanes = document.querySelectorAll('.tab-pane');
+    
+    // Tab butonlarını ayarla
     tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            const tabType = button.dataset.tab;
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabType = button.getAttribute('data-tab');
+            console.log('Tab clicked:', tabType);
             switchTab(tabType);
         });
     });
-});
 
-// Show Add Device Modal
+    // Device type değişimini dinle
+    const deviceTypeSelect = document.getElementById('deviceType');
+    if (deviceTypeSelect) {
+        deviceTypeSelect.addEventListener('change', function() {
+            updateFormFieldsForDeviceType(this.value);
+        });
+    }
+    
+    const editDeviceTypeSelect = document.getElementById('editDeviceType');
+    if (editDeviceTypeSelect) {
+        editDeviceTypeSelect.addEventListener('change', function() {
+            updateFormFieldsForDeviceType(this.value);
+        });
+    }
+
+    // İlk tab'ı aktif yap
+    const firstTab = tabButtons[0]?.getAttribute('data-tab') || 'computer';
+    switchTab(firstTab);
+    
+    // Veritabanından verileri çek
+    await fetchDevices();
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', initializePage);
+
+// Modal işlemleri için fonksiyonlar
 function showAddModal() {
     const modal = document.getElementById('addDeviceModal');
+    if (!modal) {
+        console.error('Add device modal not found!');
+        return;
+    }
     modal.classList.add('show');
-    updateFormFields(); // İlk form alanlarını oluştur
+    document.body.style.overflow = 'hidden';
 }
 
-// Close Add Device Modal
 function closeAddModal() {
     const modal = document.getElementById('addDeviceModal');
+    if (!modal) {
+        console.error('Add device modal not found!');
+        return;
+    }
     modal.classList.remove('show');
-    document.getElementById('addDeviceForm').reset();
+    document.body.style.overflow = '';
+    resetForm();
 }
 
-// Update Form Fields based on device type
+function resetForm() {
+    const form = document.getElementById('addDeviceForm');
+    form.reset();
+    // Özel alanları temizle
+    const computerFields = document.querySelectorAll('.computer-specific');
+    computerFields.forEach(field => {
+        field.style.display = 'none';
+    });
+}
+
+// Remove any duplicate/anonymous submit handlers for addDeviceForm
+const addDeviceForm = document.getElementById('addDeviceForm');
+if (addDeviceForm) {
+    addDeviceForm.addEventListener('submit', saveDevice);
+}
+
+// Only one function for updating dynamic fields
 function updateFormFields() {
     const deviceType = document.getElementById('deviceType').value;
     const dynamicFields = document.getElementById('dynamicFields');
-    dynamicFields.innerHTML = ''; // Mevcut alanları temizle
+    dynamicFields.innerHTML = '';
 
     // Cihaz türüne göre form alanlarını oluştur
     const fields = getFormFieldsByType(deviceType);
@@ -49,131 +131,205 @@ function updateFormFields() {
         formGroup.className = 'form-group';
         formGroup.innerHTML = `
             <label for="${field.id}">${field.label}</label>
-            <input type="text" id="${field.id}" ${field.required ? 'required' : ''}>
+            <input type="text" id="${field.id}" name="${field.id}" ${field.required ? 'required' : ''}>
         `;
         dynamicFields.appendChild(formGroup);
     });
+
+    // Temizlik alanlarını sadece kasa için göster
+    const temizlikGroup = document.querySelector('.temizlik-group');
+    if (temizlikGroup) {
+        temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
+    }
 }
 
-// Get form fields based on device type
-function getFormFieldsByType(type) {
-    const fields = [];
-    switch (type) {
-        case 'computer':
-            fields.push(
-                { id: 'unvan', label: 'Unvan', required: false },
-                { id: 'adiSoyadi', label: 'Adı Soyadı', required: false },
-                { id: 'sicilNo', label: 'Sicil No', required: false },
-                { id: 'kasaMarka', label: 'Kasa Marka', required: false },
-                { id: 'kasaModel', label: 'Kasa Model', required: false },
-                { id: 'kasaSeriNo', label: 'Kasa Seri No', required: false }
-            );
-            break;
-        case 'laptop':
-            fields.push(
-                { id: 'unvan', label: 'Unvan', required: false },
-                { id: 'adiSoyadi', label: 'Adı Soyadı', required: false },
-                { id: 'sicilNo', label: 'Sicil No', required: false },
-                { id: 'laptopMarka', label: 'Laptop Marka', required: false },
-                { id: 'laptopModel', label: 'Laptop Model', required: false },
-                { id: 'laptopSeriNo', label: 'Laptop Seri No', required: false }
-            );
-            break;
-        case 'screen':
-            fields.push(
-                { id: 'unvan', label: 'Unvan', required: false },
-                { id: 'adiSoyadi', label: 'Adı Soyadı', required: false },
-                { id: 'sicilNo', label: 'Sicil No', required: false },
-                { id: 'ekranMarka', label: 'Monitör Marka', required: false },
-                { id: 'ekranModel', label: 'Monitör Model', required: false },
-                { id: 'ekranSeriNo', label: 'Monitör Seri No', required: false }
-            );
-            break;
-        case 'printer':
-            fields.push(
-                { id: 'yaziciMarka', label: 'Yazıcı Marka', required: false },
-                { id: 'yaziciModel', label: 'Yazıcı Model', required: false },
-                { id: 'yaziciSeriNo', label: 'Yazıcı Seri No', required: false }
-            );
-            break;
-        case 'scanner':
-            fields.push(
-                { id: 'tarayiciMarka', label: 'Tarayıcı Marka', required: true },
-                { id: 'tarayiciModel', label: 'Tarayıcı Model', required: true },
-                { id: 'tarayiciSeriNo', label: 'Tarayıcı Seri No', required: true }
-            );
-            break;
-        case 'tv':
-            fields.push(
-                { id: 'tvMarka', label: 'TV Marka', required: true },
-                { id: 'tvModel', label: 'TV Model', required: true },
-                { id: 'tvSeriNo', label: 'TV Seri No', required: true }
-            );
-            break;
-        case 'camera':
-            fields.push(
-                { id: 'kameraMarka', label: 'Kamera Marka', required: true },
-                { id: 'kameraModel', label: 'Kamera Model', required: true },
-                { id: 'kameraSeriNo', label: 'Kamera Seri No', required: true }
-            );
-            break;
-        case 'segbis':
-            fields.push(
-                { id: 'segbisMarka', label: 'SEGBIS Marka', required: true },
-                { id: 'segbisModel', label: 'SEGBIS Model', required: true },
-                { id: 'segbisSeriNo', label: 'SEGBIS Seri No', required: true }
-            );
-            break;
-        case 'ehearing':
-            fields.push(
-                { id: 'edurusmaMarka', label: 'E-Duruşma Marka', required: true },
-                { id: 'edurusmaModel', label: 'E-Duruşma Model', required: true },
-                { id: 'edurusmaSeriNo', label: 'E-Duruşma Seri No', required: true }
-            );
-            break;
-        case 'microphone':
-            fields.push(
-                { id: 'mikrofonMarka', label: 'Mikrofon Marka', required: true },
-                { id: 'mikrofonModel', label: 'Mikrofon Model', required: true },
-                { id: 'mikrofonSeriNo', label: 'Mikrofon Seri No', required: true }
-            );
-            break;
-    }
-    return fields;
+// When device type changes in add/edit forms
+const deviceTypeSelect = document.getElementById('deviceType');
+if (deviceTypeSelect) {
+    deviceTypeSelect.addEventListener('change', updateFormFields);
 }
 
 // Save new device
-function saveDevice() {
-    const form = document.getElementById('addDeviceForm');
-    const deviceType = document.getElementById('deviceType').value;
-    const birim = document.getElementById('birim').value;
-    
-    // Yeni cihaz objesi oluştur
-    const newDevice = {
-        id: Date.now(), // Basit bir unique ID
-        type: deviceType,
-        birim: birim
-    };
+async function saveDevice(event) {
+    event.preventDefault();
+    console.log('=== Form Gönderimi Başlıyor ===');
 
-    // Cihaz türüne göre diğer alanları ekle
+    // Form elementini al
+    const form = document.getElementById('addDeviceForm');
+    if (!form) {
+        console.error('Form bulunamadı!');
+        return;
+    }
+    console.log('Form başarıyla bulundu');
+
+    // Cihaz tipini kontrol et
+    const deviceType = form.querySelector('#deviceType').value;
+    console.log('Seçilen cihaz tipi:', deviceType);
+    
+    if (!deviceType) {
+        console.error('Cihaz tipi seçilmedi!');
+        showNotification('Lütfen bir cihaz tipi seçin', 'error');
+        return;
+    }
+    console.log('Cihaz tipi doğrulandı:', deviceType);
+
+    // Birim kontrolü
+    const birim = form.querySelector('#birim').value.trim();
+    console.log('Birim değeri:', birim);
+    if (!birim) {
+        console.error('Birim alanı boş!');
+        showNotification('Lütfen birim adını girin', 'error');
+        return;
+    }
+    console.log('Birim alanı doğrulandı');
+
+    // Garanti tarihlerini kontrol et
+    const ilkGaranti = form.querySelector('#ilk_garanti_tarihi').value;
+    const sonGaranti = form.querySelector('#son_garanti_tarihi').value;
+    console.log('Garanti tarihleri:', {
+        ilkGaranti,
+        sonGaranti
+    });
+    
+    if (!ilkGaranti || !sonGaranti) {
+        console.error('Garanti tarihleri eksik!');
+        showNotification('Lütfen garanti tarihlerini girin', 'error');
+        return;
+    }
+
+    // Tarih formatı kontrolü
+    const ilkGarantiDate = new Date(ilkGaranti);
+    const sonGarantiDate = new Date(sonGaranti);
+    console.log('Tarih formatı kontrolü:', {
+        ilkGarantiDate,
+        sonGarantiDate
+    });
+
+    if (sonGarantiDate < ilkGarantiDate) {
+        console.error('Son garanti tarihi, ilk garanti tarihinden önce!');
+        showNotification('Son garanti tarihi, ilk garanti tarihinden önce olamaz', 'error');
+        return;
+    }
+    console.log('Garanti tarihleri doğrulandı');
+
+    // Yeni cihaz nesnesini oluştur
+    const newDevice = {
+        birim: birim,
+        ilk_garanti_tarihi: ilkGaranti,
+        son_garanti_tarihi: sonGaranti
+    };
+    console.log('Temel cihaz nesnesi oluşturuldu:', newDevice);
+
+    // Cihaz tipine özel alanları ekle
     const fields = getFormFieldsByType(deviceType);
+    console.log('Cihaz tipine özel alanlar:', fields);
+
+    // Her alanı kontrol et ve değerini yazdır
     fields.forEach(field => {
-        const value = document.getElementById(field.id)?.value;
-        if (value) {
-            newDevice[field.id] = value;
+        const input = form.querySelector(`#${field.id}`);
+        if (input) {
+            const value = input.value.trim();
+            console.log(`${field.id} alanı kontrol ediliyor:`, {
+                değer: value,
+                tip: input.type,
+                zorunlu: field.required
+            });
+            
+            if (field.required && !value) {
+                console.error(`${field.label} alanı boş!`);
+                showNotification(`Lütfen ${field.label} alanını doldurun`, 'error');
+                throw new Error(`${field.label} alanı zorunludur`);
+            }
+            
+            if (value) {
+                newDevice[field.id] = value;
+                console.log(`${field.id} alanı eklendi:`, value);
+            }
+        } else {
+            console.warn(`${field.id} alanı bulunamadı!`);
         }
     });
 
-    // Cihazı listeye ekle
-    devices.push(newDevice);
+    // Temizlik tarihlerini ekle (sadece kasa için)
+    if (deviceType === 'computer') {
+        console.log('Kasa cihazı için temizlik tarihleri kontrol ediliyor');
+        const ilkTemizlik = form.querySelector('#ilk_temizlik_tarihi').value;
+        const sonTemizlik = form.querySelector('#son_temizlik_tarihi').value;
+        
+        console.log('Temizlik tarihleri:', {
+            ilkTemizlik,
+            sonTemizlik
+        });
+        
+        if (!ilkTemizlik || !sonTemizlik) {
+            console.error('Temizlik tarihleri eksik!');
+            showNotification('Lütfen temizlik tarihlerini girin', 'error');
+            return;
+        }
 
-    // Modalı kapat ve tabloyu güncelle
-    closeAddModal();
-    renderDevices();
-    updateDeviceStats();
+        const ilkTemizlikDate = new Date(ilkTemizlik);
+        const sonTemizlikDate = new Date(sonTemizlik);
+        console.log('Temizlik tarihi formatı kontrolü:', {
+            ilkTemizlikDate,
+            sonTemizlikDate
+        });
 
-    // Başarılı bildirim göster
-    showNotification('Cihaz başarıyla eklendi', 'success');
+        if (sonTemizlikDate < ilkTemizlikDate) {
+            console.error('Son temizlik tarihi, ilk temizlik tarihinden önce!');
+            showNotification('Son temizlik tarihi, ilk temizlik tarihinden önce olamaz', 'error');
+            return;
+        }
+        
+        newDevice.ilk_temizlik_tarihi = ilkTemizlik;
+        newDevice.son_temizlik_tarihi = sonTemizlik;
+        console.log('Temizlik tarihleri eklendi:', {
+            ilk_temizlik_tarihi: newDevice.ilk_temizlik_tarihi,
+            son_temizlik_tarihi: newDevice.son_temizlik_tarihi
+        });
+    }
+
+    // QR ve barkod oluştur
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    newDevice.qr_kod = `${deviceType}_${timestamp}_${random}`;
+    newDevice.barkod = `${deviceType}_${timestamp}_${random}`;
+    console.log('QR ve barkod oluşturuldu:', {
+        qr_kod: newDevice.qr_kod,
+        barkod: newDevice.barkod
+    });
+
+    // Tablo adını belirle
+    let table = deviceType;
+    if (deviceType === 'e_durusma') {
+        table = 'e_durusma';
+    } else {
+        table = `${deviceType}s`;
+    }
+    console.log('Hedef tablo belirlendi:', table);
+
+    console.log('Son hali ile gönderilecek veri:', JSON.stringify(newDevice, null, 2));
+
+    try {
+        console.log('Supabase veri gönderimi başlıyor...');
+        const { data, error } = await supabase
+            .from(table)
+            .insert([newDevice])
+            .select();
+            
+        if (error) {
+            console.error('Supabase hatası:', error);
+            showNotification('Cihaz kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+            return;
+        }
+        
+        console.log('Başarılı yanıt:', data);
+        showNotification('Cihaz başarıyla kaydedildi', 'success');
+        closeAddModal();
+        await fetchDevices();
+    } catch (error) {
+        console.error('Cihaz kaydetme hatası:', error);
+        showNotification('Cihaz kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+    }
 }
 
 // Show notification
@@ -319,54 +475,54 @@ function applyFilters() {
         // Check device type specific properties
         switch (device.type) {
             case 'computer':
-                matchMarka = device.kasaMarka.toLowerCase().includes(marka);
-                matchModel = device.kasaModel.toLowerCase().includes(model);
-                matchSeriNo = device.kasaSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.kasa_marka.toLowerCase().includes(marka);
+                matchModel = device.kasa_model.toLowerCase().includes(model);
+                matchSeriNo = device.kasa_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'laptop':
-                matchMarka = device.laptopMarka.toLowerCase().includes(marka);
-                matchModel = device.laptopModel.toLowerCase().includes(model);
-                matchSeriNo = device.laptopSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.laptop_marka.toLowerCase().includes(marka);
+                matchModel = device.laptop_model.toLowerCase().includes(model);
+                matchSeriNo = device.laptop_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'screen':
-                matchMarka = device.ekranMarka.toLowerCase().includes(marka);
-                matchModel = device.ekranModel.toLowerCase().includes(model);
-                matchSeriNo = device.ekranSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.ekran_marka.toLowerCase().includes(marka);
+                matchModel = device.ekran_model.toLowerCase().includes(model);
+                matchSeriNo = device.ekran_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'printer':
-                matchMarka = device.yaziciMarka.toLowerCase().includes(marka);
-                matchModel = device.yaziciModel.toLowerCase().includes(model);
-                matchSeriNo = device.yaziciSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.yazici_marka.toLowerCase().includes(marka);
+                matchModel = device.yazici_model.toLowerCase().includes(model);
+                matchSeriNo = device.yazici_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'scanner':
-                matchMarka = device.tarayiciMarka.toLowerCase().includes(marka);
-                matchModel = device.tarayiciModel.toLowerCase().includes(model);
-                matchSeriNo = device.tarayiciSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.tarayici_marka.toLowerCase().includes(marka);
+                matchModel = device.tarayici_model.toLowerCase().includes(model);
+                matchSeriNo = device.tarayici_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'tv':
-                matchMarka = device.tvMarka.toLowerCase().includes(marka);
-                matchModel = device.tvModel.toLowerCase().includes(model);
-                matchSeriNo = device.tvSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.tv_marka.toLowerCase().includes(marka);
+                matchModel = device.tv_model.toLowerCase().includes(model);
+                matchSeriNo = device.tv_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'camera':
-                matchMarka = device.kameraMarka.toLowerCase().includes(marka);
-                matchModel = device.kameraModel.toLowerCase().includes(model);
-                matchSeriNo = device.kameraSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.kamera_marka.toLowerCase().includes(marka);
+                matchModel = device.kamera_model.toLowerCase().includes(model);
+                matchSeriNo = device.kamera_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'segbis':
-                matchMarka = device.segbisMarka.toLowerCase().includes(marka);
-                matchModel = device.segbisModel.toLowerCase().includes(model);
-                matchSeriNo = device.segbisSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.segbis_marka.toLowerCase().includes(marka);
+                matchModel = device.segbis_model.toLowerCase().includes(model);
+                matchSeriNo = device.segbis_seri_no.toLowerCase().includes(seriNo);
                 break;
-            case 'ehearing':
-                matchMarka = device.edurusmaMarka.toLowerCase().includes(marka);
-                matchModel = device.edurusmaModel.toLowerCase().includes(model);
-                matchSeriNo = device.edurusmaSeriNo.toLowerCase().includes(seriNo);
+            case 'e_durusma':
+                matchMarka = device.edurusma_marka.toLowerCase().includes(marka);
+                matchModel = device.edurusma_model.toLowerCase().includes(model);
+                matchSeriNo = device.edurusma_seri_no.toLowerCase().includes(seriNo);
                 break;
             case 'microphone':
-                matchMarka = device.mikrofonMarka.toLowerCase().includes(marka);
-                matchModel = device.mikrofonModel.toLowerCase().includes(model);
-                matchSeriNo = device.mikrofonSeriNo.toLowerCase().includes(seriNo);
+                matchMarka = device.mikrofon_marka.toLowerCase().includes(marka);
+                matchModel = device.mikrofon_model.toLowerCase().includes(model);
+                matchSeriNo = device.mikrofon_seri_no.toLowerCase().includes(seriNo);
                 break;
         }
         
@@ -378,21 +534,25 @@ function applyFilters() {
 
 // Switch active tab
 function switchTab(tabType) {
+    console.log('Switching to tab:', tabType);
+    
     // Remove active class from all buttons and panes
-    tabButtons.forEach(button => button.classList.remove('active'));
-    tabPanes.forEach(pane => pane.classList.remove('active'));
+    tabButtons.forEach(button => {
+        button.classList.remove('active');
+        if(button.getAttribute('data-tab') === tabType) {
+            button.classList.add('active');
+        }
+    });
     
-    // Add active class to selected button and pane
-    const selectedButton = document.querySelector(`.tab-button[data-tab="${tabType}"]`);
-    const selectedPane = document.getElementById(`${tabType}Tab`);
-    
-    if (selectedButton && selectedPane) {
-        selectedButton.classList.add('active');
-        selectedPane.classList.add('active');
-    }
+    tabPanes.forEach(pane => {
+        pane.classList.remove('active');
+        if(pane.id === `${tabType}Tab`) {
+            pane.classList.add('active');
+        }
+    });
     
     // Re-render devices for the current tab
-    renderDevices();
+    renderDevices(tabType);
 }
 
 // Update device statistics
@@ -406,7 +566,7 @@ function updateDeviceStats() {
         tv: 0,
         camera: 0,
         segbis: 0,
-        ehearing: 0,
+        e_durusma: 0,
         microphone: 0
     };
     
@@ -418,7 +578,10 @@ function updateDeviceStats() {
     
     // Update stat numbers in UI
     Object.keys(stats).forEach(type => {
-        const element = document.getElementById(`${type}Count`);
+        let elementId = `${type}Count`;
+        // E-Duruşma için özel id düzeltmesi
+        if (type === 'e_durusma') elementId = 'ehearingCount';
+        const element = document.getElementById(elementId);
         if (element) {
             element.textContent = stats[type];
         }
@@ -426,144 +589,173 @@ function updateDeviceStats() {
 }
 
 // Render devices in their respective tables
-function renderDevices(devicesList = devices) {
-    // Get current active tab
-    const activeTab = document.querySelector('.tab-button.active').dataset.tab;
+function renderDevices(activeTab = 'computer') {
+    console.log('Rendering devices for tab:', activeTab);
     
-    // Clear all table bodies
-    document.querySelectorAll('.devices-table tbody').forEach(tbody => tbody.innerHTML = '');
+    // Get devices for the active tab
+    const filteredDevices = devices.filter(device => device.type === activeTab);
+    console.log(`${activeTab} için ${filteredDevices.length} cihaz bulundu`);
     
-    // Filter devices by type and render in appropriate table
-    devicesList.forEach(device => {
-        if (device.type === activeTab) {
-            const tbody = document.getElementById(`${activeTab}TableBody`);
-            if (!tbody) return;
-            
-            let row = document.createElement('tr');
-            let cells = [];
-            
-            // Common field
-            cells.push(`<td>${device.birim}</td>`);
-            
-            // Device specific fields
-            switch (activeTab) {
-                case 'computer':
-                    cells.push(
-                        `<td>${device.unvan || ''}</td>`,
-                        `<td>${device.adiSoyadi || ''}</td>`,
-                        `<td>${device.sicilNo || ''}</td>`,
-                        `<td>${device.kasaMarka || ''}</td>`,
-                        `<td>${device.kasaModel || ''}</td>`,
-                        `<td>${device.kasaSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'laptop':
-                    cells.push(
-                        `<td>${device.unvan || ''}</td>`,
-                        `<td>${device.adiSoyadi || ''}</td>`,
-                        `<td>${device.sicilNo || ''}</td>`,
-                        `<td>${device.laptopMarka || ''}</td>`,
-                        `<td>${device.laptopModel || ''}</td>`,
-                        `<td>${device.laptopSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'screen':
-                    cells.push(
-                        `<td>${device.unvan || ''}</td>`,
-                        `<td>${device.adiSoyadi || ''}</td>`,
-                        `<td>${device.sicilNo || ''}</td>`,
-                        `<td>${device.ekranMarka || ''}</td>`,
-                        `<td>${device.ekranModel || ''}</td>`,
-                        `<td>${device.ekranSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'printer':
-                    cells.push(
-                        `<td>${device.yaziciMarka || ''}</td>`,
-                        `<td>${device.yaziciModel || ''}</td>`,
-                        `<td>${device.yaziciSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'scanner':
-                    cells.push(
-                        `<td>${device.tarayiciMarka || ''}</td>`,
-                        `<td>${device.tarayiciModel || ''}</td>`,
-                        `<td>${device.tarayiciSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'tv':
-                    cells.push(
-                        `<td>${device.tvMarka || ''}</td>`,
-                        `<td>${device.tvModel || ''}</td>`,
-                        `<td>${device.tvSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'camera':
-                    cells.push(
-                        `<td>${device.kameraMarka || ''}</td>`,
-                        `<td>${device.kameraModel || ''}</td>`,
-                        `<td>${device.kameraSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'segbis':
-                    cells.push(
-                        `<td>${device.segbisMarka || ''}</td>`,
-                        `<td>${device.segbisModel || ''}</td>`,
-                        `<td>${device.segbisSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'ehearing':
-                    cells.push(
-                        `<td>${device.edurusmaMarka || ''}</td>`,
-                        `<td>${device.edurusmaModel || ''}</td>`,
-                        `<td>${device.edurusmaSeriNo || ''}</td>`
-                    );
-                    break;
-                case 'microphone':
-                    cells.push(
-                        `<td>${device.birim || ''}</td>`,
-                        `<td>${device.mikrofonMarka || ''}</td>`,
-                        `<td>${device.mikrofonModel || ''}</td>`,
-                        `<td>${device.mikrofonSeriNo || ''}</td>`
-                    );
-                    break;
-            }
-            
-            // Action buttons
-            cells.push(`
-                <td class="table-actions">
-                    <button onclick="showDeviceDetails(${device.id})" class="btn-icon info" title="Detayları Göster">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                    <button onclick="showEditModal(${device.id})" class="btn-icon edit" title="Düzenle">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button onclick="deleteDevice(${device.id})" class="btn-icon delete" title="Sil">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </td>
-            `);
-            
-            row.innerHTML = cells.join('');
-            tbody.appendChild(row);
+    // Get the appropriate table body
+    const tbody = document.getElementById(`${activeTab}TableBody`);
+    if (!tbody) {
+        console.warn(`Table body not found for tab: ${activeTab}`);
+        return;
+    }
+    
+    // Clear the table
+    tbody.innerHTML = '';
+    
+    // Render devices
+    filteredDevices.forEach(device => {
+        const row = document.createElement('tr');
+        let cells = [];
+        
+        // Common field
+        cells.push(`<td>${device.birim || ''}</td>`);
+        
+        // Device specific fields
+        switch (activeTab) {
+            case 'computer':
+                cells.push(
+                    `<td>${device.unvan || ''}</td>`,
+                    `<td>${device.adi_soyadi || ''}</td>`,
+                    `<td>${device.sicil_no || ''}</td>`,
+                    `<td>${device.kasa_marka || ''}</td>`,
+                    `<td>${device.kasa_model || ''}</td>`,
+                    `<td>${device.kasa_seri_no || ''}</td>`
+                );
+                break;
+            case 'laptop':
+                cells.push(
+                    `<td>${device.unvan || ''}</td>`,
+                    `<td>${device.adi_soyadi || ''}</td>`,
+                    `<td>${device.sicil_no || ''}</td>`,
+                    `<td>${device.laptop_marka || ''}</td>`,
+                    `<td>${device.laptop_model || ''}</td>`,
+                    `<td>${device.laptop_seri_no || ''}</td>`
+                );
+                break;
+            case 'screen':
+                cells.push(
+                    `<td>${device.unvan || ''}</td>`,
+                    `<td>${device.adi_soyadi || ''}</td>`,
+                    `<td>${device.sicil_no || ''}</td>`,
+                    `<td>${device.ekran_marka || ''}</td>`,
+                    `<td>${device.ekran_model || ''}</td>`,
+                    `<td>${device.ekran_seri_no || ''}</td>`
+                );
+                break;
+            case 'printer':
+                cells.push(
+                    `<td>${device.yazici_marka || ''}</td>`,
+                    `<td>${device.yazici_model || ''}</td>`,
+                    `<td>${device.yazici_seri_no || ''}</td>`
+                );
+                break;
+            case 'scanner':
+                cells.push(
+                    `<td>${device.tarayici_marka || ''}</td>`,
+                    `<td>${device.tarayici_model || ''}</td>`,
+                    `<td>${device.tarayici_seri_no || ''}</td>`
+                );
+                break;
+            case 'tv':
+                cells.push(
+                    `<td>${device.tv_marka || ''}</td>`,
+                    `<td>${device.tv_model || ''}</td>`,
+                    `<td>${device.tv_seri_no || ''}</td>`
+                );
+                break;
+            case 'camera':
+                cells.push(
+                    `<td>${device.kamera_marka || ''}</td>`,
+                    `<td>${device.kamera_model || ''}</td>`,
+                    `<td>${device.kamera_seri_no || ''}</td>`
+                );
+                break;
+            case 'segbis':
+                cells.push(
+                    `<td>${device.segbis_marka || ''}</td>`,
+                    `<td>${device.segbis_model || ''}</td>`,
+                    `<td>${device.segbis_seri_no || ''}</td>`
+                );
+                break;
+            case 'e_durusma':
+                cells.push(
+                    `<td>${device.edurusma_marka || ''}</td>`,
+                    `<td>${device.edurusma_model || ''}</td>`,
+                    `<td>${device.edurusma_seri_no || ''}</td>`
+                );
+                break;
+            case 'microphone':
+                cells.push(
+                    `<td>${device.mikrofon_marka || ''}</td>`,
+                    `<td>${device.mikrofon_model || ''}</td>`,
+                    `<td>${device.mikrofon_seri_no || ''}</td>`
+                );
+                break;
         }
+        
+        // Action buttons
+        cells.push(`
+            <td class="table-actions">
+                <button onclick="showDeviceDetails('${device.id}', '${device.type}')" class="btn-icon info" title="Detayları Göster">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                <button onclick="showEditModal('${device.id}', '${device.type}')" class="btn-icon edit" title="Düzenle">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteDevice('${device.id}', '${device.type}')" class="btn-icon delete" title="Sil">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `);
+        
+        row.innerHTML = cells.join('');
+        tbody.appendChild(row);
     });
     
     // Update device statistics
     updateDeviceStats();
 }
 
+// Delete device from database
+async function deleteDeviceFromDatabase(device) {
+    try {
+        let table = `${device.type}s`;
+        if (device.type === 'e_durusma') table = 'e_durusma';
+        const { error } = await supabase
+            .from(table)
+            .delete()
+            .eq('id', device.id);
+
+        if (error) throw error;
+
+        showNotification('Cihaz başarıyla silindi', 'success');
+        await fetchDevices(); // Listeyi güncelle
+    } catch (error) {
+        console.error('Error deleting device:', JSON.stringify(error), device);
+        showNotification('Cihaz silinirken bir hata oluştu', 'error');
+    }
+}
+
 // Delete device
-function deleteDevice(id) {
+async function deleteDevice(deviceId, type) {
     if (confirm('Bu cihazı silmek istediğinizden emin misiniz?')) {
-        devices = devices.filter(device => device.id !== id);
-        renderDevices();
+        const idNumber = Number(deviceId);
+        if (isNaN(idNumber)) {
+            console.error('Silme işlemi için geçersiz id:', deviceId);
+            showNotification('Geçersiz cihaz id\'si!', 'error');
+            return;
+        }
+        await deleteDeviceFromDatabase({ id: idNumber, type: type });
     }
 }
 
 // Edit device
-function editDevice(id) {
-    const device = devices.find(d => d.id === id);
+function editDevice(id, type) {
+    const device = devices.find(d => d.id === parseInt(id) && d.type === type);
     if (!device) return;
     
     // Show edit modal with device data
@@ -572,9 +764,13 @@ function editDevice(id) {
 }
 
 // Show Edit Modal
-function showEditModal(deviceId) {
-    const device = devices.find(d => d.id === deviceId);
-    if (!device) return;
+function showEditModal(deviceId, deviceType) {
+    console.log('showEditModal çağrıldı:', deviceId, deviceType, devices);
+    const device = devices.find(d => String(d.id) === String(deviceId) && d.type === deviceType);
+    if (!device) {
+        console.error('Düzenleme için cihaz bulunamadı:', deviceId, deviceType);
+        return;
+    }
 
     currentDeviceId = deviceId;
     const modal = document.getElementById('editDeviceModal');
@@ -616,6 +812,24 @@ function fillEditFormFields(device) {
             input.value = device[field.id] || '';
         }
     });
+
+    // Garanti tarihlerini doldur
+    if (document.getElementById('ilk_garanti_tarihi')) {
+        document.getElementById('ilk_garanti_tarihi').value = device.ilk_garanti_tarihi || '';
+    }
+    if (document.getElementById('son_garanti_tarihi')) {
+        document.getElementById('son_garanti_tarihi').value = device.son_garanti_tarihi || '';
+    }
+
+    // Temizlik tarihlerini doldur (sadece kasa için)
+    if (device.type === 'computer') {
+        if (document.getElementById('ilk_temizlik_tarihi')) {
+            document.getElementById('ilk_temizlik_tarihi').value = device.ilk_temizlik_tarihi || '';
+        }
+        if (document.getElementById('son_temizlik_tarihi')) {
+            document.getElementById('son_temizlik_tarihi').value = device.son_temizlik_tarihi || '';
+        }
+    }
 }
 
 // Close Edit Modal
@@ -626,28 +840,33 @@ function closeEditModal() {
 }
 
 // Update Device
-function updateDevice() {
+async function updateDevice(event) {
+    if (event) event.preventDefault();
     const form = document.getElementById('editDeviceForm');
     if (!form.checkValidity()) {
         form.reportValidity();
         return;
     }
 
-    const deviceId = currentDeviceId;
-    const deviceIndex = devices.findIndex(d => d.id === deviceId);
-    if (deviceIndex === -1) return;
-
+    const deviceId = Number(document.getElementById('editDeviceId').value);
     const deviceType = document.getElementById('editDeviceType').value;
     const birim = document.getElementById('editBirim').value;
 
     // Cihazı güncelle
     const updatedDevice = {
         id: deviceId,
-        type: deviceType,
-        birim: birim
+        birim: birim,
+        ilk_garanti_tarihi: document.getElementById('ilk_garanti_tarihi').value,
+        son_garanti_tarihi: document.getElementById('son_garanti_tarihi').value
     };
 
-    // Diğer alanları ekle
+    // Temizlik tarihlerini sadece kasa için ekle
+    if (deviceType === 'computer') {
+        updatedDevice.ilk_temizlik_tarihi = document.getElementById('ilk_temizlik_tarihi').value || null;
+        updatedDevice.son_temizlik_tarihi = document.getElementById('son_temizlik_tarihi').value || null;
+    }
+
+    // Diğer alanları ekle (snake_case)
     const fields = getFormFieldsByType(deviceType);
     fields.forEach(field => {
         const input = document.getElementById(`edit_${field.id}`);
@@ -656,141 +875,202 @@ function updateDevice() {
         }
     });
 
-    // Cihazı güncelle
-    devices[deviceIndex] = updatedDevice;
+    // Tablo adını ayarla
+    let table = `${deviceType}s`;
+    if (deviceType === 'e_durusma') table = 'e_durusma';
 
-    // Modalı kapat ve tabloyu güncelle
-    closeEditModal();
-    renderDevices();
-    showNotification('Cihaz başarıyla güncellendi', 'success');
+    try {
+        const { error } = await supabase
+            .from(table)
+            .update(updatedDevice)
+            .eq('id', deviceId);
+        if (error) throw error;
+        showNotification('Cihaz başarıyla güncellendi', 'success');
+        closeEditModal();
+        await fetchDevices();
+    } catch (error) {
+        console.error('Error updating device:', JSON.stringify(error), updatedDevice);
+        showNotification('Cihaz güncellenirken bir hata oluştu', 'error');
+    }
 }
 
 // Show Device Details
-function showDeviceDetails(deviceId) {
-    const device = devices.find(d => d.id === deviceId);
-    if (!device) return;
+function showDeviceDetails(deviceId, deviceType) {
+    const device = devices.find(d => d.id === Number(deviceId) && d.type === deviceType);
+    if (!device) {
+        console.error('Device not found:', deviceId, deviceType);
+        return;
+    }
 
-    currentDeviceId = deviceId;
-    
-    // Clear previous codes
-    document.getElementById('qrCode').innerHTML = '';
-    document.getElementById('barcode').innerHTML = '';
+    // Modalı aç
+    const modal = document.getElementById('deviceDetailsModal');
+    if (!modal) {
+        console.error('Device details modal not found');
+        return;
+    }
+    modal.classList.add('show');
 
-    // Update general info
+    // Ortak alanlar
     document.getElementById('detailUnit').textContent = device.birim || '';
-    
-    // Set brand, model, and serial based on device type
+
+    // Cihaz türüne göre alanlar
     let brand = '', model = '', serial = '';
-    switch (device.type) {
+    switch (deviceType) {
         case 'computer':
-            brand = device.kasaMarka || '';
-            model = device.kasaModel || '';
-            serial = device.kasaSeriNo || '';
+            brand = device.kasa_marka || '';
+            model = device.kasa_model || '';
+            serial = device.kasa_seri_no || '';
+            
+            // Temizlik alanlarını görünür yap
+            document.getElementById('detailIlkTemizlikRow').style.display = '';
+            document.getElementById('detailSonTemizlikRow').style.display = '';
+            
+            // Temizlik tarihlerini göster
+            if (device.ilk_temizlik_tarihi) {
+                try {
+                    const ilkTemizlikDate = new Date(device.ilk_temizlik_tarihi);
+                    const sonTemizlikDate = new Date(device.son_temizlik_tarihi);
+                    document.getElementById('detailIlkTemizlik').textContent = ilkTemizlikDate.toLocaleDateString('tr-TR');
+                    document.getElementById('detailSonTemizlik').textContent = sonTemizlikDate.toLocaleDateString('tr-TR');
+                } catch (error) {
+                    console.error('Error formatting cleaning dates:', error);
+                    document.getElementById('detailIlkTemizlik').textContent = device.ilk_temizlik_tarihi || '-';
+                    document.getElementById('detailSonTemizlik').textContent = device.son_temizlik_tarihi || '-';
+                }
+            } else {
+                document.getElementById('detailIlkTemizlik').textContent = '-';
+                document.getElementById('detailSonTemizlik').textContent = '-';
+            }
             break;
         case 'laptop':
-            brand = device.laptopMarka || '';
-            model = device.laptopModel || '';
-            serial = device.laptopSeriNo || '';
+            brand = device.laptop_marka || '';
+            model = device.laptop_model || '';
+            serial = device.laptop_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'screen':
-            brand = device.ekranMarka || '';
-            model = device.ekranModel || '';
-            serial = device.ekranSeriNo || '';
+            brand = device.ekran_marka || '';
+            model = device.ekran_model || '';
+            serial = device.ekran_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'printer':
-            brand = device.yaziciMarka || '';
-            model = device.yaziciModel || '';
-            serial = device.yaziciSeriNo || '';
+            brand = device.yazici_marka || '';
+            model = device.yazici_model || '';
+            serial = device.yazici_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'scanner':
-            brand = device.tarayiciMarka || '';
-            model = device.tarayiciModel || '';
-            serial = device.tarayiciSeriNo || '';
+            brand = device.tarayici_marka || '';
+            model = device.tarayici_model || '';
+            serial = device.tarayici_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'tv':
-            brand = device.tvMarka || '';
-            model = device.tvModel || '';
-            serial = device.tvSeriNo || '';
+            brand = device.tv_marka || '';
+            model = device.tv_model || '';
+            serial = device.tv_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'camera':
-            brand = device.kameraMarka || '';
-            model = device.kameraModel || '';
-            serial = device.kameraSeriNo || '';
+            brand = device.kamera_marka || '';
+            model = device.kamera_model || '';
+            serial = device.kamera_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'segbis':
-            brand = device.segbisMarka || '';
-            model = device.segbisModel || '';
-            serial = device.segbisSeriNo || '';
+            brand = device.segbis_marka || '';
+            model = device.segbis_model || '';
+            serial = device.segbis_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
-        case 'ehearing':
-            brand = device.edurusmaMarka || '';
-            model = device.edurusmaModel || '';
-            serial = device.edurusmaSeriNo || '';
+        case 'e_durusma':
+            brand = device.edurusma_marka || '';
+            model = device.edurusma_model || '';
+            serial = device.edurusma_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
         case 'microphone':
-            brand = device.mikrofonMarka || '';
-            model = device.mikrofonModel || '';
-            serial = device.mikrofonSeriNo || '';
+            brand = device.mikrofon_marka || '';
+            model = device.mikrofon_model || '';
+            serial = device.mikrofon_seri_no || '';
+            // Temizlik alanlarını gizle
+            document.getElementById('detailIlkTemizlikRow').style.display = 'none';
+            document.getElementById('detailSonTemizlikRow').style.display = 'none';
             break;
     }
-    
+
+    // Marka, model ve seri numarasını göster
     document.getElementById('detailBrand').textContent = brand;
     document.getElementById('detailModel').textContent = model;
     document.getElementById('detailSerial').textContent = serial;
 
-    // Generate QR Code
-    const qr = qrcode(0, 'M');
-    const qrData = JSON.stringify({
-        type: device.type,
-        brand: brand,
-        model: model,
-        serial: serial,
-        unit: device.birim
-    });
-    qr.addData(qrData);
-    qr.make();
-    document.getElementById('qrCode').innerHTML = qr.createImgTag(5);
+    // Garanti tarihlerini göster
+    document.getElementById('detailIlkGaranti').textContent = device.ilk_garanti_tarihi
+        ? new Date(device.ilk_garanti_tarihi).toLocaleDateString('tr-TR')
+        : '-';
+    document.getElementById('detailSonGaranti').textContent = device.son_garanti_tarihi
+        ? new Date(device.son_garanti_tarihi).toLocaleDateString('tr-TR')
+        : '-';
 
-    // Generate Barcode
-    const barcodeContainer = document.getElementById('barcode');
-    barcodeContainer.innerHTML = ''; // Clear previous barcode
+    // QR ve barkod görsellerini oluştur
+    const qrValue = device.qr_kod || '';
+    const barcodeValue = device.barkod || '';
 
-    // Create unique barcode content based on device type and serial
-    const barcodeContent = `${getDeviceTypeName(device.type).toUpperCase()}-${serial || 'NO-SERIAL'}`;
-    
-    try {
-        // Create SVG element
-        const barcodeElement = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        barcodeContainer.appendChild(barcodeElement);
+    // Küçük bir gecikme ile QR ve barkod oluştur
+    setTimeout(() => {
+        // QR kodu
+        if (window.qrcode && qrValue) {
+            document.getElementById('qrCode').innerHTML = '';
+            const qr = window.qrcode(4, 'L');
+            qr.addData(qrValue);
+            qr.make();
+            document.getElementById('qrCode').innerHTML = qr.createImgTag(4);
+        } else {
+            document.getElementById('qrCode').innerHTML = '';
+        }
 
-        // Generate barcode with device-specific format
-        JsBarcode(barcodeElement, barcodeContent, {
-            format: "CODE128",
-            width: 2,
-            height: 100,
-            displayValue: true,
-            text: barcodeContent,
-            textAlign: "center",
-            textPosition: "bottom",
-            textMargin: 2,
-            fontSize: 16,
-            background: "#ffffff",
-            lineColor: "#000000",
-            margin: 10
-        });
+        // Barkod
+        if (window.JsBarcode && barcodeValue) {
+            document.getElementById('barcode').innerHTML = '<svg id="barcodeSvg"></svg>';
+            JsBarcode("#barcodeSvg", barcodeValue, {format: "CODE128"});
+        } else {
+            document.getElementById('barcode').innerHTML = '';
+        }
+    }, 50);
 
-        // Add some styling to the SVG
-        barcodeElement.style.width = '100%';
-        barcodeElement.style.maxHeight = '150px';
-        barcodeElement.style.marginTop = '10px';
-        barcodeElement.style.marginBottom = '10px';
-    } catch (error) {
-        console.error('Barcode generation error:', error);
-        barcodeContainer.innerHTML = '<p>Barkod oluşturulamadı</p>';
+    // Unvan, Adı Soyadı, Sicil No alanlarını göster/gizle
+    const unvanRow = document.getElementById('detailUnvanRow');
+    const adSoyadRow = document.getElementById('detailAdSoyadRow');
+    const sicilNoRow = document.getElementById('detailSicilNoRow');
+    if (deviceType === 'computer' || deviceType === 'screen') {
+        unvanRow.style.display = '';
+        adSoyadRow.style.display = '';
+        sicilNoRow.style.display = '';
+        document.getElementById('detailUnvan').textContent = device.unvan || '';
+        document.getElementById('detailAdSoyad').textContent = device.adi_soyadi || '';
+        document.getElementById('detailSicilNo').textContent = device.sicil_no || '';
+    } else {
+        unvanRow.style.display = 'none';
+        adSoyadRow.style.display = 'none';
+        sicilNoRow.style.display = 'none';
     }
-
-    // Show modal
-    document.getElementById('deviceDetailsModal').classList.add('show');
 }
 
 // Close Details Modal
@@ -812,7 +1092,7 @@ function getDeviceTypeName(type) {
         camera: 'Kamera',
         segbis: 'SEGBIS',
         microphone: 'Mikrofon',
-        ehearing: 'E-Duruşma'
+        e_durusma: 'E-Duruşma'
     };
     return types[type] || type;
 }
@@ -833,3 +1113,504 @@ window.updateDevice = updateDevice;
 window.showDeviceDetails = showDeviceDetails;
 window.closeDetailsModal = closeDetailsModal;
 window.updateEditFormFields = updateEditFormFields;
+
+// Key mapping function: Supabase -> camelCase (ŞİMDİ snake_case döndürsün)
+function mapDeviceKeys(device, type) {
+    switch (type) {
+        case 'computer':
+            return {
+                id: device.id,
+                type: 'computer',
+                birim: device.birim,
+                unvan: device.unvan,
+                adi_soyadi: device.adi_soyadi,
+                sicil_no: device.sicil_no,
+                kasa_marka: device.kasa_marka,
+                kasa_model: device.kasa_model,
+                kasa_seri_no: device.kasa_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
+                ilk_temizlik_tarihi: device.ilk_temizlik_tarihi,
+                son_temizlik_tarihi: device.son_temizlik_tarihi,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'laptop':
+            return {
+                id: device.id,
+                type: 'laptop',
+                birim: device.birim,
+                unvan: device.unvan,
+                adi_soyadi: device.adi_soyadi,
+                sicil_no: device.sicil_no,
+                laptop_marka: device.laptop_marka,
+                laptop_model: device.laptop_model,
+                laptop_seri_no: device.laptop_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'screen':
+            return {
+                id: device.id,
+                type: 'screen',
+                birim: device.birim,
+                unvan: device.unvan,
+                adi_soyadi: device.adi_soyadi,
+                sicil_no: device.sicil_no,
+                ekran_marka: device.ekran_marka,
+                ekran_model: device.ekran_model,
+                ekran_seri_no: device.ekran_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'printer':
+            return {
+                id: device.id,
+                type: 'printer',
+                birim: device.birim,
+                yazici_marka: device.yazici_marka,
+                yazici_model: device.yazici_model,
+                yazici_seri_no: device.yazici_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'scanner':
+            return {
+                id: device.id,
+                type: 'scanner',
+                birim: device.birim,
+                tarayici_marka: device.tarayici_marka,
+                tarayici_model: device.tarayici_model,
+                tarayici_seri_no: device.tarayici_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'tv':
+            return {
+                id: device.id,
+                type: 'tv',
+                birim: device.birim,
+                tv_marka: device.tv_marka,
+                tv_model: device.tv_model,
+                tv_seri_no: device.tv_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'camera':
+            return {
+                id: device.id,
+                type: 'camera',
+                birim: device.birim,
+                kamera_marka: device.kamera_marka,
+                kamera_model: device.kamera_model,
+                kamera_seri_no: device.kamera_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'segbis':
+            return {
+                id: device.id,
+                type: 'segbis',
+                birim: device.birim,
+                segbis_marka: device.segbis_marka,
+                segbis_model: device.segbis_model,
+                segbis_seri_no: device.segbis_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'e_durusma':
+            return {
+                id: device.id,
+                type: 'e_durusma',
+                birim: device.birim,
+                edurusma_marka: device.edurusma_marka,
+                edurusma_model: device.edurusma_model,
+                edurusma_seri_no: device.edurusma_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        case 'microphone':
+            return {
+                id: device.id,
+                type: 'microphone',
+                birim: device.birim,
+                mikrofon_marka: device.mikrofon_marka,
+                mikrofon_model: device.mikrofon_model,
+                mikrofon_seri_no: device.mikrofon_seri_no,
+                qr_kod: device.qr_kod,
+                barkod: device.barkod
+            };
+        default:
+            return device;
+    }
+}
+
+// Database functions
+async function fetchDevices() {
+    try {
+        console.log('Veritabanından cihazlar çekiliyor...');
+        // Tablo adı -> type eşlemesi
+        const tableTypeMap = {
+            computers: 'computer',
+            laptops: 'laptop',
+            screens: 'screen',
+            printers: 'printer',
+            scanners: 'scanner',
+            tvs: 'tv',
+            cameras: 'camera',
+            segbis: 'segbis',
+            microphones: 'microphone',
+            e_durusma: 'e_durusma'
+        };
+        // Tablo adı -> select alanları eşlemesi (tamamen snake_case!)
+        const tableSelectMap = {
+            computers: 'id, birim, unvan, adi_soyadi, sicil_no, kasa_marka, kasa_model, kasa_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, ilk_temizlik_tarihi, son_temizlik_tarihi, qr_kod, barkod',
+            laptops: 'id, birim, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, qr_kod, barkod',
+            screens: 'id, birim, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, qr_kod, barkod',
+            printers: 'id, birim, yazici_marka, yazici_model, yazici_seri_no, qr_kod, barkod',
+            scanners: 'id, birim, tarayici_marka, tarayici_model, tarayici_seri_no, qr_kod, barkod',
+            tvs: 'id, birim, tv_marka, tv_model, tv_seri_no, qr_kod, barkod',
+            cameras: 'id, birim, kamera_marka, kamera_model, kamera_seri_no, qr_kod, barkod',
+            segbis: 'id, birim, segbis_marka, segbis_model, segbis_seri_no, qr_kod, barkod',
+            microphones: 'id, birim, mikrofon_marka, mikrofon_model, mikrofon_seri_no, qr_kod, barkod',
+            e_durusma: 'id, birim, edurusma_marka, edurusma_model, edurusma_seri_no, qr_kod, barkod'
+        };
+        const tables = Object.keys(tableTypeMap);
+        let allDevices = [];
+        for (const table of tables) {
+            console.log(`${table} tablosundan veri çekiliyor...`);
+            const { data, error } = await supabase
+                .from(table)
+                .select(tableSelectMap[table]);
+            if (error) {
+                console.error(`Error fetching ${table}:`, error);
+                continue;
+            }
+            if (data && data.length > 0) {
+                console.log(`${table} tablosundan ${data.length} cihaz bulundu`);
+                const type = tableTypeMap[table];
+                const devicesWithType = data.map(device => mapDeviceKeys(device, type));
+                allDevices = [...allDevices, ...devicesWithType];
+            }
+        }
+        devices = allDevices;
+        console.log('Toplam cihaz sayısı:', devices.length);
+        // Aktif tab'ı render et
+        const activeTab = document.querySelector('.tab-button.active')?.getAttribute('data-tab') || 'computer';
+        renderDevices(activeTab);
+        updateDeviceStats();
+    } catch (error) {
+        console.error('Error fetching devices:', error);
+        showNotification('Cihazlar yüklenirken bir hata oluştu', 'error');
+    }
+}
+
+// Save new device to database
+async function saveDeviceToDatabase(device) {
+    try {
+        if (!device.type) {
+            throw new Error('Cihaz tipi belirtilmedi!');
+        }
+
+        // Tablo adını doğru şekilde oluştur
+        let table = device.type;
+        if (device.type === 'e_durusma') {
+            table = 'e_durusma';
+        } else {
+            table = `${device.type}s`;
+        }
+
+        // Veritabanına gönderilecek veriyi hazırla
+        const deviceData = { ...device };
+        delete deviceData.type; // type alanını kaldır
+
+        // QR ve barkod oluştur
+        const timestamp = new Date().getTime();
+        const random = Math.floor(Math.random() * 1000);
+        deviceData.qr_kod = `${device.type}_${timestamp}_${random}`;
+        deviceData.barkod = `${device.type}_${timestamp}_${random}`;
+
+        console.log('Son hali ile gönderilecek veri:', JSON.stringify(deviceData, null, 2));
+
+        const { data, error } = await supabase
+            .from(table)
+            .insert([deviceData])
+            .select();
+
+        if (error) {
+            console.error('Supabase hatası:', error);
+            throw error;
+        }
+
+        console.log('Başarılı yanıt:', data);
+        showNotification('Cihaz başarıyla kaydedildi', 'success');
+        await fetchDevices();
+        return data[0];
+    } catch (error) {
+        console.error('Cihaz kaydetme hatası:', error);
+        showNotification('Cihaz kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+        throw error;
+    }
+}
+
+// Update device in database
+async function updateDeviceInDatabase(device) {
+    try {
+        // Tablo adını doğru şekilde oluştur
+        let table = device.type;
+        if (device.type === 'e_durusma') {
+            table = 'e_durusma';
+        } else {
+            table = `${device.type}s`;
+        }
+
+        const { data, error } = await supabase
+            .from(table)
+            .update(device)
+            .eq('id', device.id)
+            .select();
+
+        if (error) throw error;
+
+        showNotification('Cihaz başarıyla güncellendi', 'success');
+        await fetchDevices(); // Listeyi güncelle
+    } catch (error) {
+        console.error('Error updating device:', error);
+        showNotification('Cihaz güncellenirken bir hata oluştu', 'error');
+    }
+}
+
+// Get form fields by device type
+function getFormFieldsByType(deviceType) {
+    switch (deviceType) {
+        case 'computer':
+            return [
+                { id: 'unvan', label: 'Unvan', required: true },
+                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+                { id: 'sicil_no', label: 'Sicil No', required: true },
+                { id: 'kasa_marka', label: 'Kasa Marka', required: true },
+                { id: 'kasa_model', label: 'Kasa Model', required: true },
+                { id: 'kasa_seri_no', label: 'Kasa Seri No', required: true }
+            ];
+        case 'laptop':
+            return [
+                { id: 'unvan', label: 'Unvan', required: true },
+                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+                { id: 'sicil_no', label: 'Sicil No', required: true },
+                { id: 'laptop_marka', label: 'Laptop Marka', required: true },
+                { id: 'laptop_model', label: 'Laptop Model', required: true },
+                { id: 'laptop_seri_no', label: 'Laptop Seri No', required: true }
+            ];
+        case 'screen':
+            return [
+                { id: 'unvan', label: 'Unvan', required: true },
+                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+                { id: 'sicil_no', label: 'Sicil No', required: true },
+                { id: 'ekran_marka', label: 'Monitör Marka', required: true },
+                { id: 'ekran_model', label: 'Monitör Model', required: true },
+                { id: 'ekran_seri_no', label: 'Monitör Seri No', required: true }
+            ];
+        case 'printer':
+            return [
+                { id: 'yazici_marka', label: 'Yazıcı Marka', required: true },
+                { id: 'yazici_model', label: 'Yazıcı Model', required: true },
+                { id: 'yazici_seri_no', label: 'Yazıcı Seri No', required: true }
+            ];
+        case 'scanner':
+            return [
+                { id: 'tarayici_marka', label: 'Tarayıcı Marka', required: true },
+                { id: 'tarayici_model', label: 'Tarayıcı Model', required: true },
+                { id: 'tarayici_seri_no', label: 'Tarayıcı Seri No', required: true }
+            ];
+        case 'tv':
+            return [
+                { id: 'tv_marka', label: 'TV Marka', required: true },
+                { id: 'tv_model', label: 'TV Model', required: true },
+                { id: 'tv_seri_no', label: 'TV Seri No', required: true }
+            ];
+        case 'camera':
+            return [
+                { id: 'kamera_marka', label: 'Kamera Marka', required: true },
+                { id: 'kamera_model', label: 'Kamera Model', required: true },
+                { id: 'kamera_seri_no', label: 'Kamera Seri No', required: true }
+            ];
+        case 'segbis':
+            return [
+                { id: 'segbis_marka', label: 'SEGBIS Marka', required: true },
+                { id: 'segbis_model', label: 'SEGBIS Model', required: true },
+                { id: 'segbis_seri_no', label: 'SEGBIS Seri No', required: true }
+            ];
+        case 'microphone':
+            return [
+                { id: 'mikrofon_marka', label: 'Mikrofon Marka', required: true },
+                { id: 'mikrofon_model', label: 'Mikrofon Model', required: true },
+                { id: 'mikrofon_seri_no', label: 'Mikrofon Seri No', required: true }
+            ];
+        case 'e_durusma':
+            return [
+                { id: 'edurusma_marka', label: 'E-Duruşma Marka', required: true },
+                { id: 'edurusma_model', label: 'E-Duruşma Model', required: true },
+                { id: 'edurusma_seri_no', label: 'E-Duruşma Seri No', required: true }
+            ];
+        default:
+            return [];
+    }
+}
+
+// Show new device modal
+function showNewDeviceModal() {
+    const modal = document.getElementById('newDeviceModal');
+    if (!modal) {
+        console.error('New device modal not found!');
+        return;
+    }
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    
+    // Reset form
+    resetNewDeviceForm();
+    
+    // Update dynamic fields based on selected device type
+    const deviceTypeSelect = document.getElementById('newDeviceType');
+    if (deviceTypeSelect) {
+        updateNewDeviceFields();
+    }
+}
+
+function closeNewDeviceModal() {
+    const modal = document.getElementById('newDeviceModal');
+    if (!modal) {
+        console.error('New device modal not found!');
+        return;
+    }
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Reset form
+    resetNewDeviceForm();
+}
+
+function resetNewDeviceForm() {
+    const form = document.getElementById('newDeviceForm');
+    if (!form) {
+        console.error('New device form not found!');
+        return;
+    }
+    form.reset();
+    
+    // Clear dynamic fields
+    const dynamicFields = document.getElementById('newDynamicFields');
+    if (dynamicFields) {
+        dynamicFields.innerHTML = '';
+    }
+    
+    // Hide cleaning fields
+    const temizlikGroup = document.querySelector('.temizlik-group');
+    if (temizlikGroup) {
+        temizlikGroup.style.display = 'none';
+    }
+}
+
+function updateNewDeviceFields() {
+    const deviceType = document.getElementById('newDeviceType').value;
+    const dynamicFields = document.getElementById('newDynamicFields');
+    if (!dynamicFields) {
+        console.error('Dynamic fields container not found!');
+        return;
+    }
+    
+    // Clear existing fields
+    dynamicFields.innerHTML = '';
+    
+    // Get fields for selected device type
+    const fields = getFormFieldsByType(deviceType);
+    
+    // Create form groups for each field
+    fields.forEach(field => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+        formGroup.innerHTML = `
+            <label for="${field.id}">${field.label}</label>
+            <input type="text" id="${field.id}" name="${field.id}" ${field.required ? 'required' : ''}>
+        `;
+        dynamicFields.appendChild(formGroup);
+    });
+    
+    // Show/hide cleaning fields based on device type
+    const temizlikGroup = document.querySelector('.temizlik-group');
+    if (temizlikGroup) {
+        temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
+    }
+}
+
+// Save new device
+async function saveNewDevice(event) {
+    event.preventDefault();
+    const form = document.getElementById('newDeviceForm');
+    const formData = new FormData(form);
+
+    // Get device type
+    const deviceType = formData.get('newDeviceType');
+    if (!deviceType) {
+        showNotification('Lütfen bir cihaz tipi seçin', 'error');
+        return;
+    }
+
+    // Create new device object
+    const newDevice = {
+        birim: formData.get('newBirim') || ''
+    };
+
+    // Add dynamic fields
+    const fields = getFormFieldsByType(deviceType);
+    fields.forEach(field => {
+        newDevice[field.id] = formData.get(field.id) || '';
+    });
+
+    // Determine table name
+    let table = deviceType;
+    if (deviceType === 'e_durusma') {
+        table = 'e_durusma';
+    } else {
+        table = `${deviceType}s`;
+    }
+
+    // Generate QR and barcode
+    const timestamp = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000);
+    newDevice.qr_kod = `${deviceType}_${timestamp}_${random}`;
+    newDevice.barkod = `${deviceType}_${timestamp}_${random}`;
+
+    console.log('Sending data:', JSON.stringify(newDevice, null, 2));
+    try {
+        const { data, error } = await supabase
+            .from(table)
+            .insert([newDevice])
+            .select();
+        if (error) {
+            console.error('Supabase error:', error);
+            showNotification('Cihaz kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+            return;
+        }
+        showNotification('Cihaz başarıyla kaydedildi', 'success');
+        closeNewDeviceModal();
+        await fetchDevices();
+    } catch (error) {
+        console.error('Device save error:', error);
+        showNotification('Cihaz kaydedilirken bir hata oluştu: ' + (error.message || 'Bilinmeyen hata'), 'error');
+    }
+}
+
+// Event listener'ları ekle
+document.addEventListener('DOMContentLoaded', function() {
+    const newDeviceForm = document.getElementById('newDeviceForm');
+    if (newDeviceForm) {
+        newDeviceForm.addEventListener('submit', saveNewDevice);
+    }
+});
+
+// Make functions globally accessible
+window.showNewDeviceModal = showNewDeviceModal;
+window.closeNewDeviceModal = closeNewDeviceModal;
+window.updateNewDeviceFields = updateNewDeviceFields;
+window.saveNewDevice = saveNewDevice;

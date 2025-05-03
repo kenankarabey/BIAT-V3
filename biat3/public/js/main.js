@@ -31,12 +31,10 @@ document.addEventListener('DOMContentLoaded', function() {
     setupSidebar();
     setupContent();
     checkUserAuthStatus();
+    setupThemeToggle();
     
-    // Sidebar toggle butonuna tıklama olayı ekle
-    const sidebarToggle = document.querySelector('.toggle-sidebar');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', toggleSidebar);
-    }
+    // Tema değişimini test et
+    console.log('Mevcut tema:', document.documentElement.getAttribute('data-theme'));
 });
 
 // Kullanıcı oturum durumunu kontrol et
@@ -46,11 +44,11 @@ function checkUserAuthStatus() {
     if (!user) {
         // Kullanıcı oturumu yoksa ve login sayfasında değilse, login sayfasına yönlendir
         if (!window.location.pathname.includes('login.html')) {
-            window.location.href = 'login.html';
-        }
-        return;
+        window.location.href = 'login.html';
     }
-    
+        return;
+}
+
     // Kullanıcı oturumu varsa, kullanıcı bilgilerini güncelle
     updateUserInfo(JSON.parse(user));
 }
@@ -96,57 +94,176 @@ function setupSidebar() {
         const savedState = localStorage.getItem('sidebarState');
         if (savedState === 'collapsed') {
             sidebar.classList.add('collapsed');
+            if (toggleSidebarButton.querySelector('span')) {
             toggleSidebarButton.querySelector('span').textContent = 'Menü Aç';
+            }
         }
 
         // Sidebar toggle olayı
         toggleSidebarButton.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-            const isCollapsed = sidebar.classList.contains('collapsed');
-            toggleSidebarButton.querySelector('span').textContent = isCollapsed ? 'Menü Aç' : 'Menü Küçült';
-            localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
+            toggleSidebar();
         });
 
         // Alt menü olayları
-        if (submenuTriggers) {
-            submenuTriggers.forEach(trigger => {
-                trigger.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const parent = trigger.parentElement;
-                    const submenu = parent.querySelector('.submenu');
-                    const icon = trigger.querySelector('.submenu-icon');
+        submenuTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+            e.preventDefault();
+                e.stopPropagation();
+                
+                const parent = trigger.parentElement;
+                
+                // Toggle active class
+                parent.classList.toggle('active');
                     
-                    parent.classList.toggle('open');
-                    
+                    // Alt menüyü aç/kapat
+                const submenu = parent.querySelector('.submenu');
+                const icon = trigger.querySelector('.submenu-icon');
+                
+                // Submenu height ve ikon değişimi
                     if (submenu) {
-                        if (parent.classList.contains('open')) {
-                            submenu.style.maxHeight = submenu.scrollHeight + 'px';
-                            if (icon) {
-                                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
-                            }
-                        } else {
-                            submenu.style.maxHeight = '0';
-                            if (icon) {
-                                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
-                            }
+                    if (parent.classList.contains('active')) {
+                        submenu.style.maxHeight = submenu.scrollHeight + 'px';
+                        if (icon) {
+                            icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                        }
+                    } else {
+                        submenu.style.maxHeight = null;
+                        if (icon) {
+                            icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
                         }
                     }
-                });
+                }
             });
-        }
+        });
+        
+        // Alt menülerdeki tüm linkler için doğrudan tıklama olayı ekle
+        document.querySelectorAll('.submenu a').forEach(subMenuItem => {
+            subMenuItem.addEventListener('click', function(e) {
+                e.stopPropagation(); // Ana menü tıklama olayını engelle
+                const href = this.getAttribute('href');
+                if (href && href !== '#') {
+                    window.location.href = href;
+                        }
+            });
+        });
 
-        // Overlay tıklama olayı
+        // Sayfa yüklendiğinde aktif olan sayfa için alt menüyü aç
+        setTimeout(initActiveSubmenu, 100); // Küçük bir gecikme ekleyerek DOM'un tamamen yüklenmesini bekle
+
+        // Overlay tıklanınca sidebar'ı kapat
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => {
-                sidebar.classList.remove('active');
+            sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
         }
 
-        // Ekran boyutu değişimi
+        // Pencere boyutu değişince sidebar'ı düzenle
         window.addEventListener('resize', handleResize);
         handleResize();
+    }
+}
+
+// Sayfa yüklendiğinde aktif olan sayfa için alt menüyü aç
+function initActiveSubmenu() {
+    const currentPath = window.location.pathname;
+    const currentPage = currentPath.split('/').pop() || 'index.html';
+    
+    // Hakim Odaları sayfası için özel durum
+    if (currentPage === 'hakim-odalari.html') {
+        const cihazlarMenuItems = document.querySelectorAll('.has-submenu > a');
+        
+        cihazlarMenuItems.forEach(menuItem => {
+            const parent = menuItem.parentElement;
+            const submenu = parent.querySelector('.submenu');
+            
+            if (submenu) {
+                const hakimOdalariLink = submenu.querySelector('a[href="hakim-odalari.html"]');
+                
+                if (hakimOdalariLink) {
+                    // Bu parent'a active class ekle
+                    parent.classList.add('active');
+                
+                    // Alt menüyü aç
+                    submenu.style.maxHeight = submenu.scrollHeight + 'px';
+                    
+                    // İkonu değiştir
+                    const icon = menuItem.querySelector('.submenu-icon');
+                    if (icon) {
+                        icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                    }
+                    
+                    // Hakim odalari linkine active class ekle
+                    hakimOdalariLink.classList.add('active');
+                }
+            }
+        });
+        
+        return;
+    }
+    
+    // Diğer sayfalar için genel işlem
+    const activeMenuItem = document.querySelector(`.sidebar-nav a[href="${currentPage}"]`);
+    
+    if (activeMenuItem) {
+        // Aktif class'ı ekle
+        activeMenuItem.classList.add('active');
+        
+        // Eğer bu öğe bir alt menüdeyse, alt menüyü aç
+        const submenuParent = activeMenuItem.closest('.submenu');
+        if (submenuParent) {
+            const hasSubmenuParent = submenuParent.parentElement;
+            if (hasSubmenuParent && hasSubmenuParent.classList.contains('has-submenu')) {
+                hasSubmenuParent.classList.add('active');
+                
+                // Alt menüyü aç
+                submenuParent.style.maxHeight = submenuParent.scrollHeight + 'px';
+                
+                // İkonu değiştir
+                const parentLink = hasSubmenuParent.querySelector('a');
+                if (parentLink) {
+                    const icon = parentLink.querySelector('.submenu-icon');
+                    if (icon) {
+                        icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Sidebar toggle fonksiyonu
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const toggleSidebarButton = document.querySelector('.toggle-sidebar');
+    const sidebarOverlay = document.querySelector('.sidebar-overlay');
+    
+    if (!sidebar) return;
+    
+    if (window.innerWidth <= 768) {
+        // Mobil görünümde
+        sidebar.classList.toggle('active');
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.toggle('active');
+        }
+        
+        // Scroll kilidini ayarla
+        if (sidebar.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    } else {
+        // Masaüstü görünümünde
+        sidebar.classList.toggle('collapsed');
+        const isCollapsed = sidebar.classList.contains('collapsed');
+        
+        if (toggleSidebarButton && toggleSidebarButton.querySelector('span')) {
+            toggleSidebarButton.querySelector('span').textContent = isCollapsed ? 'Menü Aç' : 'Menü Küçült';
+        }
+        
+        localStorage.setItem('sidebarState', isCollapsed ? 'collapsed' : 'expanded');
     }
 }
 
@@ -161,7 +278,7 @@ function handleResize() {
             sidebarOverlay?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-    } else {
+            } else {
         sidebarOverlay?.classList.remove('active');
         document.body.style.overflow = '';
         
@@ -415,53 +532,134 @@ function saveDeviceToStorage(deviceData) {
 
 // Bildirim göster
 function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
+    console.log('Bildirim gösteriliyor:', { message, type });
     
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
+    try {
+        // Önceki bildirimleri temizle
+        const existingNotifications = document.querySelectorAll('.notification');
+        console.log('Mevcut bildirim sayısı:', existingNotifications.length);
+        existingNotifications.forEach(notification => {
+            console.log('Eski bildirim kaldırılıyor:', notification);
+            notification.remove();
+        });
 
-// Sidebar'ı aç/kapat
-function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.querySelector('.toggle-sidebar');
-    
-    sidebar.classList.toggle('collapsed');
-    toggleBtn.querySelector('span').textContent = 
-        sidebar.classList.contains('collapsed') ? 'Menü Aç' : 'Menü Küçült';
-}
-
-// Tema değiştirme fonksiyonu
-function setupThemeToggle() {
-    const themeToggleBtn = document.querySelector('.toggle-theme');
-    const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
-    
-    // Kayıtlı tema varsa uygula
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    
-    if (themeIcon) {
-        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        console.log('Bildirim elementi oluşturuldu:', notification);
+        
+        notification.innerHTML = `
+            <div class="notification-content">
+                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+                <span>${message}</span>
+            </div>
+            <button class="notification-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Bildirimi sayfanın üst kısmına ekle
+        document.body.insertBefore(notification, document.body.firstChild);
+        console.log('Bildirim DOM\'a eklendi');
+        
+        // Bildirimi göster
+        setTimeout(() => {
+            console.log('Bildirim gösteriliyor (show class eklendi)');
+            notification.classList.add('show');
+        }, 10);
+        
+        // Otomatik kapanma süresi
+        const autoHide = setTimeout(() => {
+            console.log('Bildirim otomatik kapanıyor');
+            hideNotification(notification);
+        }, 8000);
+        
+        // Kapatma butonu işlevi
+        const closeBtn = notification.querySelector('.notification-close');
+        if (closeBtn) {
+            console.log('Kapatma butonu bulundu');
+            closeBtn.addEventListener('click', () => {
+                console.log('Kapatma butonuna tıklandı');
+                clearTimeout(autoHide);
+                hideNotification(notification);
+            });
+        } else {
+            console.warn('Kapatma butonu bulunamadı!');
+        }
+    } catch (error) {
+        console.error('Bildirim gösterilirken hata oluştu:', error);
+        console.error('Hata detayı:', {
+            message: error.message,
+            stack: error.stack,
+            type: error.name
+        });
     }
+}
+
+// Bildirimi gizle
+function hideNotification(notification) {
+    console.log('Bildirim gizleniyor:', notification);
     
-    // Tema değiştirme butonu
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    try {
+        if (!notification) {
+            console.warn('Gizlenecek bildirim bulunamadı!');
+            return;
+        }
+        
+        notification.classList.remove('show');
+        notification.classList.add('hide');
+        console.log('Bildirim gizleme sınıfları eklendi');
+        
+        setTimeout(() => {
+            if (notification && notification.parentNode) {
+                console.log('Bildirim DOM\'dan kaldırılıyor');
+                notification.parentNode.removeChild(notification);
+            } else {
+                console.warn('Bildirim veya parent node bulunamadı!');
+            }
+        }, 300);
+    } catch (error) {
+        console.error('Bildirim gizlenirken hata oluştu:', error);
+        console.error('Hata detayı:', {
+            message: error.message,
+            stack: error.stack,
+            type: error.name
+        });
+    }
+}
+
+// Tema değiştirme butonunu ayarla
+function setupThemeToggle() {
+    const toggleThemeButton = document.querySelector('.toggle-theme');
+    const htmlElement = document.documentElement;
+    
+    // Sayfa yüklendiğinde tema ayarlanır
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', savedTheme);
+    
+    if (toggleThemeButton) {
+        const themeIcon = toggleThemeButton.querySelector('i');
+        if (themeIcon) {
+            themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+        
+        // Tema değiştirme olayı
+        toggleThemeButton.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             
-            document.documentElement.setAttribute('data-theme', newTheme);
+            // Tema değişimini uygula
+            htmlElement.setAttribute('data-theme', newTheme);
             localStorage.setItem('theme', newTheme);
             
+            // İkonu güncelle
             if (themeIcon) {
                 themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             }
+            
+            // Tema değişimini konsola yazdır (debug için)
+            console.log('Tema değiştirildi:', newTheme);
         });
+    } else {
+        console.warn('Tema değiştirme butonu bulunamadı!');
     }
 } 

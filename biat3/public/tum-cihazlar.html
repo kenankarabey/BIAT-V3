@@ -6,6 +6,11 @@
     <title>Tüm Cihazlar - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- QR Code and Barcode Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
 <body>
     <div class="app-container">
@@ -123,6 +128,11 @@
                             Tüm cihazların listesi ve detayları
                         </div>
                     </div>
+                    <div class="header-actions">
+                        <button class="btn-icon" title="Filtrele" onclick="toggleFilters()">
+                            <i class="fas fa-filter"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -134,7 +144,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-value" id="computerCount">0</div>
-                        <div class="stat-label">Bilgisayar</div>
+                        <div class="stat-label">Kasa</div>
                     </div>
                 </div>
                 <div class="stat-item">
@@ -237,7 +247,7 @@
                 <div class="device-tabs">
                     <div class="tab-buttons">
                         <button class="tab-button active" data-tab="computer">
-                            <i class="fas fa-desktop"></i> Bilgisayar
+                            <i class="fas fa-desktop"></i> Kasa
                         </button>
                         <button class="tab-button" data-tab="laptop">
                             <i class="fas fa-laptop"></i> Laptop
@@ -263,7 +273,7 @@
                         <button class="tab-button" data-tab="microphone">
                             <i class="fas fa-microphone"></i> Mikrofon
                         </button>
-                        <button class="tab-button" data-tab="ehearing">
+                        <button class="tab-button" data-tab="e_durusma">
                             <i class="fas fa-gavel"></i> E-Duruşma
                         </button>
                     </div>
@@ -298,32 +308,71 @@
                                     <button onclick="closeDetailsModal()" class="close-modal">&times;</button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="device-details">
-                                        <div class="detail-section">
-                                            <h3>Genel Bilgiler</h3>
-                                            <div class="detail-grid">
-                                                <div class="detail-item">
-                                                    <span class="detail-label">Birim</span>
-                                                    <span class="detail-value" id="detailUnit"></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <span class="detail-label">Marka</span>
-                                                    <span class="detail-value" id="detailBrand"></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <span class="detail-label">Model</span>
-                                                    <span class="detail-value" id="detailModel"></span>
-                                                </div>
-                                                <div class="detail-item">
-                                                    <span class="detail-label">Seri No</span>
-                                                    <span class="detail-value" id="detailSerial"></span>
-                                                </div>
+                                    <div class="device-details new-horizontal-grid">
+                                        <div class="info-cards-row">
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-building"></i>
+                                                <div class="info-label">Birim</div>
+                                                <div class="info-value" id="detailUnit"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailUnvanRow" style="display:none;">
+                                                <i class="fas fa-user-tie"></i>
+                                                <div class="info-label">Unvan</div>
+                                                <div class="info-value" id="detailUnvan"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailAdSoyadRow" style="display:none;">
+                                                <i class="fas fa-user"></i>
+                                                <div class="info-label">Adı Soyadı</div>
+                                                <div class="info-value" id="detailAdSoyad"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailSicilNoRow" style="display:none;">
+                                                <i class="fas fa-id-card"></i>
+                                                <div class="info-label">Sicil No</div>
+                                                <div class="info-value" id="detailSicilNo"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailIlkTemizlikRow" style="display:none;">
+                                                <i class="fas fa-broom"></i>
+                                                <div class="info-label">İlk Temizlik Tarihi</div>
+                                                <div class="info-value" id="detailIlkTemizlik"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailSonTemizlikRow" style="display:none;">
+                                                <i class="fas fa-broom"></i>
+                                                <div class="info-label">Son Temizlik Tarihi</div>
+                                                <div class="info-value" id="detailSonTemizlik"></div>
+                                            </div>
+                                            <div class="info-mini-card" id="detailSonrakiTemizlikRow" style="display:none;">
+                                                <i class="fas fa-calendar-check"></i>
+                                                <div class="info-label">Sonraki Temizlik Tarihi</div>
+                                                <div class="info-value" id="detailSonrakiTemizlik"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-shield-alt"></i>
+                                                <div class="info-label">İlk Garanti Tarihi</div>
+                                                <div class="info-value" id="detailIlkGaranti"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-shield-alt"></i>
+                                                <div class="info-label">Son Garanti Tarihi</div>
+                                                <div class="info-value" id="detailSonGaranti"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-tag"></i>
+                                                <div class="info-label">Marka</div>
+                                                <div class="info-value" id="detailBrand"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-cube"></i>
+                                                <div class="info-label">Model</div>
+                                                <div class="info-value" id="detailModel"></div>
+                                            </div>
+                                            <div class="info-mini-card">
+                                                <i class="fas fa-barcode"></i>
+                                                <div class="info-label">Seri No</div>
+                                                <div class="info-value" id="detailSerial"></div>
                                             </div>
                                         </div>
-
-                                        <!-- Codes Section -->
-                                        <div class="detail-section">
-                                            <h3>Cihaz Kodları</h3>
+                                        <div class="detail-section card">
+                                            <h3><i class="fas fa-qrcode"></i> Cihaz Kodları</h3>
                                             <div class="codes-grid">
                                                 <div class="code-container">
                                                     <div id="qrCode"></div>
@@ -339,7 +388,6 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button onclick="closeDetailsModal()" class="btn btn-secondary">Kapat</button>
-                                    <button onclick="showEditModal(currentDeviceId)" class="btn btn-primary">Düzenle</button>
                                 </div>
                             </div>
                         </div>
@@ -359,7 +407,7 @@
                                         <div class="form-group">
                                             <label for="editDeviceType">Cihaz Türü</label>
                                             <select id="editDeviceType" onchange="updateEditFormFields()">
-                                                <option value="computer">Bilgisayar</option>
+                                                <option value="computer">Kasa</option>
                                                 <option value="laptop">Laptop</option>
                                                 <option value="screen">Monitör</option>
                                                 <option value="printer">Yazıcı</option>
@@ -377,6 +425,18 @@
                                         </div>
                                         <div id="editDynamicFields">
                                             <!-- Dinamik form alanları buraya eklenecek -->
+                                        </div>
+                                        <div class="form-group garanti-group">
+                                          <label for="ilk_garanti_tarihi">İlk Garanti Tarihi</label>
+                                          <input type="date" id="ilk_garanti_tarihi">
+                                        </div>
+                                        <div class="form-group garanti-group">
+                                          <label for="son_garanti_tarihi">Son Garanti Tarihi</label>
+                                          <input type="date" id="son_garanti_tarihi">
+                                        </div>
+                                        <div class="form-group temizlik-group" style="display:none;">
+                                          <label for="ilk_temizlik_tarihi">İlk Temizlik Tarihi</label>
+                                          <input type="date" id="ilk_temizlik_tarihi">
                                         </div>
                                     </form>
                                 </div>
@@ -538,7 +598,7 @@
                         </div>
 
                         <!-- E-Duruşma Tab -->
-                        <div class="tab-pane" id="ehearingTab">
+                        <div class="tab-pane" id="e_durusmaTab">
                             <div class="table-section">
                                 <table class="devices-table">
                                     <thead>
@@ -550,7 +610,7 @@
                                             <th>İşlemler</th>
                                         </tr>
                                     </thead>
-                                    <tbody id="ehearingTableBody"></tbody>
+                                    <tbody id="e_durusmaTableBody"></tbody>
                                 </table>
                             </div>
                         </div>
@@ -558,13 +618,109 @@
                 </div>
             </section>
         </main>
+
+        <!-- Add Device Modal -->
+        <div class="modal" id="addDeviceModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="modal-title">
+                        <i class="fas fa-plus-circle"></i>
+                        <h2>Yeni Cihaz Ekle</h2>
+                    </div>
+                    <button class="close-modal" onclick="closeAddModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addDeviceForm" class="modern-form">
+                        <div class="form-section">
+                            <div class="form-group">
+                                <label for="deviceType">
+                                    <i class="fas fa-laptop"></i>
+                                    Cihaz Türü
+                                </label>
+                                <select id="deviceType" onchange="updateFormFields()" class="modern-select">
+                                    <option value="">Cihaz türü seçin</option>
+                                    <option value="computer">Kasa</option>
+                                    <option value="laptop">Laptop</option>
+                                    <option value="screen">Monitör</option>
+                                    <option value="printer">Yazıcı</option>
+                                    <option value="scanner">Tarayıcı</option>
+                                    <option value="tv">Televizyon</option>
+                                    <option value="camera">Kamera</option>
+                                    <option value="segbis">SEGBIS</option>
+                                    <option value="microphone">Mikrofon</option>
+                                    <option value="e_durusma">E-Duruşma</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="birim">
+                                    <i class="fas fa-building"></i>
+                                    Birim
+                                </label>
+                                <input type="text" id="birim" class="modern-input" placeholder="Birim adını girin" required>
+                            </div>
+                        </div>
+
+                        <div id="dynamicFields" class="form-section">
+                            <!-- Dinamik form alanları buraya eklenecek -->
+                        </div>
+
+                        <div class="form-section">
+                            <h3 class="section-title">
+                                <i class="fas fa-shield-alt"></i>
+                                Garanti Bilgileri
+                            </h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ilk_garanti_tarihi">İlk Garanti Tarihi</label>
+                                    <input type="date" id="ilk_garanti_tarihi" class="modern-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="son_garanti_tarihi">Son Garanti Tarihi</label>
+                                    <input type="date" id="son_garanti_tarihi" class="modern-input">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-section temizlik-group" style="display:none;">
+                            <h3 class="section-title">
+                                <i class="fas fa-broom"></i>
+                                Temizlik Bilgileri
+                            </h3>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="ilk_temizlik_tarihi">İlk Temizlik Tarihi</label>
+                                    <input type="date" id="ilk_temizlik_tarihi" class="modern-input">
+                                </div>
+                                <div class="form-group">
+                                    <label for="son_temizlik_tarihi">Son Temizlik Tarihi</label>
+                                    <input type="date" id="son_temizlik_tarihi" class="modern-input">
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeAddModal()">
+                        <i class="fas fa-times"></i>
+                        İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary" form="addDeviceForm">
+                        <i class="fas fa-save"></i>
+                        Kaydet
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/theme.js"></script>
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
-    <script src="js/tum-cihazlar.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="js/devices.js"></script>
 </body>
 </html> 

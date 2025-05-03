@@ -20,7 +20,7 @@ function switchProfileSection(sectionId) {
 // Profile Information
 function enableProfileEdit() {
     const form = document.querySelector('.profile-form');
-    const inputs = form.querySelectorAll('input:not([type="email"])');
+    const inputs = form.querySelectorAll('input:not([type="email"]):not([type="password"])');
     const editBtn = document.querySelector('.btn-edit-profile');
     const saveBtn = document.querySelector('.btn-save-profile');
     
@@ -32,137 +32,176 @@ function enableProfileEdit() {
     saveBtn.style.display = 'inline-flex';
 }
 
-function saveProfileChanges() {
-    const form = document.querySelector('.profile-form');
-    const inputs = form.querySelectorAll('input:not([type="email"])');
+// Save profile changes
+async function saveProfileChanges() {
+    try {
+        // Disable save button and show loading
+        const saveBtn = document.querySelector('.btn-save-profile');
     const editBtn = document.querySelector('.btn-edit-profile');
-    const saveBtn = document.querySelector('.btn-save-profile');
+        
+        if (saveBtn) {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Kaydediliyor...</span>';
+        }
+        
+        // Get form data - only collect editable fields (not password)
+        const formData = {
+            adSoyad: document.getElementById('ad_soyad')?.value || '',
+            telefon: document.getElementById('telefon')?.value || '',
+            departman: document.getElementById('departman')?.value || '',
+            konum: document.getElementById('konum')?.value || ''
+            // Password is not included and will be handled separately in changePassword function
+        };
+
+        // Validate form data
+        if (!formData.adSoyad || !formData.telefon || !formData.departman || !formData.konum) {
+            showNotification('Lütfen tüm alanları doldurun.', 'error');
+            
+            // Reset button
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> <span>Kaydet</span>';
+            }
+            return;
+        }
+
+        console.log("Profil verileri güncelleniyor:", formData);
+        
+        // Update profile in Supabase
+        const { success, error } = await updateUserProfile(formData);
+        
+        if (success) {
+            // Update UI with new data
+            const user = JSON.parse(localStorage.getItem('user'));
     
-    // Here you would typically send the form data to your backend
-    const formData = new FormData(form);
-    
-    // For demonstration, we'll just disable the inputs
-    inputs.forEach(input => {
+            // Update user data in localStorage with the new values
+            if (user) {
+                const updatedUser = {
+                    ...user,
+                    ad_soyad: formData.adSoyad,
+                    telefon: formData.telefon,
+                    departman: formData.departman,
+                    konum: formData.konum
+                    // Password is not updated here
+                };
+                localStorage.setItem('user', JSON.stringify(updatedUser));
+                
+                // Reload profile data to update all UI elements
+                populateProfileData(updatedUser);
+            }
+            
+            // Disable form inputs
+            const formInputs = document.querySelectorAll('.profile-form input:not([type="email"]):not([type="password"])');
+            formInputs.forEach(input => {
         input.disabled = true;
     });
     
-    editBtn.style.display = 'inline-flex';
-    saveBtn.style.display = 'none';
+            // Show edit button, hide save button
+            if (editBtn) editBtn.style.display = 'flex';
+            if (saveBtn) saveBtn.style.display = 'none';
     
-    // Show success message
-    showNotification('Profil bilgileri başarıyla güncellendi', 'success');
+            showNotification('Profil bilgileri başarıyla güncellendi.', 'success');
+        } else {
+            console.error("Profil güncelleme hatası:", error);
+            showNotification(error?.message || 'Profil güncellenemedi.', 'error');
+        }
+    } catch (error) {
+        console.error('Profile update error:', error);
+        showNotification('Profil güncellenirken bir hata oluştu.', 'error');
+    } finally {
+        // Reset save button
+        const saveBtn = document.querySelector('.btn-save-profile');
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.innerHTML = '<i class="fas fa-save"></i> <span>Kaydet</span>';
+        }
+    }
 }
 
-// Security Settings
-function showPasswordDialog() {
-    const dialog = document.getElementById('passwordDialog');
-    dialog.classList.add('show');
-}
-
-function closePasswordDialog() {
-    const dialog = document.getElementById('passwordDialog');
-    dialog.classList.remove('show');
+// Change password directly from the profile page
+async function changePasswordDirect() {
+    const currentPassword = document.getElementById('currentPasswordField').value;
+    const newPassword = document.getElementById('newPasswordField').value;
+    const confirmPassword = document.getElementById('confirmPasswordField').value;
     
-    // Clear password fields
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmPassword').value = '';
-}
-
-function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
+    // Clear any previous error messages
+    const errorElement = document.querySelector('.password-change-form .error-message');
+    if (errorElement) errorElement.remove();
     
+    // Disable the change button and show loading state
+    const changeBtn = document.querySelector('.password-change-form .btn-primary');
+    if (changeBtn) {
+        changeBtn.disabled = true;
+        changeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Değiştiriliyor...';
+    }
+    
+    try {
+        // Validate inputs
     if (!currentPassword || !newPassword || !confirmPassword) {
-        showNotification('Lütfen tüm alanları doldurun', 'error');
+            showPasswordChangeError('Lütfen tüm alanları doldurun.');
         return;
     }
     
     if (newPassword !== confirmPassword) {
-        showNotification('Yeni şifreler eşleşmiyor', 'error');
+            showPasswordChangeError('Yeni şifre ve tekrarı eşleşmiyor.');
         return;
     }
     
-    if (newPassword.length < 8) {
-        showNotification('Şifre en az 8 karakter olmalıdır', 'error');
+        if (newPassword.length < 6) {
+            showPasswordChangeError('Şifre en az 6 karakter olmalıdır.');
         return;
     }
     
-    // Here you would typically send the password change request to your backend
-    // For demonstration, we'll just show a success message
-    showNotification('Şifreniz başarıyla güncellendi', 'success');
+        // Update password in Supabase
+        console.log("Şifre değiştiriliyor...");
+        const { success, error } = await changeUserPassword(currentPassword, newPassword);
+        
+        if (success) {
+            console.log("Şifre başarıyla değiştirildi");
+            showNotification('Şifreniz başarıyla değiştirildi.', 'success');
     
-    // Close the dialog and clear fields
-    closePasswordDialog();
-}
-
-function viewSessions() {
-    const dialog = document.getElementById('sessionsDialog');
-    const sessionsList = dialog.querySelector('.sessions-list');
-    
-    // Here you would typically fetch the sessions from your backend
-    // For demonstration, we'll show some dummy data
-    const sessions = [
-        {
-            device: 'Chrome / Windows 10',
-            location: 'Ankara, Türkiye',
-            ip: '192.168.1.1',
-            lastActive: 'Şu anda aktif',
-            isCurrentSession: true
-        },
-        {
-            device: 'Safari / iPhone',
-            location: 'Ankara, Türkiye',
-            ip: '192.168.1.2',
-            lastActive: '2 saat önce',
-            isCurrentSession: false
-        },
-        {
-            device: 'Firefox / MacOS',
-            location: 'İstanbul, Türkiye',
-            ip: '192.168.1.3',
-            lastActive: '1 gün önce',
-            isCurrentSession: false
+            // Clear form fields
+            document.getElementById('currentPasswordField').value = '';
+            document.getElementById('newPasswordField').value = '';
+            document.getElementById('confirmPasswordField').value = '';
+        } else {
+            console.error("Şifre değiştirme hatası:", error);
+            showPasswordChangeError(error?.message || 'Şifre değiştirilemedi.');
         }
-    ];
-    
-    // Clear previous content
-    sessionsList.innerHTML = '';
-    
-    // Add sessions to the list
-    sessions.forEach(session => {
-        const sessionItem = document.createElement('div');
-        sessionItem.className = 'session-item';
-        sessionItem.innerHTML = `
-            <div class="session-info">
-                <h3>${session.device}</h3>
-                <p><i class="fas fa-map-marker-alt"></i> ${session.location}</p>
-                <p><i class="fas fa-network-wired"></i> ${session.ip}</p>
-                <p><i class="fas fa-clock"></i> ${session.lastActive}</p>
-            </div>
-            ${!session.isCurrentSession ? `
-                <button class="btn btn-warning" onclick="terminateSession('${session.ip}')">
-                    <i class="fas fa-times"></i>
-                    <span>Oturumu Kapat</span>
-                </button>
-            ` : '<span class="badge success">Mevcut Oturum</span>'}
-        `;
-        sessionsList.appendChild(sessionItem);
-    });
-    
-    dialog.classList.add('show');
+    } catch (error) {
+        console.error('Password change error:', error);
+        showPasswordChangeError('Şifre değiştirilirken bir hata oluştu.');
+    } finally {
+        // Reset button state
+        if (changeBtn) {
+            changeBtn.disabled = false;
+            changeBtn.innerHTML = '<i class="fas fa-key"></i> <span>Şifreyi Değiştir</span>';
+        }
+    }
 }
 
-function closeSessionsDialog() {
-    const dialog = document.getElementById('sessionsDialog');
-    dialog.classList.remove('show');
+// Show password change error message
+function showPasswordChangeError(message) {
+    // Remove any existing error message
+    const existingError = document.querySelector('.password-change-form .error-message');
+    if (existingError) existingError.remove();
+    
+    // Create and add error message
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+    
+    const formActions = document.querySelector('.password-change-form .form-actions');
+    if (formActions) {
+        formActions.insertAdjacentElement('beforebegin', errorDiv);
 }
 
-function terminateSession(sessionId) {
-    // Here you would typically send a request to your backend to terminate the session
-    // For demonstration, we'll just show a success message
-    showNotification('Oturum başarıyla sonlandırıldı', 'success');
+    // Reset button state
+    const changeBtn = document.querySelector('.password-change-form .btn-primary');
+    if (changeBtn) {
+        changeBtn.disabled = false;
+        changeBtn.innerHTML = '<i class="fas fa-key"></i> <span>Şifreyi Değiştir</span>';
+    }
 }
 
 // Notification Settings
@@ -175,8 +214,7 @@ function toggleNotification(setting) {
     const settingNames = {
         emailNotifications: 'E-posta bildirimleri',
         desktopNotifications: 'Masaüstü bildirimleri',
-        smsNotifications: 'SMS bildirimleri',
-        twoFactorAuth: 'İki faktörlü doğrulama'
+        smsNotifications: 'SMS bildirimleri'
     };
     
     showNotification(
@@ -367,22 +405,7 @@ function setupEventListeners() {
     const navItems = document.querySelectorAll('.profile-nav .nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', () => {
-            // Remove active class from all nav items
-            navItems.forEach(navItem => navItem.classList.remove('active'));
-            
-            // Add active class to clicked item
-            item.classList.add('active');
-            
-            // Show corresponding section
-            const sectionId = item.getAttribute('data-section');
-            const sections = document.querySelectorAll('.profile-section');
-            
-            sections.forEach(section => {
-                section.classList.remove('active');
-                if (section.id === sectionId) {
-                    section.classList.add('active');
-                }
-            });
+            switchProfileSection(item.getAttribute('data-section'));
         });
     });
     
@@ -407,198 +430,6 @@ function setupEventListeners() {
         btnChangeAvatar.addEventListener('click', changeProfilePicture);
     }
     
-    // Close modals when clicking outside
-    window.addEventListener('click', (e) => {
-        const passwordDialog = document.getElementById('passwordDialog');
-        const sessionsDialog = document.getElementById('sessionsDialog');
-        
-        if (e.target === passwordDialog) {
-            closePasswordDialog();
-        }
-        
-        if (e.target === sessionsDialog) {
-            closeSessionsDialog();
-        }
-    });
-    
     // Show profile section by default
     switchProfileSection('profile');
-}
-
-// Enable profile edit mode
-function enableProfileEdit() {
-    // Enable form inputs
-    const formInputs = document.querySelectorAll('.profile-form input');
-    formInputs.forEach(input => {
-        // Skip email field which should not be editable
-        if (input.type !== 'email') {
-            input.disabled = false;
-        }
-    });
-    
-    // Show save button, hide edit button
-    document.querySelector('.btn-edit-profile').style.display = 'none';
-    document.querySelector('.btn-save-profile').style.display = 'flex';
-}
-
-// Save profile changes
-async function saveProfileChanges() {
-    try {
-        // Collect form data
-        const formInputs = document.querySelectorAll('.profile-form input');
-        const userData = {
-            adSoyad: formInputs[0].value,
-            telefon: formInputs[2].value,
-            departman: formInputs[3].value,
-            konum: formInputs[4].value
-        };
-        
-        // Validate form data
-        if (!userData.adSoyad || !userData.telefon || !userData.departman || !userData.konum) {
-            showNotification('Lütfen tüm alanları doldurun.', 'error');
-            return;
-        }
-        
-        // Update profile in Supabase
-        const { success, error } = await updateUserProfile(userData);
-        
-        if (success) {
-            // Update profile UI
-            document.querySelector('.profile-name h1').textContent = userData.adSoyad;
-            const metaItems = document.querySelectorAll('.profile-meta .meta-item span');
-            if (metaItems.length >= 3) {
-                metaItems[0].textContent = userData.konum;
-                metaItems[2].textContent = userData.telefon;
-            }
-            
-            // Disable form inputs
-            formInputs.forEach(input => {
-                input.disabled = true;
-            });
-            
-            // Show edit button, hide save button
-            document.querySelector('.btn-edit-profile').style.display = 'flex';
-            document.querySelector('.btn-save-profile').style.display = 'none';
-            
-            showNotification('Profil bilgileri başarıyla güncellendi.', 'success');
-        } else {
-            showNotification(error.message || 'Profil güncellenemedi.', 'error');
-        }
-    } catch (error) {
-        console.error('Profile update error:', error);
-        showNotification('Profil güncellenirken bir hata oluştu.', 'error');
-    }
-}
-
-// Show password change dialog
-function showPasswordDialog() {
-    document.getElementById('passwordDialog').style.display = 'block';
-}
-
-// Close password change dialog
-function closePasswordDialog() {
-    document.getElementById('passwordDialog').style.display = 'none';
-    
-    // Clear form
-    document.getElementById('currentPassword').value = '';
-    document.getElementById('newPassword').value = '';
-    document.getElementById('confirmPassword').value = '';
-}
-
-// Change password
-async function changePassword() {
-    const currentPassword = document.getElementById('currentPassword').value;
-    const newPassword = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    
-    // Validate inputs
-    if (!currentPassword || !newPassword || !confirmPassword) {
-        showNotification('Lütfen tüm alanları doldurun.', 'error');
-        return;
-    }
-    
-    if (newPassword !== confirmPassword) {
-        showNotification('Yeni şifre ve tekrarı eşleşmiyor.', 'error');
-        return;
-    }
-    
-    if (newPassword.length < 6) {
-        showNotification('Şifre en az 6 karakter olmalıdır.', 'error');
-        return;
-    }
-    
-    try {
-        // Update password in Supabase
-        const { success, error } = await changeUserPassword(currentPassword, newPassword);
-        
-        if (success) {
-            showNotification('Şifreniz başarıyla değiştirildi.', 'success');
-            closePasswordDialog();
-        } else {
-            showNotification(error.message || 'Şifre değiştirilemedi.', 'error');
-        }
-    } catch (error) {
-        console.error('Password change error:', error);
-        showNotification('Şifre değiştirilirken bir hata oluştu.', 'error');
-    }
-}
-
-// Toggle notification settings
-function toggleNotification(settingId) {
-    const setting = document.getElementById(settingId);
-    const isEnabled = setting.checked;
-    
-    // In a real app, this would update user preferences in the database
-    console.log(`${settingId} is now ${isEnabled ? 'enabled' : 'disabled'}`);
-    
-    showNotification(`${settingId} ${isEnabled ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`, 'info');
-}
-
-// View session history
-function viewSessions() {
-    document.getElementById('sessionsDialog').style.display = 'block';
-    
-    // In a real app, this would fetch session data from the database
-    const sessionsList = document.querySelector('.sessions-list');
-    sessionsList.innerHTML = `
-        <div class="session-item">
-            <div class="session-info">
-                <h3>Windows 10 - Chrome</h3>
-                <p>IP: 192.168.1.1</p>
-                <p>Son Giriş: 1 saat önce</p>
-            </div>
-            <div class="session-status current">
-                <span>Aktif Oturum</span>
-            </div>
-        </div>
-        <div class="session-item">
-            <div class="session-info">
-                <h3>iPhone - Safari</h3>
-                <p>IP: 192.168.1.2</p>
-                <p>Son Giriş: 2 gün önce</p>
-            </div>
-            <button class="btn btn-danger btn-sm">
-                <i class="fas fa-sign-out-alt"></i>
-                <span>Oturumu Kapat</span>
-            </button>
-        </div>
-    `;
-}
-
-// Close sessions dialog
-function closeSessionsDialog() {
-    document.getElementById('sessionsDialog').style.display = 'none';
-}
-
-// Filter activity timeline
-function filterActivity(type) {
-    const timelineItems = document.querySelectorAll('.timeline-item');
-    
-    timelineItems.forEach(item => {
-        if (type === 'all' || item.getAttribute('data-type') === type) {
-            item.style.display = 'flex';
-        } else {
-            item.style.display = 'none';
-        }
-    });
 } 

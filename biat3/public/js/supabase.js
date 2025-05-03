@@ -200,4 +200,91 @@ async function resetPasswordForEmail(email) {
         console.error('Error resetting password:', error);
         return { success: false, error };
     }
+}
+
+// Function to get session history
+async function getUserSessions() {
+    try {
+        const user = checkAuth();
+        
+        if (!user) throw new Error('User not authenticated');
+
+        // In a real app, you would fetch session data from a dedicated sessions table
+        // For this demo, we'll create mock data using the user's info
+        
+        const currentDate = new Date();
+        const yesterdayDate = new Date(currentDate);
+        yesterdayDate.setDate(currentDate.getDate() - 1);
+        const lastWeekDate = new Date(currentDate);
+        lastWeekDate.setDate(currentDate.getDate() - 7);
+        
+        // Format dates
+        const formatDate = (date) => {
+            return date.toLocaleDateString('tr-TR', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        };
+        
+        // Mock session data
+        const sessions = [
+            {
+                id: 'session-current',
+                device: 'Windows 10 - Chrome',
+                ip: '192.168.1.1',
+                location: 'Ankara, Türkiye',
+                lastActive: 'Şu anda aktif',
+                lastActiveDate: formatDate(currentDate),
+                isCurrentSession: true
+            },
+            {
+                id: 'session-yesterday',
+                device: 'iPhone 13 - Safari',
+                ip: '192.168.1.2',
+                location: 'Ankara, Türkiye',
+                lastActive: '1 gün önce',
+                lastActiveDate: formatDate(yesterdayDate),
+                isCurrentSession: false
+            },
+            {
+                id: 'session-lastweek',
+                device: 'MacBook Pro - Firefox',
+                ip: '192.168.1.3',
+                location: 'İstanbul, Türkiye',
+                lastActive: '1 hafta önce',
+                lastActiveDate: formatDate(lastWeekDate),
+                isCurrentSession: false
+            }
+        ];
+
+        return { success: true, data: sessions };
+    } catch (error) {
+        console.error('Error getting sessions:', error);
+        return { success: false, error };
+    }
+}
+
+// Function to terminate a session
+async function terminateSession(sessionId) {
+    try {
+        const user = checkAuth();
+        
+        if (!user) throw new Error('User not authenticated');
+
+        // In a real app, you would delete the session from your database
+        // For this demo, we'll just simulate success
+        
+        console.log(`Terminating session: ${sessionId}`);
+        
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        return { success: true };
+    } catch (error) {
+        console.error('Error terminating session:', error);
+        return { success: false, error };
+    }
 } 

@@ -71,7 +71,7 @@ async function handleLogin(event) {
         
         if (success) {
             // Redirect to dashboard on success
-            window.location.href = 'index.html';
+                window.location.href = 'index.html';
         } else {
             // Show error message
             showNotification(error?.message || 'Giriş başarısız. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.', 'error');
@@ -96,10 +96,10 @@ async function handleLogin(event) {
 async function logout() {
     try {
         const { success, error } = await signOutUser();
-        
+    
         if (success) {
             // Redirect to login page
-            window.location.href = 'login.html';
+        window.location.href = 'login.html';
         } else {
             showNotification(error.message || 'Çıkış yapılırken bir hata oluştu.', 'error');
         }
@@ -133,9 +133,9 @@ async function sendResetLink() {
         const { error } = await supabase.auth.resetPasswordForEmail(email);
         
         if (error) throw error;
-        
+    
         showNotification('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.', 'success');
-        closeForgotPassword();
+    closeForgotPassword();
     } catch (error) {
         console.error('Reset password error:', error);
         showNotification(error.message || 'Şifre sıfırlama işlemi başarısız oldu.', 'error');
@@ -198,8 +198,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             if (user) {
                 // User is already logged in, redirect to dashboard
-                window.location.href = 'index.html';
-            }
+        window.location.href = 'index.html';
+    }
         } catch (error) {
             console.error('Auth check error:', error);
         }
