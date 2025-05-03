@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Bağlantı Testi</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.3);
+            border-radius: 50%;
+            border-top-color: #333;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Supabase Bağlantı Testi</h1>
+    
+    <div>
+        <p>Bu sayfa Supabase bağlantınızı test etmek için basit bir araçtır.</p>
+        <button id="testConnection">Bağlantıyı Test Et</button>
+        <button id="listTables">Tabloları Listele</button>
+    </div>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script>
+        const SUPABASE_URL = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+        
+        // Initialize the Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const resultDiv = document.getElementById('result');
+        
+        document.getElementById('testConnection').addEventListener('click', async () => {
+            showLoading('Bağlantı test ediliyor...');
+            
+            try {
+                // Simple ping test - get the current timestamp from Supabase
+                const { data, error } = await supabase.rpc('get_current_timestamp');
+                
+                if (error) throw error;
+                
+                showSuccess(`
+                    <h3>Bağlantı başarılı!</h3>
+                    <p>Supabase sunucusunda şu anki zaman: ${new Date(data).toLocaleString()}</p>
+                    <p>Supabase URL: ${SUPABASE_URL}</p>
+                `);
+            } catch (error) {
+                console.error('Error:', error);
+                
+                // Check if the error is related to RPC function not existing
+                if (error.message && error.message.includes('function get_current_timestamp() does not exist')) {
+                    // Try a different approach - just check if tables can be accessed
+                    try {
+                        const { data, error: tableError } = await supabase
+                            .from('pg_tables')
+                            .select('*')
+                            .limit(1);
+                            
+                        if (tableError) throw tableError;
+                        
+                        showSuccess(`
+                            <h3>Bağlantı başarılı!</h3>
+                            <p>Supabase'e bağlanılabildi fakat get_current_timestamp fonksiyonu bulunamadı.</p>
+                            <p>Bu normal, çünkü bu fonksiyon standardda yoktur.</p>
+                            <p>Supabase URL: ${SUPABASE_URL}</p>
+                        `);
+                    } catch (tableError) {
+                        showError(`
+                            <h3>Alternatif bağlantı testi de başarısız</h3>
+                            <p>Hata: ${tableError.message}</p>
+                            <p>Supabase URL: ${SUPABASE_URL}</p>
+                        `);
+                    }
+                } else {
+                    showError(`
+                        <h3>Bağlantı başarısız!</h3>
+                        <p>Hata: ${error.message}</p>
+                        <p>Supabase URL: ${SUPABASE_URL}</p>
+                        <p>Aşağıdaki durumları kontrol edin:</p>
+                        <ul>
+                            <li>Supabase URL ve API anahtarınız doğru mu?</li>
+                            <li>İnternet bağlantınız aktif mi?</li>
+                            <li>Supabase projesi aktif durumda mı?</li>
+                            <li>CORS ayarları doğru mu?</li>
+                        </ul>
+                    `);
+                }
+            }
+        });
+        
+        document.getElementById('listTables').addEventListener('click', async () => {
+            showLoading('Tablolar listeleniyor...');
+            
+            try {
+                // Try to query the information_schema to get table names
+                const { data, error } = await supabase
+                    .from('information_schema.tables')
+                    .select('table_name')
+                    .eq('table_schema', 'public')
+                    .order('table_name');
+                
+                if (error) throw error;
+                
+                if (data && data.length > 0) {
+                    let tablesList = '<ul>';
+                    data.forEach(table => {
+                        tablesList += `<li>${table.table_name}</li>`;
+                    });
+                    tablesList += '</ul>';
+                    
+                    showSuccess(`
+                        <h3>Tablolar başarıyla listelendi</h3>
+                        <p>Toplam ${data.length} tablo bulundu:</p>
+                        ${tablesList}
+                    `);
+                } else {
+                    showSuccess(`
+                        <h3>Tablolar sorgulandı</h3>
+                        <p>Hiç tablo bulunamadı. Tablolarınızı henüz oluşturmamış olabilirsiniz.</p>
+                    `);
+                }
+            } catch (error) {
+                console.error('Error listing tables:', error);
+                
+                // Daha basit bir yaklaşım deneyelim - users tablosunu sorgulamayı deneyelim
+                try {
+                    const { data, error: usersError } = await supabase
+                        .from('users')
+                        .select('*')
+                        .limit(1);
+                        
+                    if (usersError) {
+                        if (usersError.code === '42P01') { // relation "users" does not exist
+                            showError(`
+                                <h3>Users tablosu bulunamadı</h3>
+                                <p>Supabase bağlantısı çalışıyor olabilir, ancak 'users' tablosunu bulamadım.</p>
+                                <p>Hata: ${usersError.message}</p>
+                                <p>Lütfen SQL kodunuzu çalıştırarak 'users' tablosunu oluşturduğunuzdan emin olun.</p>
+                            `);
+                        } else {
+                            showError(`
+                                <h3>Users tablosu sorgulanırken hata oluştu</h3>
+                                <p>Hata: ${usersError.message}</p>
+                            `);
+                        }
+                    } else {
+                        showSuccess(`
+                            <h3>Users tablosu başarıyla sorgulandı</h3>
+                            <p>Tablo mevcut ve ${data.length} kayıt döndürüldü.</p>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        `);
+                    }
+                } catch (usersError) {
+                    showError(`
+                        <h3>Tablo listesi alınamadı ve Users tablosu sorgulanamadı</h3>
+                        <p>Hatalar:</p>
+                        <p>İlk hata: ${error.message}</p>
+                        <p>İkinci hata: ${usersError.message}</p>
+                    `);
+                }
+            }
+        });
+        
+        function showLoading(message) {
+            resultDiv.className = 'result';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <div class="loading"></div>
+                <span>${message}</span>
+            `;
+        }
+        
+        function showSuccess(message) {
+            resultDiv.className = 'result success';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = message;
+        }
+        
+        function showError(message) {
+            resultDiv.className = 'result error';
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = message;
+        }
+    </script>
+</body>
+</html> 

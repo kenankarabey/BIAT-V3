@@ -30,7 +30,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', function() {
     setupSidebar();
     setupContent();
-    checkLoginStatus();
+    checkUserAuthStatus();
     
     // Sidebar toggle butonuna tıklama olayı ekle
     const sidebarToggle = document.querySelector('.toggle-sidebar');
@@ -39,21 +39,48 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Login durumunu kontrol et
-function checkLoginStatus() {
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentPage = window.location.pathname.split('/').pop();
+// Kullanıcı oturum durumunu kontrol et
+function checkUserAuthStatus() {
+    const user = localStorage.getItem('user');
     
-    if (!isLoggedIn && currentPage !== 'login.html') {
-        window.location.href = 'login.html';
+    if (!user) {
+        // Kullanıcı oturumu yoksa ve login sayfasında değilse, login sayfasına yönlendir
+        if (!window.location.pathname.includes('login.html')) {
+            window.location.href = 'login.html';
+        }
+        return;
+    }
+    
+    // Kullanıcı oturumu varsa, kullanıcı bilgilerini güncelle
+    updateUserInfo(JSON.parse(user));
+}
+
+// Kullanıcı bilgilerini güncelle
+function updateUserInfo(userData) {
+    // Sidebar'daki kullanıcı bilgilerini güncelle
+    const userAvatar = document.querySelector('.user-profile img');
+    const userName = document.querySelector('.user-info h3');
+    const userRole = document.querySelector('.user-info p');
+    
+    if (userAvatar && userData.avatar_url) {
+        userAvatar.src = userData.avatar_url;
+    }
+    
+    if (userName) {
+        userName.textContent = 'Hoş Geldiniz';
+    }
+    
+    if (userRole && userData.ad_soyad) {
+        userRole.textContent = userData.ad_soyad;
     }
 }
 
-// Logout fonksiyonu
+// Kullanıcı çıkış fonksiyonu (tüm sayfalarda kullanılabilir)
 function logout() {
-    localStorage.removeItem('isLoggedIn');
-    localStorage.removeItem('username');
-    localStorage.removeItem('rememberMe');
+    // LocalStorage'dan kullanıcı bilgilerini temizle
+    localStorage.removeItem('user');
+    
+    // Login sayfasına yönlendir
     window.location.href = 'login.html';
 }
 
@@ -62,6 +89,7 @@ function setupSidebar() {
     const sidebar = document.querySelector('.sidebar');
     const toggleSidebarButton = document.querySelector('.toggle-sidebar');
     const sidebarOverlay = document.querySelector('.sidebar-overlay');
+    const submenuTriggers = document.querySelectorAll('.has-submenu > a');
 
     if (sidebar && toggleSidebarButton) {
         // Kaydedilmiş sidebar durumunu uygula
@@ -80,40 +108,37 @@ function setupSidebar() {
         });
 
         // Alt menü olayları
-        document.querySelectorAll('.has-submenu').forEach(item => {
-            const link = item.querySelector('a');
-            if (link) {
-                link.addEventListener('click', (e) => {
-            e.preventDefault();
-                    item.classList.toggle('active');
+        if (submenuTriggers) {
+            submenuTriggers.forEach(trigger => {
+                trigger.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const parent = trigger.parentElement;
+                    const submenu = parent.querySelector('.submenu');
+                    const icon = trigger.querySelector('.submenu-icon');
                     
-                    // Alt menü ikonunu döndür
-                    const submenuIcon = link.querySelector('.submenu-icon');
-                    if (submenuIcon) {
-                        submenuIcon.style.transform = item.classList.contains('active') ? 'rotate(180deg)' : '';
-                    }
+                    parent.classList.toggle('open');
                     
-                    // Alt menüyü aç/kapat
-                    const submenu = item.querySelector('.submenu');
                     if (submenu) {
-                        const isExpanding = !item.classList.contains('active');
-                        submenu.style.height = isExpanding ? '0' : submenu.scrollHeight + 'px';
-                        
-                        // Animasyon tamamlandıktan sonra height: auto yap
-                        if (!isExpanding) {
-                setTimeout(() => {
-                                submenu.style.height = 'auto';
-                }, 300);
+                        if (parent.classList.contains('open')) {
+                            submenu.style.maxHeight = submenu.scrollHeight + 'px';
+                            if (icon) {
+                                icon.classList.replace('fa-chevron-down', 'fa-chevron-up');
+                            }
+                        } else {
+                            submenu.style.maxHeight = '0';
+                            if (icon) {
+                                icon.classList.replace('fa-chevron-up', 'fa-chevron-down');
+                            }
                         }
                     }
                 });
-            }
-        });
+            });
+        }
 
         // Overlay tıklama olayı
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', () => {
-            sidebar.classList.remove('active');
+                sidebar.classList.remove('active');
                 sidebarOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
@@ -136,7 +161,7 @@ function handleResize() {
             sidebarOverlay?.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-            } else {
+    } else {
         sidebarOverlay?.classList.remove('active');
         document.body.style.overflow = '';
         
@@ -410,4 +435,33 @@ function toggleSidebar() {
     sidebar.classList.toggle('collapsed');
     toggleBtn.querySelector('span').textContent = 
         sidebar.classList.contains('collapsed') ? 'Menü Aç' : 'Menü Küçült';
+}
+
+// Tema değiştirme fonksiyonu
+function setupThemeToggle() {
+    const themeToggleBtn = document.querySelector('.toggle-theme');
+    const themeIcon = themeToggleBtn ? themeToggleBtn.querySelector('i') : null;
+    
+    // Kayıtlı tema varsa uygula
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    if (themeIcon) {
+        themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    }
+    
+    // Tema değiştirme butonu
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            if (themeIcon) {
+                themeIcon.className = newTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+            }
+        });
+    }
 } 

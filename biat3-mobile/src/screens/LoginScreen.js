@@ -35,8 +35,11 @@ const LoginScreen = ({ navigation }) => {
     // Kullanıcı adı ve şifre kontrolü (Kenan/Kenan)
     if (username.toLowerCase() === 'kenan' && password === 'kenan') {
       console.log('Login successful!');
-      // Ana sayfaya yönlendir
-      navigation.navigate('MainApp');
+      // Ana sayfaya yönlendir ve stack'i temizle
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainApp' }],
+      });
     } else {
       setError('Kullanıcı adı veya şifre hatalı');
     }

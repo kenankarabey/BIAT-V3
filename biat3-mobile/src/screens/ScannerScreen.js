@@ -10,9 +10,10 @@ import {
 } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import withThemedScreen from '../components/withThemedScreen';
+import { useTheme } from '../contexts/ThemeContext';
 
-function ScannerScreen({ theme }) {
+export default function ScannerScreen() {
+  const { theme, isDarkMode } = useTheme();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [scanMode, setScanMode] = useState(null); // 'qr' or 'barcode'
@@ -80,7 +81,7 @@ function ScannerScreen({ theme }) {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <StatusBar barStyle={theme.dark ? "light-content" : "dark-content"} backgroundColor={theme.card} />
+      <StatusBar barStyle={theme.statusBar} backgroundColor={theme.navBackground} />
       
       <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <Text style={[styles.headerTitle, { color: theme.text }]}>Tarayıcı</Text>
@@ -93,8 +94,8 @@ function ScannerScreen({ theme }) {
           style={[styles.card, { backgroundColor: theme.card }]}
           onPress={() => openScanner('qr')}
         >
-          <View style={[styles.cardIcon, { backgroundColor: theme.dark ? '#1e3a8a30' : '#e0f2fe' }]}>
-            <MaterialCommunityIcons name="qrcode-scan" size={32} color="#0284c7" />
+          <View style={[styles.cardIcon, { backgroundColor: isDarkMode ? '#164e63' : '#e0f2fe' }]}>
+            <MaterialCommunityIcons name="qrcode-scan" size={32} color={isDarkMode ? '#60a5fa' : '#0284c7'} />
           </View>
           <View style={styles.cardContent}>
             <Text style={[styles.cardTitle, { color: theme.text }]}>QR Kod Tarama</Text>
@@ -107,8 +108,8 @@ function ScannerScreen({ theme }) {
           style={[styles.card, { backgroundColor: theme.card }]}
           onPress={() => openScanner('barcode')}
         >
-          <View style={[styles.cardIcon, { backgroundColor: theme.dark ? '#78350f30' : '#fef3c7' }]}>
-            <MaterialCommunityIcons name="barcode-scan" size={32} color="#d97706" />
+          <View style={[styles.cardIcon, { backgroundColor: isDarkMode ? '#422006' : '#fef3c7' }]}>
+            <MaterialCommunityIcons name="barcode-scan" size={32} color={isDarkMode ? '#fbbf24' : '#d97706'} />
           </View>
           <View style={styles.cardContent}>
             <Text style={[styles.cardTitle, { color: theme.text }]}>Barkod Tarama</Text>
@@ -240,36 +241,37 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
   },
-  closeButton: {
-    padding: 8,
-  },
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: 'white',
   },
+  closeButton: {
+    padding: 8,
+  },
   scannerContainer: {
     flex: 1,
+    position: 'relative',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   scanFrame: {
     width: 250,
     height: 250,
     borderWidth: 2,
-    borderColor: 'white',
+    borderColor: '#2196F3',
     backgroundColor: 'transparent',
-    marginBottom: 20,
+    marginBottom: 30,
   },
   overlayText: {
     color: 'white',
     fontSize: 16,
-    textAlign: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
-});
-
-export default withThemedScreen(ScannerScreen); 
+}); 

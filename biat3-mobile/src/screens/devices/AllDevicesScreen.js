@@ -19,12 +19,12 @@ const deviceTypes = [
 const mockDevices = [
   { 
     id: '1', 
-    name: 'PC-101', 
+    name: 'PC-106', 
     type: 'pc', 
     location: 'Ağır Ceza 1', 
     status: 'active',
     brand: 'HP',
-    model: 'EliteDesk 800 G6',
+    model: 'EliteDesk 800 G7',
     serialNumber: 'PC202201101',
     userName: 'Ahmet Yılmaz',
     userTitle: 'Hakim',
@@ -37,7 +37,7 @@ const mockDevices = [
       id: 'PC2022XYZ101',
       type: 'pc',
       brand: 'HP',
-      model: 'EliteDesk 800 G6',
+      model: 'EliteDesk 800 G7',
       serialNumber: 'PC202201101',
       timestamp: 1673758800000
     })

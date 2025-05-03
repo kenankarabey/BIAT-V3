@@ -47,9 +47,9 @@ const darkTheme = {
 const ProfileScreen = ({ navigation }) => {
   const deviceTheme = useColorScheme();
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const [user, setUser] = useState({
+  const [user] = useState({
     name: 'Kenan',
-    surname: 'Akkuş',
+    surname: 'Karabey',
     role: 'Sistem Yöneticisi',
     email: 'kenan@biat.gov.tr',
     phone: '+90 555 123 4567',
@@ -59,7 +59,7 @@ const ProfileScreen = ({ navigation }) => {
     lastActivity: '27.04.2023',
   });
 
-  const [activityStats, setActivityStats] = useState({
+  const [activityStats] = useState({
     deviceManaged: 342,
     issuesResolved: 178,
     maintenancePerformed: 56
@@ -68,7 +68,7 @@ const ProfileScreen = ({ navigation }) => {
   const [preferences, setPreferences] = useState({
     notificationsEnabled: true,
     emailAlerts: true,
-    darkMode: false,
+    darkMode: isDarkMode,
     locationTracking: true
   });
 
@@ -119,13 +119,11 @@ const ProfileScreen = ({ navigation }) => {
           text: "Çıkış Yap", 
           onPress: () => {
             setIsLoading(true);
-            // Simulate logout delay
             setTimeout(() => {
               setIsLoading(false);
-              // In a real app, we would clear authentication tokens here
-    navigation.reset({
-      index: 0,
-                routes: [{ name: 'Home' }], // For demo purposes, just go back to Home
+              navigation.reset({
+                index: 0,
+                routes: [{ name: 'Login' }],
               });
             }, 1000);
           },

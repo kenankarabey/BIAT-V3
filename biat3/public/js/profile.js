@@ -239,12 +239,150 @@ function showNotification(message, type = 'info') {
 }
 
 // Event Listeners
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize profile navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Check authentication and load profile data
+        const user = await checkAuth();
+        
+        if (!user) {
+            // Redirect to login if not authenticated
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        // Load profile data from Supabase
+        const { success, data, error } = await getUserProfile();
+        
+        if (success) {
+            // Populate profile form with user data
+            populateProfileData(data);
+        } else {
+            showNotification(error.message || 'Profil bilgileri yüklenemedi.', 'error');
+        }
+        
+        // Add event listeners
+        setupEventListeners();
+    } catch (error) {
+        console.error('Profile initialization error:', error);
+        showNotification('Profil sayfası yüklenirken bir hata oluştu.', 'error');
+    }
+});
+
+// Populate profile form with user data
+function populateProfileData(userData) {
+    console.log("Profil verisi yükleniyor:", userData);
+    
+    // Kullanıcı nesnesini kontrol et
+    if (!userData) {
+        console.error("Kullanıcı verisi boş veya tanımsız!");
+        return;
+    }
+    
+    // Profil adını güncelle
+    const profileNameElement = document.querySelector('.profile-name h1');
+    if (profileNameElement) {
+        profileNameElement.textContent = userData.ad_soyad || 'İsimsiz Kullanıcı';
+    }
+    
+    // Rol bilgisini güncelle
+    const profileRoleElement = document.querySelector('.profile-role');
+    if (profileRoleElement) {
+        profileRoleElement.textContent = userData.departman || 'Departman Belirtilmemiş';
+    }
+    
+    // Meta bilgilerini güncelle
+    const metaItems = document.querySelectorAll('.profile-meta .meta-item span');
+    if (metaItems && metaItems.length >= 3) {
+        metaItems[0].textContent = userData.konum || 'Konum Belirtilmemiş';
+        metaItems[1].textContent = userData.email || 'E-posta Belirtilmemiş';
+        metaItems[2].textContent = userData.telefon || 'Telefon Belirtilmemiş';
+    }
+    
+    // Form değerlerini güncelle
+    updateFormInput('ad_soyad', userData.ad_soyad);
+    updateFormInput('email', userData.email);
+    updateFormInput('telefon', userData.telefon);
+    updateFormInput('departman', userData.departman);
+    updateFormInput('konum', userData.konum);
+    
+    // Üst bilgi avatar resmini güncelle
+    updateUserAvatar(userData);
+    
+    console.log("Profil verisi başarıyla yüklendi");
+}
+
+// Form input değerini güncelleme yardımcı fonksiyonu
+function updateFormInput(fieldName, value) {
+    const formInputs = document.querySelectorAll('.profile-form input');
+    if (!formInputs || formInputs.length === 0) {
+        console.error(`Form alanları bulunamadı: ${fieldName}`);
+        return;
+    }
+    
+    // Form alanlarını bul
+    let found = false;
+    formInputs.forEach(input => {
+        // Ana sınıf adı yerine değer eşleşmesine bak
+        if (input.name === fieldName || 
+            input.id === fieldName || 
+            input.placeholder && input.placeholder.toLowerCase().includes(fieldName.toLowerCase())) {
+            input.value = value || '';
+            found = true;
+        }
+        // Label ile eşleştir
+        const label = input.previousElementSibling;
+        if (label && label.tagName === 'LABEL' && 
+            label.textContent.toLowerCase().includes(fieldName.toLowerCase())) {
+            input.value = value || '';
+            found = true;
+        }
+    });
+    
+    if (!found) {
+        console.warn(`'${fieldName}' için form alanı bulunamadı`);
+    }
+}
+
+// Kullanıcı avatarını güncelleme
+function updateUserAvatar(userData) {
+    const avatarElements = document.querySelectorAll('.profile-avatar, .user-profile img');
+    avatarElements.forEach(avatar => {
+        // Eğer kullanıcının avatar URL'si varsa kullan, yoksa varsayılan resmi kullan
+        if (userData.avatar_url) {
+            avatar.src = userData.avatar_url;
+            avatar.alt = userData.ad_soyad || 'Kullanıcı Avatarı';
+        }
+    });
+    
+    // Sidebar kullanıcı bilgisini de güncelle
+    const sidebarUserName = document.querySelector('.user-info p');
+    if (sidebarUserName) {
+        sidebarUserName.textContent = userData.ad_soyad || 'Kullanıcı';
+    }
+}
+
+// Setup event listeners for profile page
+function setupEventListeners() {
+    // Profile navigation
+    const navItems = document.querySelectorAll('.profile-nav .nav-item');
+    navItems.forEach(item => {
         item.addEventListener('click', () => {
-            const sectionId = item.dataset.section;
-            switchProfileSection(sectionId);
+            // Remove active class from all nav items
+            navItems.forEach(navItem => navItem.classList.remove('active'));
+            
+            // Add active class to clicked item
+            item.classList.add('active');
+            
+            // Show corresponding section
+            const sectionId = item.getAttribute('data-section');
+            const sections = document.querySelectorAll('.profile-section');
+            
+            sections.forEach(section => {
+                section.classList.remove('active');
+                if (section.id === sectionId) {
+                    section.classList.add('active');
+                }
+            });
         });
     });
     
@@ -285,4 +423,182 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Show profile section by default
     switchProfileSection('profile');
-}); 
+}
+
+// Enable profile edit mode
+function enableProfileEdit() {
+    // Enable form inputs
+    const formInputs = document.querySelectorAll('.profile-form input');
+    formInputs.forEach(input => {
+        // Skip email field which should not be editable
+        if (input.type !== 'email') {
+            input.disabled = false;
+        }
+    });
+    
+    // Show save button, hide edit button
+    document.querySelector('.btn-edit-profile').style.display = 'none';
+    document.querySelector('.btn-save-profile').style.display = 'flex';
+}
+
+// Save profile changes
+async function saveProfileChanges() {
+    try {
+        // Collect form data
+        const formInputs = document.querySelectorAll('.profile-form input');
+        const userData = {
+            adSoyad: formInputs[0].value,
+            telefon: formInputs[2].value,
+            departman: formInputs[3].value,
+            konum: formInputs[4].value
+        };
+        
+        // Validate form data
+        if (!userData.adSoyad || !userData.telefon || !userData.departman || !userData.konum) {
+            showNotification('Lütfen tüm alanları doldurun.', 'error');
+            return;
+        }
+        
+        // Update profile in Supabase
+        const { success, error } = await updateUserProfile(userData);
+        
+        if (success) {
+            // Update profile UI
+            document.querySelector('.profile-name h1').textContent = userData.adSoyad;
+            const metaItems = document.querySelectorAll('.profile-meta .meta-item span');
+            if (metaItems.length >= 3) {
+                metaItems[0].textContent = userData.konum;
+                metaItems[2].textContent = userData.telefon;
+            }
+            
+            // Disable form inputs
+            formInputs.forEach(input => {
+                input.disabled = true;
+            });
+            
+            // Show edit button, hide save button
+            document.querySelector('.btn-edit-profile').style.display = 'flex';
+            document.querySelector('.btn-save-profile').style.display = 'none';
+            
+            showNotification('Profil bilgileri başarıyla güncellendi.', 'success');
+        } else {
+            showNotification(error.message || 'Profil güncellenemedi.', 'error');
+        }
+    } catch (error) {
+        console.error('Profile update error:', error);
+        showNotification('Profil güncellenirken bir hata oluştu.', 'error');
+    }
+}
+
+// Show password change dialog
+function showPasswordDialog() {
+    document.getElementById('passwordDialog').style.display = 'block';
+}
+
+// Close password change dialog
+function closePasswordDialog() {
+    document.getElementById('passwordDialog').style.display = 'none';
+    
+    // Clear form
+    document.getElementById('currentPassword').value = '';
+    document.getElementById('newPassword').value = '';
+    document.getElementById('confirmPassword').value = '';
+}
+
+// Change password
+async function changePassword() {
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmPassword').value;
+    
+    // Validate inputs
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showNotification('Lütfen tüm alanları doldurun.', 'error');
+        return;
+    }
+    
+    if (newPassword !== confirmPassword) {
+        showNotification('Yeni şifre ve tekrarı eşleşmiyor.', 'error');
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        showNotification('Şifre en az 6 karakter olmalıdır.', 'error');
+        return;
+    }
+    
+    try {
+        // Update password in Supabase
+        const { success, error } = await changeUserPassword(currentPassword, newPassword);
+        
+        if (success) {
+            showNotification('Şifreniz başarıyla değiştirildi.', 'success');
+            closePasswordDialog();
+        } else {
+            showNotification(error.message || 'Şifre değiştirilemedi.', 'error');
+        }
+    } catch (error) {
+        console.error('Password change error:', error);
+        showNotification('Şifre değiştirilirken bir hata oluştu.', 'error');
+    }
+}
+
+// Toggle notification settings
+function toggleNotification(settingId) {
+    const setting = document.getElementById(settingId);
+    const isEnabled = setting.checked;
+    
+    // In a real app, this would update user preferences in the database
+    console.log(`${settingId} is now ${isEnabled ? 'enabled' : 'disabled'}`);
+    
+    showNotification(`${settingId} ${isEnabled ? 'etkinleştirildi' : 'devre dışı bırakıldı'}.`, 'info');
+}
+
+// View session history
+function viewSessions() {
+    document.getElementById('sessionsDialog').style.display = 'block';
+    
+    // In a real app, this would fetch session data from the database
+    const sessionsList = document.querySelector('.sessions-list');
+    sessionsList.innerHTML = `
+        <div class="session-item">
+            <div class="session-info">
+                <h3>Windows 10 - Chrome</h3>
+                <p>IP: 192.168.1.1</p>
+                <p>Son Giriş: 1 saat önce</p>
+            </div>
+            <div class="session-status current">
+                <span>Aktif Oturum</span>
+            </div>
+        </div>
+        <div class="session-item">
+            <div class="session-info">
+                <h3>iPhone - Safari</h3>
+                <p>IP: 192.168.1.2</p>
+                <p>Son Giriş: 2 gün önce</p>
+            </div>
+            <button class="btn btn-danger btn-sm">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Oturumu Kapat</span>
+            </button>
+        </div>
+    `;
+}
+
+// Close sessions dialog
+function closeSessionsDialog() {
+    document.getElementById('sessionsDialog').style.display = 'none';
+}
+
+// Filter activity timeline
+function filterActivity(type) {
+    const timelineItems = document.querySelectorAll('.timeline-item');
+    
+    timelineItems.forEach(item => {
+        if (type === 'all' || item.getAttribute('data-type') === type) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+} 

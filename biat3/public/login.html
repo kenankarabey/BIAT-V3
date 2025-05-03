@@ -29,11 +29,11 @@
                 <form class="login-form" onsubmit="return handleLogin(event)">
                     <div class="form-group">
                         <label for="username">
-                            <i class="fas fa-user"></i>
-                            <span>Kullanıcı Adı</span>
+                            <i class="fas fa-envelope"></i>
+                            <span>E-posta Adresi</span>
                         </label>
-                        <input type="text" id="username" name="username" required 
-                               placeholder="Kullanıcı adınızı girin">
+                        <input type="email" id="username" name="username" required 
+                               placeholder="E-posta adresinizi girin">
                     </div>
 
                     <div class="form-group">
@@ -99,6 +99,8 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js"></script>
+    <script src="js/supabase.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/login.js"></script>
 </body>

@@ -7,16 +7,16 @@
 // Toggle password visibility
 function togglePassword() {
     const passwordInput = document.getElementById('password');
-    const toggleButton = document.querySelector('.toggle-password i');
+    const toggleBtn = document.querySelector('.toggle-password i');
     
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
-        toggleButton.classList.remove('fa-eye');
-        toggleButton.classList.add('fa-eye-slash');
+        toggleBtn.classList.remove('fa-eye');
+        toggleBtn.classList.add('fa-eye-slash');
     } else {
         passwordInput.type = 'password';
-        toggleButton.classList.remove('fa-eye-slash');
-        toggleButton.classList.add('fa-eye');
+        toggleBtn.classList.remove('fa-eye-slash');
+        toggleBtn.classList.add('fa-eye');
     }
 }
 
@@ -40,126 +40,168 @@ function validateForm(username, password) {
     return true;
 }
 
-// Login form submit handler
-function handleLogin(event) {
+// Handle login form submission
+async function handleLogin(event) {
     event.preventDefault();
     
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const remember = document.getElementById('remember').checked;
     
-    if (!validateForm(username, password)) {
-        return;
+    // Validate inputs
+    if (!username || !password) {
+        showNotification('E-posta ve şifre gereklidir.', 'error');
+        return false;
     }
     
-    // Simulated API call
-    setTimeout(() => {
-        if (username === 'admin' && password === 'admin') {
-            // Successful login
-            showNotification('Giriş başarılı! Yönlendiriliyorsunuz...', 'success');
-            
-            localStorage.setItem('isLoggedIn', 'true');
-            localStorage.setItem('username', username);
-            if (remember) {
-                localStorage.setItem('rememberMe', 'true');
-            }
-            
-            // Redirect after notification
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
+    // E-posta formatını kontrol et
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(username)) {
+        showNotification('Lütfen geçerli bir e-posta adresi girin.', 'error');
+        return false;
+    }
+    
+    // Loading state
+    const loginBtn = document.querySelector('.btn-login');
+    loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Giriş Yapılıyor...</span>';
+    loginBtn.disabled = true;
+    
+    try {
+        // Call Supabase login function
+        const { success, data, error } = await signInUser(username, password);
+        
+        if (success) {
+            // Redirect to dashboard on success
+            window.location.href = 'index.html';
         } else {
-            showNotification('Kullanıcı adı veya şifre hatalı!', 'error');
+            // Show error message
+            showNotification(error?.message || 'Giriş başarısız. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.', 'error');
+            
+            // Reset button state
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Giriş Yap</span>';
+            loginBtn.disabled = false;
         }
-    }, 500); // Simulate network delay
+    } catch (error) {
+        console.error('Login error:', error);
+        alert("Veritabanına bağlanırken bir hata oluştu. Lütfen internet bağlantınızı ve Supabase ayarlarınızı kontrol edin.");
+        
+        // Reset button state
+        loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Giriş Yap</span>';
+        loginBtn.disabled = false;
+    }
+    
+    return false;
 }
 
 // Logout function
-function logout() {
-    showNotification('Çıkış yapılıyor...', 'info');
-    
-    setTimeout(() => {
-        localStorage.removeItem('isLoggedIn');
-        localStorage.removeItem('username');
-        localStorage.removeItem('rememberMe');
+async function logout() {
+    try {
+        const { success, error } = await signOutUser();
         
-        window.location.href = 'login.html';
-    }, 500);
+        if (success) {
+            // Redirect to login page
+            window.location.href = 'login.html';
+        } else {
+            showNotification(error.message || 'Çıkış yapılırken bir hata oluştu.', 'error');
+        }
+    } catch (error) {
+        console.error('Logout error:', error);
+        showNotification('Çıkış yapılırken bir hata oluştu.', 'error');
+    }
 }
 
 // Show forgot password dialog
 function showForgotPassword() {
-    const dialog = document.getElementById('forgotPasswordDialog');
-    dialog.style.display = 'block';
+    document.getElementById('forgotPasswordDialog').style.display = 'block';
 }
 
 // Close forgot password dialog
 function closeForgotPassword() {
-    const dialog = document.getElementById('forgotPasswordDialog');
-    dialog.style.display = 'none';
+    document.getElementById('forgotPasswordDialog').style.display = 'none';
 }
 
-// Send reset link
-function sendResetLink() {
+// Send password reset link
+async function sendResetLink() {
     const email = document.getElementById('resetEmail').value;
     
-    if (!email.trim()) {
-        showNotification('E-posta adresi boş olamaz!', 'error');
+    if (!email) {
+        showNotification('Lütfen e-posta adresinizi girin.', 'error');
         return;
     }
     
-    if (!email.endsWith('@adalet.gov.tr')) {
-        showNotification('Geçerli bir adalet.gov.tr e-posta adresi giriniz!', 'error');
-        return;
+    try {
+        // Call Supabase reset password function
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        
+        if (error) throw error;
+        
+        showNotification('Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.', 'success');
+        closeForgotPassword();
+    } catch (error) {
+        console.error('Reset password error:', error);
+        showNotification(error.message || 'Şifre sıfırlama işlemi başarısız oldu.', 'error');
     }
-    
-    showNotification('Şifre sıfırlama bağlantısı gönderildi!', 'success');
-    closeForgotPassword();
 }
 
 // Show notification
 function showNotification(message, type = 'info') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
+    // Check if notification container exists
+    let notificationContainer = document.querySelector('.notification-container');
     
+    // Create container if it doesn't exist
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.className = 'notification-container';
+        document.body.appendChild(notificationContainer);
+    }
+    
+    // Create notification element
     const notification = document.createElement('div');
     notification.className = `notification ${type}`;
-    notification.textContent = message;
+    notification.innerHTML = `
+        <div class="notification-icon">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        </div>
+        <div class="notification-content">
+            <p>${message}</p>
+        </div>
+        <button class="notification-close">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
     
-    document.body.appendChild(notification);
+    // Add notification to container
+    notificationContainer.appendChild(notification);
     
-    // Remove notification after 3 seconds
+    // Add event listener to close button
+    notification.querySelector('.notification-close').addEventListener('click', () => {
+        notification.classList.add('hide');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    });
+    
+    // Auto remove after 5 seconds
     setTimeout(() => {
         notification.classList.add('hide');
         setTimeout(() => {
             notification.remove();
         }, 300);
-    }, 3000);
+    }, 5000);
 }
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', () => {
-    // Initialize theme
-    // initializeTheme();
-    
-    // Check login status
-    const isLoggedIn = localStorage.getItem('isLoggedIn');
-    const currentPage = window.location.pathname.split('/').pop();
-    
-    if (!isLoggedIn && currentPage !== 'login.html') {
-        showNotification('Lütfen giriş yapın!', 'info');
-        window.location.href = 'login.html';
-    } else if (isLoggedIn && currentPage === 'login.html') {
-        window.location.href = 'index.html';
-    }
-    
-    // Set remembered username if exists
-    if (currentPage === 'login.html' && localStorage.getItem('rememberMe')) {
-        const rememberedUsername = localStorage.getItem('username');
-        if (rememberedUsername) {
-            document.getElementById('username').value = rememberedUsername;
-            document.getElementById('remember').checked = true;
+// Check if user is already logged in and redirect
+document.addEventListener('DOMContentLoaded', async () => {
+    // Only run this check on login page
+    if (window.location.pathname.includes('login.html')) {
+        try {
+            const user = await checkAuth();
+            
+            if (user) {
+                // User is already logged in, redirect to dashboard
+                window.location.href = 'index.html';
+            }
+        } catch (error) {
+            console.error('Auth check error:', error);
         }
     }
 }); 
