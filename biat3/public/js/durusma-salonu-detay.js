@@ -26,6 +26,16 @@ async function loadCourtroomDetailAndEquipments() {
     }
     if (header) header.textContent = `${salon.salon_no}. ${salon.mahkeme_turu}`;
 
+    // Durum bilgisini göster
+    const statusIndicator = document.querySelector('.quick-info .status-indicator');
+    if (statusIndicator) {
+        let durumText = salon.durum || '';
+        let color = '#2ed573'; // Aktif
+        if (durumText === 'Bakımda') color = '#ffe066';
+        if (durumText === 'Arızalı') color = '#ff6b6b';
+        statusIndicator.innerHTML = `<span class="status-dot" style="background:${color}"></span><span class="status-text">${durumText}</span>`;
+    }
+
     // 2. Tüm ekipmanları çek
     const [computersRes, monitorsRes, printersRes, segbisRes, edurusmaRes, tvsRes, microphonesRes, camerasRes] = await Promise.all([
         supabase.from('computers').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
