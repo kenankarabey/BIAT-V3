@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mahkeme Detay - BIAT</title>
     
+    <!-- Supabase JS -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <!-- Stylesheets -->
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -62,6 +64,197 @@
             .codes-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        .device-card {
+            background: var(--card-bg, #232846);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(52, 152, 219, 0.08), 0 1.5px 6px rgba(0,0,0,0.08);
+            padding: 24px 28px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1.5px solid var(--border-color, #353b48);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+            color: var(--text-color, #222);
+            font-size: 1.08rem;
+        }
+        .device-card:hover {
+            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.18), 0 2px 8px rgba(0,0,0,0.12);
+            border-color: var(--primary-color, #3498db);
+            transform: translateY(-2px) scale(1.03);
+            background: var(--hover-color, #232846);
+        }
+        .device-card b {
+            color: var(--primary-color, #3498db);
+            font-weight: 600;
+        }
+        .devices-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px;
+        }
+        @media (max-width: 600px) {
+            .devices-grid {
+                grid-template-columns: 1fr;
+            }
+            .device-card {
+                padding: 16px 10px;
+            }
+        }
+        /* Koyu tema için özel renkler */
+        [data-theme="dark"] .device-card {
+            background: #232846;
+            color: #fff;
+            border-color: #353b48;
+        }
+        [data-theme="dark"] .device-card b {
+            color: #4da3ff;
+        }
+        [data-theme="dark"] .device-card:hover {
+            background: #2a2f45;
+            border-color: #4da3ff;
+        }
+        .device-info-icon {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            cursor: pointer;
+            color: var(--primary-color, #3498db);
+            font-size: 1.2rem;
+            opacity: 0.7;
+            transition: color 0.2s;
+        }
+        [data-theme="dark"] .device-info-icon {
+            color: #fff;
+            opacity: 0.8;
+        }
+        .device-info-icon:hover {
+            opacity: 1;
+        }
+
+        /* Personel Kartı Stilleri */
+        .personnel-card {
+            background: var(--card-bg, #232846);
+            border-radius: 16px;
+            box-shadow: 0 4px 24px rgba(52, 152, 219, 0.08), 0 1.5px 6px rgba(0,0,0,0.08);
+            padding: 24px 28px;
+            margin: 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            border: 1.5px solid var(--border-color, #353b48);
+            transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+            color: var(--text-color, #222);
+            font-size: 1.08rem;
+        }
+        .personnel-card:hover {
+            box-shadow: 0 8px 32px rgba(52, 152, 219, 0.18), 0 2px 8px rgba(0,0,0,0.12);
+            border-color: var(--primary-color, #3498db);
+            transform: translateY(-2px) scale(1.03);
+            background: var(--hover-color, #232846);
+        }
+        .personnel-card b {
+            color: var(--primary-color, #3498db);
+            font-weight: 600;
+        }
+        .personnel-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 22px;
+        }
+        @media (max-width: 600px) {
+            .personnel-grid {
+                grid-template-columns: 1fr;
+            }
+            .personnel-card {
+                padding: 16px 10px;
+            }
+        }
+        /* Koyu tema için özel renkler */
+        [data-theme="dark"] .personnel-card {
+            background: #232846;
+            color: #fff;
+            border-color: #353b48;
+        }
+        [data-theme="dark"] .personnel-card b {
+            color: #4da3ff;
+        }
+        [data-theme="dark"] .personnel-card:hover {
+            background: #2a2f45;
+            border-color: #4da3ff;
+        }
+
+        /* Personel bilgileri için özel stil */
+        .personnel-info {
+            display: none;
+        }
+        .device-type-computer .personnel-info,
+        .device-type-laptop .personnel-info,
+        .device-type-screen .personnel-info {
+            display: flex;
+        }
+
+        /* Modal Butonları için Stiller */
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 15px;
+            border-top: 1px solid var(--border-color, #e0e0e0);
+        }
+
+        .modal-footer .btn {
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .modal-footer .btn-secondary {
+            background-color: var(--secondary-color, #1a4b8c);
+            color: white;
+            border: 1px solid var(--border-color, #1a4b8c);
+        }
+
+        .modal-footer .btn-secondary:hover {
+            background-color: var(--secondary-hover-color, #153b6d);
+        }
+
+        .modal-footer .btn-primary {
+            background-color: var(--primary-color, #1a4b8c);
+            color: white;
+            border: none;
+        }
+
+        .modal-footer .btn-primary:hover {
+            background-color: var(--primary-hover-color, #153b6d);
+        }
+
+        /* Koyu tema için modal buton stilleri */
+        [data-theme="dark"] .modal-footer {
+            border-top-color: #353b48;
+        }
+
+        [data-theme="dark"] .modal-footer .btn-secondary {
+            background-color: #1a4b8c;
+            color: #fff;
+            border-color: #1a4b8c;
+        }
+
+        [data-theme="dark"] .modal-footer .btn-secondary:hover {
+            background-color: #153b6d;
+        }
+
+        [data-theme="dark"] .modal-footer .btn-primary {
+            background-color: #1a4b8c;
+        }
+
+        [data-theme="dark"] .modal-footer .btn-primary:hover {
+            background-color: #153b6d;
         }
     </style>
 </head>
@@ -176,7 +369,7 @@
             <!-- Quick Actions Bar -->
             <div class="quick-actions-bar">
                 <div class="quick-info">
-                    <h1>Mahkeme Adı</h1>
+                    <h1 id="mahkemeAdi">Mahkeme Adı</h1>
                     <div class="status-indicator">
                         <span class="status-dot"></span>
                         <span class="status-text">Aktif</span>
@@ -184,16 +377,8 @@
                 </div>
                 <div class="action-buttons">
                     <button class="action-btn">
-                        <i class="fas fa-edit"></i>
-                        <span>Düzenle</span>
-                    </button>
-                    <button class="action-btn">
                         <i class="fas fa-exclamation-circle"></i>
                         <span>Arıza Bildir</span>
-                    </button>
-                    <button class="action-btn">
-                        <i class="fas fa-share-alt"></i>
-                        <span>Paylaş</span>
                     </button>
                 </div>
             </div>
@@ -224,11 +409,6 @@
                 <div class="detail-section">
                     <div class="section-header">
                         <h2>Personel</h2>
-                        <div class="section-actions">
-                            <button class="btn-icon" title="Personel Ekle">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
                     </div>
                     <div class="section-content">
                         <div class="personnel-grid">
@@ -241,14 +421,6 @@
                 <div class="detail-section">
                     <div class="section-header">
                         <h2>Cihazlar</h2>
-                        <div class="section-actions">
-                            <button class="btn-icon" title="Cihaz Ekle">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="btn-icon" title="Filtrele">
-                                <i class="fas fa-filter"></i>
-                            </button>
-                        </div>
                     </div>
                     <div class="section-content">
                         <div class="devices-grid">
@@ -256,57 +428,109 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </main>
+    </div>
 
-                <!-- Activity Timeline -->
-                <div class="detail-section full-width">
-                    <div class="section-header">
-                        <h2>Aktivite Geçmişi</h2>
-                        <div class="section-actions">
-                            <div class="date-range-picker">
-                                <button class="btn-text active">Bugün</button>
-                                <button class="btn-text">Bu Hafta</button>
-                                <button class="btn-text">Bu Ay</button>
-                            </div>
+    <!-- Device Details Modal -->
+    <div id="deviceDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cihaz Detayları</h2>
+                <button onclick="closeDetailsModal()" class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="device-details new-horizontal-grid">
+                    <div class="info-cards-row">
+                        <div class="info-mini-card">
+                            <i class="fas fa-gavel"></i>
+                            <div class="info-label">Mahkeme No</div>
+                            <div class="info-value" id="detailMahkemeNo"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-building"></i>
+                            <div class="info-label">Birim</div>
+                            <div class="info-value" id="detailUnit"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-door-open"></i>
+                            <div class="info-label">Oda Tipi</div>
+                            <div class="info-value" id="detailOdaTipi"></div>
+                        </div>
+                        <div class="info-mini-card personnel-info">
+                            <i class="fas fa-user-tie"></i>
+                            <div class="info-label">Unvan</div>
+                            <div class="info-value" id="detailUnvan"></div>
+                        </div>
+                        <div class="info-mini-card personnel-info">
+                            <i class="fas fa-user"></i>
+                            <div class="info-label">Adı Soyadı</div>
+                            <div class="info-value" id="detailAdSoyad"></div>
+                        </div>
+                        <div class="info-mini-card personnel-info">
+                            <i class="fas fa-id-card"></i>
+                            <div class="info-label">Sicil No</div>
+                            <div class="info-value" id="detailSicilNo"></div>
+                        </div>
+                        <div class="info-mini-card personnel-info">
+                            <i class="fas fa-broom"></i>
+                            <div class="info-label">İlk Temizlik Tarihi</div>
+                            <div class="info-value" id="detailIlkTemizlik"></div>
+                        </div>
+                        <div class="info-mini-card personnel-info">
+                            <i class="fas fa-broom"></i>
+                            <div class="info-label">Son Temizlik Tarihi</div>
+                            <div class="info-value" id="detailSonTemizlik"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="info-label">İlk Garanti Tarihi</div>
+                            <div class="info-value" id="detailIlkGaranti"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-shield-alt"></i>
+                            <div class="info-label">Son Garanti Tarihi</div>
+                            <div class="info-value" id="detailSonGaranti"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-tag"></i>
+                            <div class="info-label">Marka</div>
+                            <div class="info-value" id="detailBrand"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-cube"></i>
+                            <div class="info-label">Model</div>
+                            <div class="info-value" id="detailModel"></div>
+                        </div>
+                        <div class="info-mini-card">
+                            <i class="fas fa-barcode"></i>
+                            <div class="info-label">Seri No</div>
+                            <div class="info-value" id="detailSerial"></div>
                         </div>
                     </div>
-                    <div class="section-content">
-                        <div class="timeline">
-                            <!-- Timeline items will be populated by JavaScript -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- QR & Barcode -->
-                <div class="detail-section full-width">
-                    <div class="section-header">
-                        <h2>QR & Barkod</h2>
-                        <div class="section-actions">
-                            <button class="btn-icon" title="İndir">
-                                <i class="fas fa-download"></i>
-                            </button>
-                            <button class="btn-icon" title="Yazdır">
-                                <i class="fas fa-print"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="section-content">
+                    <div class="detail-section card">
+                        <h3><i class="fas fa-qrcode"></i> Cihaz Kodları</h3>
                         <div class="codes-grid">
                             <div class="code-container">
                                 <div id="qrCode"></div>
                                 <span class="code-label">QR Kod</span>
                             </div>
                             <div class="code-container">
-                                <svg id="barcode"></svg>
+                                <div id="barcode"></div>
                                 <span class="code-label">Barkod</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </main>
+            <div class="modal-footer">
+                <button onclick="closeDetailsModal()" class="btn btn-secondary">Kapat</button>
+            </div>
+        </div>
     </div>
 
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/mahkeme-detay.js"></script>
 </body>
 </html> 

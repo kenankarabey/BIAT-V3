@@ -5218,7 +5218,7 @@ input:checked + .slider:before {
     border-radius: 6px;
     display: flex;
     align-items: center;
-        justify-content: center;
+    justify-content: center;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -5935,7 +5935,7 @@ input:checked + .slider:before {
     color: white;
     padding: 40px;
     display: flex;
-    flex-direction: column;
+        flex-direction: column;
     justify-content: center;
 }
 
@@ -6428,7 +6428,7 @@ input:checked + .slider:before {
 
 .form-actions {
     grid-column: 1 / -1;
-    display: flex;
+        display: flex;
     justify-content: flex-end;
     gap: 1rem;
     margin-top: 1rem;
@@ -7488,7 +7488,7 @@ input:checked + .slider:before {
 }
 .detail-section.card {
   background: #fff;
-  border-radius: 12px;
+    border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.07);
   padding: 24px 20px;
   margin-bottom: 0;
@@ -7497,8 +7497,8 @@ input:checked + .slider:before {
   font-size: 1.2rem;
   margin-bottom: 18px;
   color: #2d3436;
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   gap: 8px;
 }
 .detail-grid {
@@ -7510,8 +7510,8 @@ input:checked + .slider:before {
   min-width: 220px;
   font-size: 1rem;
   color: #444;
-  display: flex;
-  align-items: center;
+    display: flex;
+    align-items: center;
   gap: 8px;
   margin-bottom: 8px;
 }
@@ -7521,7 +7521,7 @@ input:checked + .slider:before {
   margin-right: 4px;
 }
 .codes-grid {
-  display: flex;
+    display: flex;
   gap: 32px;
   justify-content: center;
   align-items: flex-start;
@@ -7534,7 +7534,7 @@ input:checked + .slider:before {
   padding: 16px 12px 8px 12px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+    align-items: center;
   min-width: 140px;
 }
 .code-label {
@@ -7576,9 +7576,9 @@ input:checked + .slider:before {
   border-radius: 14px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.07);
   padding: 18px 10px 12px 10px;
-  display: flex;
+    display: flex;
   flex-direction: column;
-  align-items: center;
+    align-items: center;
   min-height: 110px;
   transition: background 0.3s, color 0.3s;
 }

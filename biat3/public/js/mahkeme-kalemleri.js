@@ -248,7 +248,7 @@ function renderMahkemeKalemleri() {
         card.className = 'court-office-card';
         card.innerHTML = `
             <div class="card-header">
-                <h3>${kalem.mahkeme_no}. ${kalem.mahkeme_turu} Mahkemesi</h3>
+                <h3>${kalem.mahkeme_no}. ${kalem.mahkeme_turu}</h3>
                 <span class="status-badge aktif">Aktif</span>
             </div>
             <div class="card-body">
@@ -277,6 +277,12 @@ function renderMahkemeKalemleri() {
                 </button>
             </div>
         `;
+        card.style.cursor = 'pointer';
+        card.addEventListener('click', function(e) {
+            // Sadece kartın boş alanına tıklanınca yönlendir, butonlara tıklanınca değil
+            if (e.target.closest('.btn-icon')) return;
+            window.location.href = `mahkeme-detay.html?id=${kalem.id}`;
+        });
         grid.appendChild(card);
     });
 }
