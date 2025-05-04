@@ -6,6 +6,9 @@
     <title>Duruşma Salonu Detay - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
 <body class="with-sidebar">
     <!-- Toggle Theme -->
@@ -122,156 +125,129 @@
                     </div>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-primary" id="reportIssue">
+                    <button class="btn-primary" id="reportIssue" onclick="window.location.href='ariza-bildir.html'">
                         <i class="fas fa-exclamation-circle"></i>
                         <span>Arıza Bildir</span>
                     </button>
-                    <button class="btn-secondary" id="requestMaintenance">
-                        <i class="fas fa-wrench"></i>
-                        <span>Bakım Talep Et</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Quick Stats -->
-            <div class="quick-stats">
-                <div class="stat-card">
-                    <div class="stat-icon active">
-                        <i class="fas fa-desktop"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Aktif Cihazlar</h3>
-                        <p id="activeDevicesCount">6</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon issue">
-                        <i class="fas fa-exclamation-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Arızalı Cihazlar</h3>
-                        <p id="issueDevicesCount">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon maintenance">
-                        <i class="fas fa-wrench"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Son Bakım Tarihi</h3>
-                        <p id="lastMaintenance">15.03.2024</p>
-                    </div>
                 </div>
             </div>
 
             <!-- Hardware Grid -->
-            <div class="hardware-section">
-                <h2 class="section-title">Donanım Durumu</h2>
-                <div class="hardware-grid">
-                    <!-- Ana Bilgisayar -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-desktop"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Ana Bilgisayar</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-microchip"></i> Intel i5-12400</span>
-                                <span><i class="fas fa-memory"></i> 16GB RAM</span>
-                                <span><i class="fas fa-hdd"></i> 512GB SSD</span>
-                            </div>
-                        </div>
-                    </div>
+            <!-- KALDIRILDI: <div class="hardware-section">...</div> -->
 
-                    <!-- Katip Monitörü -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-tv"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Katip Monitörü</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-ruler-combined"></i> 24" LCD</span>
-                                <span><i class="fas fa-expand"></i> 1920x1080</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Hakim Monitörü -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-tv"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Hakim Monitörü</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-ruler-combined"></i> 27" LCD</span>
-                                <span><i class="fas fa-expand"></i> 2560x1440</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Avukat Monitörleri -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-tv"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Avukat Monitörleri (2)</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-ruler-combined"></i> 24" LCD</span>
-                                <span><i class="fas fa-expand"></i> 1920x1080</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Duruşma Televizyonu -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-tv"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Duruşma Televizyonu</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-ruler-combined"></i> 55" LED</span>
-                                <span><i class="fas fa-expand"></i> 4K UHD</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mikrofon Sistemi -->
-                    <div class="hardware-card">
-                        <div class="hardware-icon">
-                            <i class="fas fa-microphone"></i>
-                        </div>
-                        <div class="hardware-info">
-                            <h3>Mikrofon Sistemi</h3>
-                            <p class="hardware-status active">Aktif</p>
-                            <div class="hardware-details">
-                                <span><i class="fas fa-broadcast-tower"></i> Kablosuz</span>
-                                <span><i class="fas fa-volume-up"></i> Dahili Hoparlör</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Donanım Ekipmanları Grid -->
+            <div class="hardware-equipments-grid" id="hardwareEquipmentsGrid">
+                <!-- Kartlar JS ile doldurulacak -->
             </div>
 
             <!-- Maintenance History -->
-            <div class="maintenance-section">
-                <h2 class="section-title">Bakım Geçmişi</h2>
-                <div class="maintenance-timeline">
-                    <!-- Bakım geçmişi dinamik olarak doldurulacak -->
+            <!-- Bakım geçmişi bölümü kaldırıldı -->
+        </main>
+        <!-- Device Details Modal -->
+        <div id="deviceDetailsModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Cihaz Detayları</h2>
+                    <button onclick="closeDetailsModal()" class="close-modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="device-details new-horizontal-grid">
+                        <div class="info-cards-row">
+                            <div class="info-mini-card">
+                                <i class="fas fa-gavel"></i>
+                                <div class="info-label">Mahkeme No</div>
+                                <div class="info-value" id="detailMahkemeNo"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-building"></i>
+                                <div class="info-label">Birim</div>
+                                <div class="info-value" id="detailUnit"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-door-open"></i>
+                                <div class="info-label">Oda Tipi</div>
+                                <div class="info-value" id="detailOdaTipi"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailUnvanRow" style="display:none;">
+                                <i class="fas fa-user-tie"></i>
+                                <div class="info-label">Unvan</div>
+                                <div class="info-value" id="detailUnvan"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailAdSoyadRow" style="display:none;">
+                                <i class="fas fa-user"></i>
+                                <div class="info-label">Adı Soyadı</div>
+                                <div class="info-value" id="detailAdSoyad"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailSicilNoRow" style="display:none;">
+                                <i class="fas fa-id-card"></i>
+                                <div class="info-label">Sicil No</div>
+                                <div class="info-value" id="detailSicilNo"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailIlkTemizlikRow" style="display:none;">
+                                <i class="fas fa-broom"></i>
+                                <div class="info-label">İlk Temizlik Tarihi</div>
+                                <div class="info-value" id="detailIlkTemizlik"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailSonTemizlikRow" style="display:none;">
+                                <i class="fas fa-broom"></i>
+                                <div class="info-label">Son Temizlik Tarihi</div>
+                                <div class="info-value" id="detailSonTemizlik"></div>
+                            </div>
+                            <div class="info-mini-card" id="detailSonrakiTemizlikRow" style="display:none;">
+                                <i class="fas fa-calendar-check"></i>
+                                <div class="info-label">Sonraki Temizlik Tarihi</div>
+                                <div class="info-value" id="detailSonrakiTemizlik"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-shield-alt"></i>
+                                <div class="info-label">İlk Garanti Tarihi</div>
+                                <div class="info-value" id="detailIlkGaranti"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-shield-alt"></i>
+                                <div class="info-label">Son Garanti Tarihi</div>
+                                <div class="info-value" id="detailSonGaranti"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-tag"></i>
+                                <div class="info-label">Marka</div>
+                                <div class="info-value" id="detailBrand"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-cube"></i>
+                                <div class="info-label">Model</div>
+                                <div class="info-value" id="detailModel"></div>
+                            </div>
+                            <div class="info-mini-card">
+                                <i class="fas fa-barcode"></i>
+                                <div class="info-label">Seri No</div>
+                                <div class="info-value" id="detailSerial"></div>
+                            </div>
+                        </div>
+                        <div class="detail-section card">
+                            <h3><i class="fas fa-qrcode"></i> Cihaz Kodları</h3>
+                            <div class="codes-grid">
+                                <div class="code-container">
+                                    <div id="qrCode"></div>
+                                    <span class="code-label">QR Kod</span>
+                                </div>
+                                <div class="code-container">
+                                    <div id="barcode"></div>
+                                    <span class="code-label">Barkod</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="closeDetailsModal()" class="btn btn-secondary">Kapat</button>
                 </div>
             </div>
-        </main>
+        </div>
     </div>
 
     <script src="js/theme.js"></script>
     <script src="js/main.js"></script>
+    <script src="js/durusma-salonu-detay.js"></script>
 </body>
 </html> 

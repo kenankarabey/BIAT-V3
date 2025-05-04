@@ -430,12 +430,22 @@ body {
 }
 
 .status-badge.aktif {
-    background: #48bb78;
-    color: #fff;
+    background: #e0e0e0;
+    color: #333;
 }
 
 .status-badge.pasif {
     background: #f56565;
+    color: #fff;
+}
+
+.status-badge.bakımda {
+    background: #ffd700;
+    color: #333;
+}
+
+.status-badge.arızalı {
+    background: #ff0000;
     color: #fff;
 }
 
@@ -7812,6 +7822,78 @@ input:checked + .slider:before {
         width: 95%;
         margin: 10px auto;
     }
+}
+
+.status-badge.maintenance {
+    background: #ffe066 !important;
+    color: #333 !important;
+}
+.status-badge.issue {
+    background: #ff6b6b !important;
+    color: #fff !important;
+}
+
+.hardware-equipments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+.equipment-card {
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.equipment-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary-color, #161a4a);
+}
+.equipment-header i {
+  font-size: 1.5rem;
+}
+.equipment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.equipment-item {
+  background: var(--hover-color, #f1f2f6);
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  color: var(--text-color, #2d3436);
+}
+
+[data-theme="light"] .equipment-card,
+[data-theme="light"] .equipment-header,
+[data-theme="light"] .equipment-item,
+[data-theme="light"] .equipment-list {
+  color: #161a4a;
+}
+[data-theme="dark"] .equipment-card,
+[data-theme="dark"] .equipment-header,
+[data-theme="dark"] .equipment-item,
+[data-theme="dark"] .equipment-list {
+  color: #fff;
+}
+
+[data-theme="light"] .equipment-card i,
+[data-theme="light"] .equipment-header i,
+[data-theme="light"] .equipment-item i {
+  color: #161a4a;
+}
+[data-theme="dark"] .equipment-card i,
+[data-theme="dark"] .equipment-header i,
+[data-theme="dark"] .equipment-item i {
+  color: #fff;
 }
 
 

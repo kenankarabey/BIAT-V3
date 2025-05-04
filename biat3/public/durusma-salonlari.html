@@ -6,6 +6,7 @@
     <title>Duruşma Salonları - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
 </head>
 <body class="with-sidebar">
     <!-- Toggle Theme -->
@@ -224,195 +225,102 @@
     </div>
 
     <!-- Duruşma Salonu Modal -->
-    <div id="durusmaSalonuModal" class="modal" style="display: none;">
+    <div class="modal" id="durusmaSalonuModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Duruşma Salonu Ekle</h2>
-                <button class="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
+                <h2>Yeni Duruşma Salonu Ekle</h2>
+                <button class="close-modal">&times;</button>
             </div>
             <form id="durusmaSalonuForm">
-                <div class="modal-body">
-                    <!-- Stepper Progress -->
-                    <div class="stepper-progress">
-                        <div class="step active" data-step="1">
-                            <div class="step-number">1</div>
-                            <div class="step-label">Genel Bilgiler</div>
-                        </div>
-                        <div class="step" data-step="2">
-                            <div class="step-number">2</div>
-                            <div class="step-label">Monitörler</div>
-                        </div>
-                        <div class="step" data-step="3">
-                            <div class="step-number">3</div>
-                            <div class="step-label">SEGBİS</div>
-                        </div>
-                        <div class="step" data-step="4">
-                            <div class="step-number">4</div>
-                            <div class="step-label">Kamera</div>
-                        </div>
-                        <div class="step" data-step="5">
-                            <div class="step-number">5</div>
-                            <div class="step-label">TV</div>
-                        </div>
-                        <div class="step" data-step="6">
-                            <div class="step-number">6</div>
-                            <div class="step-label">Mikrofon</div>
-                        </div>
-                        <div class="step" data-step="7">
-                            <div class="step-number">7</div>
-                            <div class="step-label">Bilgisayar</div>
-                        </div>
-                    </div>
-
-                    <!-- Step 1: Genel Bilgiler -->
-                    <div class="step-content active" data-step="1">
-                        <div class="form-group">
-                            <label for="salonNo">Salon Numarası</label>
-                            <input type="text" name="salonNo" required placeholder="Örn: 1">
-                        </div>
-                        <div class="form-group">
-                            <label for="mahkemeTuru">Mahkeme Türü</label>
-                            <select name="mahkemeTuru" required>
-                                <option value="">Mahkeme Türü Seçin</option>
-                                <option value="Ağır Ceza">Ağır Ceza</option>
-                                <option value="Asliye Ceza">Asliye Ceza</option>
-                                <option value="Asliye Hukuk">Asliye Hukuk</option>
-                                <option value="Sulh Hukuk">Sulh Hukuk</option>
-                                <option value="İcra Hukuk">İcra Hukuk</option>
-                                <option value="İş">İş</option>
-                                <option value="Ticaret">Ticaret</option>
-                                <option value="Tüketici">Tüketici</option>
-                                <option value="Çocuk">Çocuk</option>
-                                <option value="Aile">Aile</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="konum">Konum</label>
-                            <select name="konum" required>
-                                <option value="">Konum Seçin</option>
-                                <option value="Zemin Kat">Zemin Kat</option>
-                                <option value="1. Kat">1. Kat</option>
-                                <option value="2. Kat">2. Kat</option>
-                                <option value="3. Kat">3. Kat</option>
-                                <option value="4. Kat">4. Kat</option>
-                                <option value="5. Kat">5. Kat</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="status">Durum</label>
-                            <select name="status" required>
-                                <option value="">Durum Seçin</option>
-                                <option value="active">Aktif</option>
-                                <option value="issue">Arızalı</option>
-                                <option value="maintenance">Bakımda</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Monitörler -->
-                    <div class="step-content" data-step="2">
-                        <div class="form-group">
-                            <label for="monitorCount">Monitör Sayısı</label>
-                            <input type="number" name="monitorCount" min="0" value="0" class="monitor-count">
-                        </div>
-                        <div id="monitorDetails" class="device-details">
-                            <!-- Monitör detayları dinamik olarak eklenecek -->
-                        </div>
-                    </div>
-
-                    <!-- Step 3: SEGBİS -->
-                    <div class="step-content" data-step="3">
-                        <div class="form-group">
-                            <label for="segbisMarka">SEGBİS Marka</label>
-                            <input type="text" name="segbisMarka" placeholder="Marka giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="segbisModel">SEGBİS Model</label>
-                            <input type="text" name="segbisModel" placeholder="Model giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="segbisSeriNo">SEGBİS Seri No</label>
-                            <input type="text" name="segbisSeriNo" placeholder="Seri no giriniz">
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Kamera -->
-                    <div class="step-content" data-step="4">
-                        <div class="form-group">
-                            <label for="kameraMarka">Kamera Marka</label>
-                            <input type="text" name="kameraMarka" placeholder="Marka giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="kameraModel">Kamera Model</label>
-                            <input type="text" name="kameraModel" placeholder="Model giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="kameraSeriNo">Kamera Seri No</label>
-                            <input type="text" name="kameraSeriNo" placeholder="Seri no giriniz">
-                        </div>
-                    </div>
-
-                    <!-- Step 5: TV -->
-                    <div class="step-content" data-step="5">
-                        <div class="form-group">
-                            <label for="tvMarka">TV Marka</label>
-                            <input type="text" name="tvMarka" placeholder="Marka giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="tvModel">TV Model</label>
-                            <input type="text" name="tvModel" placeholder="Model giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="tvSeriNo">TV Seri No</label>
-                            <input type="text" name="tvSeriNo" placeholder="Seri no giriniz">
-                        </div>
-                    </div>
-
-                    <!-- Step 6: Mikrofon -->
-                    <div class="step-content" data-step="6">
-                        <div class="form-group">
-                            <label for="mikrofonMarka">Mikrofon Marka</label>
-                            <input type="text" name="mikrofonMarka" placeholder="Marka giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="mikrofonModel">Mikrofon Model</label>
-                            <input type="text" name="mikrofonModel" placeholder="Model giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="mikrofonSeriNo">Mikrofon Seri No</label>
-                            <input type="text" name="mikrofonSeriNo" placeholder="Seri no giriniz">
-                        </div>
-                    </div>
-
-                    <!-- Step 7: Bilgisayar -->
-                    <div class="step-content" data-step="7">
-                        <div class="form-group">
-                            <label for="pcMarka">Bilgisayar Marka</label>
-                            <input type="text" name="pcMarka" placeholder="Marka giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="pcModel">Bilgisayar Model</label>
-                            <input type="text" name="pcModel" placeholder="Model giriniz">
-                        </div>
-                        <div class="form-group">
-                            <label for="pcSeriNo">Bilgisayar Seri No</label>
-                            <input type="text" name="pcSeriNo" placeholder="Seri no giriniz">
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label for="mahkemeTuru">Mahkeme Türü</label>
+                    <select name="mahkemeTuru" id="mahkemeTuru" class="form-control" required>
+                        <option value="">Mahkeme Türü Seçin</option>
+                        <option value="Sulh Hukuk Mahkemesi">Sulh Hukuk Mahkemesi</option>
+                        <option value="Hukuk Ön Büro">Hukuk Ön Büro</option>
+                        <option value="Hukuk Vezne">Hukuk Vezne</option>
+                        <option value="Asliye Hukuk Mahkemesi">Asliye Hukuk Mahkemesi</option>
+                        <option value="Tüketici Mahkemesi">Tüketici Mahkemesi</option>
+                        <option value="Kadastro Mahkemesi">Kadastro Mahkemesi</option>
+                        <option value="İş Mahkemesi">İş Mahkemesi</option>
+                        <option value="Aile Mahkemesi">Aile Mahkemesi</option>
+                        <option value="Ağır Ceza Mahkemesi">Ağır Ceza Mahkemesi</option>
+                        <option value="Adalet Komisyonu Başkanlığı">Adalet Komisyonu Başkanlığı</option>
+                        <option value="Sulh Ceza Hakimliği">Sulh Ceza Hakimliği</option>
+                        <option value="İnfaz Hakimliği">İnfaz Hakimliği</option>
+                        <option value="Çocuk Mahkemesi">Çocuk Mahkemesi</option>
+                        <option value="Savcılık İnfaz Bürosu">Savcılık İnfaz Bürosu</option>
+                        <option value="Asliye Ceza Mahkemesi">Asliye Ceza Mahkemesi</option>
+                        <option value="Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları">Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları</option>
+                        <option value="Ceza Ön Büro">Ceza Ön Büro</option>
+                        <option value="Ceza Vezne">Ceza Vezne</option>
+                        <option value="Soruşturma Bürosu">Soruşturma Bürosu</option>
+                        <option value="İdari İşler Müdürlüğü">İdari İşler Müdürlüğü</option>
+                        <option value="Müracaat Bürosu">Müracaat Bürosu</option>
+                        <option value="Muhabere Bürosu">Muhabere Bürosu</option>
+                        <option value="Talimat Bürosu">Talimat Bürosu</option>
+                        <option value="Emanet Bürosu">Emanet Bürosu</option>
+                        <option value="Nöbetçi Sulh Ceza Hakimliği">Nöbetçi Sulh Ceza Hakimliği</option>
+                        <option value="Cumhuriyet Başsavcılığı">Cumhuriyet Başsavcılığı</option>
+                        <option value="Bakanlık Muhabere Bürosu">Bakanlık Muhabere Bürosu</option>
+                        <option value="CMK">CMK</option>
+                        <option value="Maaş">Maaş</option>
+                        <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
+                        <option value="Adli Sicil Şefliği">Adli Sicil Şefliği</option>
+                        <option value="İcra Hukuk Mahkemesi">İcra Hukuk Mahkemesi</option>
+                        <option value="İcra Ceza Mahkemesi">İcra Ceza Mahkemesi</option>
+                    </select>
                 </div>
-
+                <div class="form-group">
+                    <label for="salonNo">Salon No</label>
+                    <input type="number" name="salonNo" id="salonNo" class="form-control" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label for="blok">Blok</label>
+                    <select name="blok" id="blok" class="form-control" required>
+                        <option value="">Blok Seçin</option>
+                        <option value="A Blok">A Blok</option>
+                        <option value="B Blok">B Blok</option>
+                        <option value="C Blok">C Blok</option>
+                        <option value="D Blok">D Blok</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="konum">Kat</label>
+                    <select name="konum" id="konum" class="form-control" required>
+                        <option value="">Kat Seçin</option>
+                        <option value="Zemin Kat">Zemin Kat</option>
+                        <option value="1. Kat">1. Kat</option>
+                        <option value="2. Kat">2. Kat</option>
+                        <option value="3. Kat">3. Kat</option>
+                        <option value="4. Kat">4. Kat</option>
+                        <option value="5. Kat">5. Kat</option>
+                        <option value="6. Kat">6. Kat</option>
+                        <option value="7. Kat">7. Kat</option>
+                        <option value="8. Kat">8. Kat</option>
+                        <option value="9. Kat">9. Kat</option>
+                        <option value="10. Kat">10. Kat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="status">Durum</label>
+                    <select name="status" id="status" class="form-control" required>
+                        <option value="">Durum Seçin</option>
+                        <option value="active">Aktif</option>
+                        <option value="issue">Arızalı</option>
+                        <option value="maintenance">Bakımda</option>
+                    </select>
+                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="prevStep" style="display: none;">Geri</button>
-                    <button type="button" class="btn btn-primary" id="nextStep">İleri</button>
-                    <button type="submit" class="btn btn-success" id="saveForm" style="display: none;">Kaydet</button>
+                    <button type="button" class="btn btn-secondary">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/theme.js"></script>
     <script src="js/main.js"></script>
     <script src="js/durusma-salonlari.js"></script>
