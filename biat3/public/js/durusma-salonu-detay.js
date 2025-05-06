@@ -38,14 +38,14 @@ async function loadCourtroomDetailAndEquipments() {
 
     // 2. Tüm ekipmanları çek
     const [computersRes, monitorsRes, printersRes, segbisRes, edurusmaRes, tvsRes, microphonesRes, camerasRes] = await Promise.all([
-        supabase.from('computers').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('screens').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('printers').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('segbis').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('e_durusma').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('tvs').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('microphones').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
-        supabase.from('cameras').select('*').eq('oda_tipi', 'durusma_salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString())
+        supabase.from('computers').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('screens').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('printers').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('segbis').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('e_durusma').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('tvs').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('microphones').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString()),
+        supabase.from('cameras').select('*').eq('oda_tipi', 'Duruşma Salonu').eq('birim', salon.mahkeme_turu).eq('mahkeme_no', salon.salon_no.toString())
     ]);
     const computers = !computersRes.error && Array.isArray(computersRes.data) ? computersRes.data : [];
     const monitors = !monitorsRes.error && Array.isArray(monitorsRes.data) ? monitorsRes.data : [];

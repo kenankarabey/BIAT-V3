@@ -135,10 +135,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     // === Personel ===
     // Tüm tablolardan personel verilerini çek
     const [personnelComputers, personnelScreens, personnelScanners, personnelPrinters] = await Promise.all([
-        supabase.from('computers').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('screens').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('scanners').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('printers').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no)
+        supabase.from('computers').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('screens').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('scanners').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('printers').select('adi_soyadi, sicil_no, unvan').eq('birim', data.birim || data.mahkeme_turu).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no)
     ]);
 
     // Tüm personel verilerini birleştir ve tekrarları kaldır
@@ -175,10 +175,10 @@ document.addEventListener('DOMContentLoaded', async function() {
     const mahkemeBirim = data.birim || data.mahkeme_turu;
     // Cihazları çek
     const [computersRes, screensRes, scannersRes, printersRes] = await Promise.all([
-        supabase.from('computers').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('screens').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('scanners').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no),
-        supabase.from('printers').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'mahkeme_kalemi').eq('mahkeme_no', data.mahkeme_no)
+        supabase.from('computers').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('screens').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('scanners').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no),
+        supabase.from('printers').select('*').eq('birim', mahkemeBirim).eq('oda_tipi', 'Mahkeme Kalemi').eq('mahkeme_no', data.mahkeme_no)
     ]);
     console.log('Mahkeme birim:', mahkemeBirim, 'Mahkeme no:', data.mahkeme_no);
     console.log('Computers:', computersRes.data);

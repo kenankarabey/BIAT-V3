@@ -407,47 +407,136 @@
                         <div class="modal" id="editDeviceModal">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h2>Cihaz Düzenle</h2>
+                                    <div class="modal-title">
+                                        <i class="fas fa-edit"></i>
+                                        <h2>Cihaz Düzenle</h2>
+                                    </div>
                                     <button class="close-modal" onclick="closeEditModal()">
                                         <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                                 <div class="modal-body">
-                                    <form id="editDeviceForm">
+                                    <form id="editDeviceForm" class="modern-form">
                                         <input type="hidden" id="editDeviceId">
-                                        <div class="form-group">
-                                            <label for="editDeviceType">Cihaz Türü</label>
-                                            <select id="editDeviceType" onchange="updateEditFormFields()">
-                                                <option value="computer">Kasa</option>
-                                                <option value="laptop">Laptop</option>
-                                                <option value="screen">Monitör</option>
-                                                <option value="printer">Yazıcı</option>
-                                                <option value="scanner">Tarayıcı</option>
-                                                <option value="tv">Televizyon</option>
-                                                <option value="camera">Kamera</option>
-                                                <option value="segbis">SEGBIS</option>
-                                                <option value="microphone">Mikrofon</option>
-                                                <option value="ehearing">E-Duruşma</option>
-                                            </select>
+                                        <div class="form-section">
+                                            <div class="form-group">
+                                                <label for="editDeviceType">
+                                                    <i class="fas fa-laptop"></i>
+                                                    Cihaz Türü
+                                                </label>
+                                                <select id="editDeviceType" onchange="updateEditFormFields()" class="modern-select">
+                                                    <option value="">Cihaz türü seçin</option>
+                                                    <option value="computer">Kasa</option>
+                                                    <option value="laptop">Laptop</option>
+                                                    <option value="screen">Monitör</option>
+                                                    <option value="printer">Yazıcı</option>
+                                                    <option value="scanner">Tarayıcı</option>
+                                                    <option value="tv">Televizyon</option>
+                                                    <option value="camera">Kamera</option>
+                                                    <option value="segbis">SEGBIS</option>
+                                                    <option value="microphone">Mikrofon</option>
+                                                    <option value="e_durusma">E-Duruşma</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editBirim">
+                                                    <i class="fas fa-building"></i>
+                                                    Birim
+                                                </label>
+                                                <select id="editBirim" class="modern-select" required>
+                                                    <option value="">Birim seçin</option>
+                                                    <option value="Sulh Hukuk Mahkemesi">Sulh Hukuk Mahkemesi</option>
+                                                    <option value="Hukuk Ön Büro">Hukuk Ön Büro</option>
+                                                    <option value="Hukuk Vezne">Hukuk Vezne</option>
+                                                    <option value="Asliye Hukuk Mahkemesi">Asliye Hukuk Mahkemesi</option>
+                                                    <option value="Tüketici Mahkemesi">Tüketici Mahkemesi</option>
+                                                    <option value="Kadastro Mahkemesi">Kadastro Mahkemesi</option>
+                                                    <option value="İş Mahkemesi">İş Mahkemesi</option>
+                                                    <option value="Aile Mahkemesi">Aile Mahkemesi</option>
+                                                    <option value="Ağır Ceza Mahkemesi">Ağır Ceza Mahkemesi</option>
+                                                    <option value="Adalet Komisyonu Başkanlığı">Adalet Komisyonu Başkanlığı</option>
+                                                    <option value="Sulh Ceza Hakimliği">Sulh Ceza Hakimliği</option>
+                                                    <option value="İnfaz Hakimliği">İnfaz Hakimliği</option>
+                                                    <option value="Çocuk Mahkemesi">Çocuk Mahkemesi</option>
+                                                    <option value="Savcılık İnfaz Bürosu">Savcılık İnfaz Bürosu</option>
+                                                    <option value="Asliye Ceza Mahkemesi">Asliye Ceza Mahkemesi</option>
+                                                    <option value="Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları">Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları</option>
+                                                    <option value="Ceza Ön Büro">Ceza Ön Büro</option>
+                                                    <option value="Ceza Vezne">Ceza Vezne</option>
+                                                    <option value="Soruşturma Bürosu">Soruşturma Bürosu</option>
+                                                    <option value="İdari İşler Müdürlüğü">İdari İşler Müdürlüğü</option>
+                                                    <option value="Müracaat Bürosu">Müracaat Bürosu</option>
+                                                    <option value="Muhabere Bürosu">Muhabere Bürosu</option>
+                                                    <option value="Talimat Bürosu">Talimat Bürosu</option>
+                                                    <option value="Emanet Bürosu">Emanet Bürosu</option>
+                                                    <option value="Nöbetçi Sulh Ceza Hakimliği">Nöbetçi Sulh Ceza Hakimliği</option>
+                                                    <option value="Cumhuriyet Başsavcılığı">Cumhuriyet Başsavcılığı</option>
+                                                    <option value="Bakanlık Muhabere Bürosu">Bakanlık Muhabere Bürosu</option>
+                                                    <option value="CMK">CMK</option>
+                                                    <option value="Maaş">Maaş</option>
+                                                    <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
+                                                    <option value="Adli Sicil Şefliği">Adli Sicil Şefliği</option>
+                                                    <option value="İcra Hukuk Mahkemesi">İcra Hukuk Mahkemesi</option>
+                                                    <option value="İcra Ceza Mahkemesi">İcra Ceza Mahkemesi</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editMahkemeNo">
+                                                    <i class="fas fa-gavel"></i>
+                                                    Mahkeme No
+                                                </label>
+                                                <input type="number" id="editMahkemeNo" class="modern-input" placeholder="Mahkeme numarasını girin" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="editOdaTipi">
+                                                    <i class="fas fa-door-open"></i>
+                                                    Oda Tipi
+                                                </label>
+                                                <select id="editOdaTipi" class="modern-select" required>
+                                                    <option value="">Oda tipi seçin</option>
+                                                    <option value="Mahkeme Kalemi">Mahkeme Kalemi</option>
+                                                    <option value="Hakim Odaları">Hakim Odaları</option>
+                                                    <option value="Duruşma Salonu">Duruşma Salonu</option>
+                                                </select>
+                                            </div>
                                         </div>
-                                        <div class="form-group">
-                                            <label for="editBirim">Birim</label>
-                                            <input type="text" id="editBirim" required>
-                                        </div>
-                                        <div id="editDynamicFields">
+
+                                        <div id="editDynamicFields" class="form-section">
                                             <!-- Dinamik form alanları buraya eklenecek -->
                                         </div>
-                                        <div class="form-group garanti-group">
-                                          <label for="ilk_garanti_tarihi">İlk Garanti Tarihi</label>
-                                          <input type="date" id="ilk_garanti_tarihi">
+
+                                        <div class="form-section">
+                                            <h3 class="section-title">
+                                                <i class="fas fa-shield-alt"></i>
+                                                Garanti Bilgileri
+                                            </h3>
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="editIlkGarantiTarihi">İlk Garanti Tarihi</label>
+                                                    <input type="date" id="editIlkGarantiTarihi" class="modern-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editSonGarantiTarihi">Son Garanti Tarihi</label>
+                                                    <input type="date" id="editSonGarantiTarihi" class="modern-input">
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="form-group garanti-group">
-                                          <label for="son_garanti_tarihi">Son Garanti Tarihi</label>
-                                          <input type="date" id="son_garanti_tarihi">
-                                        </div>
-                                        <div class="form-group temizlik-group" style="display:none;">
-                                          <label for="ilk_temizlik_tarihi">İlk Temizlik Tarihi</label>
-                                          <input type="date" id="ilk_temizlik_tarihi">
+
+                                        <div class="form-section temizlik-group" style="display:none;">
+                                            <h3 class="section-title">
+                                                <i class="fas fa-broom"></i>
+                                                Temizlik Bilgileri
+                                            </h3>
+                                            <div class="form-row">
+                                                <div class="form-group">
+                                                    <label for="editIlkTemizlikTarihi">İlk Temizlik Tarihi</label>
+                                                    <input type="date" id="editIlkTemizlikTarihi" class="modern-input">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="editSonTemizlikTarihi">Son Temizlik Tarihi</label>
+                                                    <input type="date" id="editSonTemizlikTarihi" class="modern-input">
+                                                </div>
+                                            </div>
                                         </div>
                                     </form>
                                 </div>
@@ -729,9 +818,9 @@
                                 </label>
                                 <select id="oda_tipi" class="modern-select" required>
                                     <option value="">Oda tipi seçin</option>
-                                    <option value="mahkeme_kalemi">Mahkeme Kalemi</option>
-                                    <option value="hakim_savci_odasi">Hakim-Savcı Odası</option>
-                                    <option value="durusma_salonu">Duruşma Salonu</option>
+                                    <option value="Mahkeme Kalemi">Mahkeme Kalemi</option>
+                                    <option value="Hakim Odaları">Hakim Odaları</option>
+                                    <option value="Duruşma Salonu">Duruşma Salonu</option>
                                 </select>
                             </div>
                         </div>

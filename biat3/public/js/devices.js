@@ -124,22 +124,41 @@ function updateFormFields() {
     const dynamicFields = document.getElementById('dynamicFields');
     dynamicFields.innerHTML = '';
 
-    // Cihaz türüne göre form alanlarını oluştur
-    const fields = getFormFieldsByType(deviceType);
-    fields.forEach(field => {
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-        formGroup.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            <input type="text" id="${field.id}" name="${field.id}" ${field.required ? 'required' : ''}>
-        `;
-        dynamicFields.appendChild(formGroup);
-    });
-
-    // Temizlik alanlarını sadece kasa için göster
-    const temizlikGroup = document.querySelector('.temizlik-group');
-    if (temizlikGroup) {
-        temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
+    if (deviceType) {
+        const fields = getFormFieldsByType(deviceType);
+        fields.forEach(field => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            // Benzersiz id ekle
+            formGroup.id = `form-group-${field.id}`;
+            formGroup.innerHTML = `
+                <label for="${field.id}">
+                    <i class="fas fa-user-tie"></i>
+                    ${field.label}
+                </label>
+                ${field.type === 'select' ? `
+                    <select id="${field.id}" name="${field.id}" class="modern-select" ${field.required ? 'required' : ''}>
+                        <option value="">${field.label} seçin</option>
+                        ${field.options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                    </select>
+                ` : `
+                    <input type="text" id="${field.id}" name="${field.id}" class="modern-input" ${field.required ? 'required' : ''}>
+                `}
+            `;
+            dynamicFields.appendChild(formGroup);
+        });
+        // Temizlik alanlarını göster/gizle
+        const temizlikGroup = document.querySelector('.temizlik-group');
+        if (temizlikGroup) {
+            temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
+        }
+        // Birim değiştiğinde kontrol et
+        const birimSelect = document.getElementById('birim');
+        if (birimSelect && !birimSelect._mahkemeKalemiListener) {
+            birimSelect.addEventListener('change', () => hidePersonFieldsIfMahkemeKalemi(''));
+            birimSelect._mahkemeKalemiListener = true;
+        }
+        hidePersonFieldsIfMahkemeKalemi('');
     }
 }
 
@@ -213,12 +232,16 @@ async function saveDevice(event) {
     console.log('Garanti tarihleri doğrulandı');
 
     // Yeni cihaz nesnesini oluştur
+    const odaTipiSelect = form.querySelector('#oda_tipi');
+    const odaTipi = odaTipiSelect.options[odaTipiSelect.selectedIndex].text;
     const newDevice = {
         birim: birim,
         ilk_garanti_tarihi: ilkGaranti,
-        son_garanti_tarihi: sonGaranti
+        son_garanti_tarihi: sonGaranti,
+        oda_tipi: odaTipi,
+        mahkeme_no: form.querySelector('#mahkeme_no').value.trim()
     };
-    console.log('Temel cihaz nesnesi oluşturuldu:', newDevice);
+    console.log('Supabase\'a gönderilecek cihaz:', newDevice); // DEBUG
 
     // Cihaz tipine özel alanları ekle
     const fields = getFormFieldsByType(deviceType);
@@ -656,6 +679,7 @@ function renderDevices(activeTab = 'computer') {
                 break;
             case 'printer':
                 cells.push(
+                   
                     `<td>${device.yazici_marka || ''}</td>`,
                     `<td>${device.yazici_model || ''}</td>`,
                     `<td>${device.yazici_seri_no || ''}</td>`
@@ -663,6 +687,7 @@ function renderDevices(activeTab = 'computer') {
                 break;
             case 'scanner':
                 cells.push(
+                    
                     `<td>${device.tarayici_marka || ''}</td>`,
                     `<td>${device.tarayici_model || ''}</td>`,
                     `<td>${device.tarayici_seri_no || ''}</td>`
@@ -795,20 +820,46 @@ function showEditModal(deviceId, deviceType) {
 
 // Update Edit Form Fields
 function updateEditFormFields() {
-    const deviceType = document.getElementById('editDeviceType').value;
+    const deviceType = document.getElementById('edit_device_type').value;
     const dynamicFields = document.getElementById('editDynamicFields');
     dynamicFields.innerHTML = '';
 
-    const fields = getFormFieldsByType(deviceType);
-    fields.forEach(field => {
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-        formGroup.innerHTML = `
-            <label for="edit_${field.id}">${field.label}</label>
-            <input type="text" id="edit_${field.id}" ${field.required ? 'required' : ''}>
-        `;
-        dynamicFields.appendChild(formGroup);
-    });
+    if (deviceType) {
+        const fields = getFormFieldsByType(deviceType);
+        fields.forEach(field => {
+            const formGroup = document.createElement('div');
+            formGroup.className = 'form-group';
+            // Benzersiz id ekle
+            formGroup.id = `form-group-edit_${field.id}`;
+            formGroup.innerHTML = `
+                <label for="edit_${field.id}">
+                    <i class="fas fa-user-tie"></i>
+                    ${field.label}
+                </label>
+                ${field.type === 'select' ? `
+                    <select id="edit_${field.id}" name="edit_${field.id}" class="modern-select" ${field.required ? 'required' : ''}>
+                        <option value="">${field.label} seçin</option>
+                        ${field.options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                    </select>
+                ` : `
+                    <input type="text" id="edit_${field.id}" name="edit_${field.id}" class="modern-input" ${field.required ? 'required' : ''}>
+                `}
+            `;
+            dynamicFields.appendChild(formGroup);
+        });
+        // Temizlik alanlarını göster/gizle
+        const temizlikGroup = document.querySelector('.edit-temizlik-group');
+        if (temizlikGroup) {
+            temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
+        }
+        // Birim değiştiğinde kontrol et
+        const birimSelect = document.getElementById('editBirim');
+        if (birimSelect && !birimSelect._mahkemeKalemiListener) {
+            birimSelect.addEventListener('change', () => hidePersonFieldsIfMahkemeKalemi('edit_'));
+            birimSelect._mahkemeKalemiListener = true;
+        }
+        hidePersonFieldsIfMahkemeKalemi('edit_');
+    }
 }
 
 // Fill Edit Form Fields
@@ -821,22 +872,24 @@ function fillEditFormFields(device) {
         }
     });
 
+    // Temel alanları doldur
+    document.getElementById('editBirim').value = device.birim || '';
+    document.getElementById('editMahkemeNo').value = device.mahkeme_no || '';
+    const editOdaTipiSelect = document.getElementById('editOdaTipi');
+    const editOdaTipi = editOdaTipiSelect.options[editOdaTipiSelect.selectedIndex].text;
+    document.getElementById('editOdaTipi').value = editOdaTipi;
+
     // Garanti tarihlerini doldur
-    if (document.getElementById('ilk_garanti_tarihi')) {
-        document.getElementById('ilk_garanti_tarihi').value = device.ilk_garanti_tarihi || '';
-    }
-    if (document.getElementById('son_garanti_tarihi')) {
-        document.getElementById('son_garanti_tarihi').value = device.son_garanti_tarihi || '';
-    }
+    document.getElementById('editIlkGarantiTarihi').value = device.ilk_garanti_tarihi || '';
+    document.getElementById('editSonGarantiTarihi').value = device.son_garanti_tarihi || '';
 
     // Temizlik tarihlerini doldur (sadece kasa için)
     if (device.type === 'computer') {
-        if (document.getElementById('ilk_temizlik_tarihi')) {
-            document.getElementById('ilk_temizlik_tarihi').value = device.ilk_temizlik_tarihi || '';
-        }
-        if (document.getElementById('son_temizlik_tarihi')) {
-            document.getElementById('son_temizlik_tarihi').value = device.son_temizlik_tarihi || '';
-        }
+        document.querySelector('.edit-temizlik-group').style.display = 'block';
+        document.getElementById('editIlkTemizlikTarihi').value = device.ilk_temizlik_tarihi || '';
+        document.getElementById('editSonTemizlikTarihi').value = device.son_temizlik_tarihi || '';
+    } else {
+        document.querySelector('.edit-temizlik-group').style.display = 'none';
     }
 }
 
@@ -859,19 +912,24 @@ async function updateDevice(event) {
     const deviceId = Number(document.getElementById('editDeviceId').value);
     const deviceType = document.getElementById('editDeviceType').value;
     const birim = document.getElementById('editBirim').value;
+    const mahkemeNo = document.getElementById('editMahkemeNo').value;
+    const editOdaTipiSelect = document.getElementById('editOdaTipi');
+    const editOdaTipi = editOdaTipiSelect.options[editOdaTipiSelect.selectedIndex].text;
 
     // Cihazı güncelle
     const updatedDevice = {
         id: deviceId,
         birim: birim,
-        ilk_garanti_tarihi: document.getElementById('ilk_garanti_tarihi').value,
-        son_garanti_tarihi: document.getElementById('son_garanti_tarihi').value
+        mahkeme_no: mahkemeNo,
+        oda_tipi: editOdaTipi,
+        ilk_garanti_tarihi: document.getElementById('editIlkGarantiTarihi').value,
+        son_garanti_tarihi: document.getElementById('editSonGarantiTarihi').value
     };
 
     // Temizlik tarihlerini sadece kasa için ekle
     if (deviceType === 'computer') {
-        updatedDevice.ilk_temizlik_tarihi = document.getElementById('ilk_temizlik_tarihi').value || null;
-        updatedDevice.son_temizlik_tarihi = document.getElementById('son_temizlik_tarihi').value || null;
+        updatedDevice.ilk_temizlik_tarihi = document.getElementById('editIlkTemizlikTarihi').value || null;
+        updatedDevice.son_temizlik_tarihi = document.getElementById('editSonTemizlikTarihi').value || null;
     }
 
     // Diğer alanları ekle (snake_case)
@@ -905,6 +963,7 @@ async function updateDevice(event) {
 // Show Device Details
 function showDeviceDetails(deviceId, deviceType) {
     const device = devices.find(d => d.id === Number(deviceId) && d.type === deviceType);
+    console.log("Detay modalına gelen cihaz:", device); // DEBUG
     if (!device) {
         console.error('Device not found:', deviceId, deviceType);
         return;
@@ -922,6 +981,12 @@ function showDeviceDetails(deviceId, deviceType) {
     document.getElementById('detailUnit').textContent = device.birim || '';
     document.getElementById('detailMahkemeNo').textContent = device.mahkeme_no || '';
     document.getElementById('detailOdaTipi').textContent = device.oda_tipi || '';
+
+    // Garanti tarihlerini HER cihaz türü için göster
+    const ilkGaranti = device.ilk_garanti_tarihi && device.ilk_garanti_tarihi !== "" ? new Date(device.ilk_garanti_tarihi).toLocaleDateString('tr-TR') : "-";
+    const sonGaranti = device.son_garanti_tarihi && device.son_garanti_tarihi !== "" ? new Date(device.son_garanti_tarihi).toLocaleDateString('tr-TR') : "-";
+    document.getElementById('detailIlkGaranti').textContent = ilkGaranti;
+    document.getElementById('detailSonGaranti').textContent = sonGaranti;
 
     // Cihaz türüne göre alanlar
     let brand = '', model = '', serial = '';
@@ -1031,13 +1096,22 @@ function showDeviceDetails(deviceId, deviceType) {
     document.getElementById('detailModel').textContent = model;
     document.getElementById('detailSerial').textContent = serial;
 
-    // Garanti tarihlerini göster
-    document.getElementById('detailIlkGaranti').textContent = device.ilk_garanti_tarihi
-        ? new Date(device.ilk_garanti_tarihi).toLocaleDateString('tr-TR')
-        : '-';
-    document.getElementById('detailSonGaranti').textContent = device.son_garanti_tarihi
-        ? new Date(device.son_garanti_tarihi).toLocaleDateString('tr-TR')
-        : '-';
+    // Unvan, Adı Soyadı, Sicil No alanlarını göster/gizle
+    const unvanRow = document.getElementById('detailUnvanRow');
+    const adSoyadRow = document.getElementById('detailAdSoyadRow');
+    const sicilNoRow = document.getElementById('detailSicilNoRow');
+    if (deviceType === 'computer' || deviceType === 'screen' || deviceType === 'laptop') {
+        unvanRow.style.display = '';
+        adSoyadRow.style.display = '';
+        sicilNoRow.style.display = '';
+        document.getElementById('detailUnvan').textContent = device.unvan || '';
+        document.getElementById('detailAdSoyad').textContent = device.adi_soyadi || '';
+        document.getElementById('detailSicilNo').textContent = device.sicil_no || '';
+    } else {
+        unvanRow.style.display = 'none';
+        adSoyadRow.style.display = 'none';
+        sicilNoRow.style.display = 'none';
+    }
 
     // QR ve barkod görsellerini oluştur
     const qrValue = device.qr_kod || '';
@@ -1064,23 +1138,6 @@ function showDeviceDetails(deviceId, deviceType) {
             document.getElementById('barcode').innerHTML = '';
         }
     }, 50);
-
-    // Unvan, Adı Soyadı, Sicil No alanlarını göster/gizle
-    const unvanRow = document.getElementById('detailUnvanRow');
-    const adSoyadRow = document.getElementById('detailAdSoyadRow');
-    const sicilNoRow = document.getElementById('detailSicilNoRow');
-    if (deviceType === 'computer' || deviceType === 'screen') {
-        unvanRow.style.display = '';
-        adSoyadRow.style.display = '';
-        sicilNoRow.style.display = '';
-        document.getElementById('detailUnvan').textContent = device.unvan || '';
-        document.getElementById('detailAdSoyad').textContent = device.adi_soyadi || '';
-        document.getElementById('detailSicilNo').textContent = device.sicil_no || '';
-    } else {
-        unvanRow.style.display = 'none';
-        adSoyadRow.style.display = 'none';
-        sicilNoRow.style.display = 'none';
-    }
 }
 
 // Close Details Modal
@@ -1160,6 +1217,8 @@ function mapDeviceKeys(device, type) {
                 laptop_marka: device.laptop_marka,
                 laptop_model: device.laptop_model,
                 laptop_seri_no: device.laptop_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1176,6 +1235,8 @@ function mapDeviceKeys(device, type) {
                 ekran_marka: device.ekran_marka,
                 ekran_model: device.ekran_model,
                 ekran_seri_no: device.ekran_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1189,6 +1250,8 @@ function mapDeviceKeys(device, type) {
                 yazici_marka: device.yazici_marka,
                 yazici_model: device.yazici_model,
                 yazici_seri_no: device.yazici_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1202,6 +1265,8 @@ function mapDeviceKeys(device, type) {
                 tarayici_marka: device.tarayici_marka,
                 tarayici_model: device.tarayici_model,
                 tarayici_seri_no: device.tarayici_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1215,6 +1280,8 @@ function mapDeviceKeys(device, type) {
                 tv_marka: device.tv_marka,
                 tv_model: device.tv_model,
                 tv_seri_no: device.tv_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1228,6 +1295,8 @@ function mapDeviceKeys(device, type) {
                 kamera_marka: device.kamera_marka,
                 kamera_model: device.kamera_model,
                 kamera_seri_no: device.kamera_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1241,6 +1310,8 @@ function mapDeviceKeys(device, type) {
                 segbis_marka: device.segbis_marka,
                 segbis_model: device.segbis_model,
                 segbis_seri_no: device.segbis_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1254,6 +1325,8 @@ function mapDeviceKeys(device, type) {
                 edurusma_marka: device.edurusma_marka,
                 edurusma_model: device.edurusma_model,
                 edurusma_seri_no: device.edurusma_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1267,6 +1340,8 @@ function mapDeviceKeys(device, type) {
                 mikrofon_marka: device.mikrofon_marka,
                 mikrofon_model: device.mikrofon_model,
                 mikrofon_seri_no: device.mikrofon_seri_no,
+                ilk_garanti_tarihi: device.ilk_garanti_tarihi,
+                son_garanti_tarihi: device.son_garanti_tarihi,
                 qr_kod: device.qr_kod,
                 barkod: device.barkod
             };
@@ -1295,15 +1370,15 @@ async function fetchDevices() {
         // Tablo adı -> select alanları eşlemesi (tamamen snake_case!)
         const tableSelectMap = {
             computers: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, kasa_marka, kasa_model, kasa_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, ilk_temizlik_tarihi, son_temizlik_tarihi, qr_kod, barkod',
-            laptops: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, qr_kod, barkod',
-            screens: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, qr_kod, barkod',
-            printers: 'id, birim, mahkeme_no, oda_tipi, yazici_marka, yazici_model, yazici_seri_no, qr_kod, barkod',
-            scanners: 'id, birim, mahkeme_no, oda_tipi, tarayici_marka, tarayici_model, tarayici_seri_no, qr_kod, barkod',
-            tvs: 'id, birim, mahkeme_no, oda_tipi, tv_marka, tv_model, tv_seri_no, qr_kod, barkod',
-            cameras: 'id, birim, mahkeme_no, oda_tipi, kamera_marka, kamera_model, kamera_seri_no, qr_kod, barkod',
-            segbis: 'id, birim, mahkeme_no, oda_tipi, segbis_marka, segbis_model, segbis_seri_no, qr_kod, barkod',
-            microphones: 'id, birim, mahkeme_no, oda_tipi, mikrofon_marka, mikrofon_model, mikrofon_seri_no, qr_kod, barkod',
-            e_durusma: 'id, birim, mahkeme_no, oda_tipi, edurusma_marka, edurusma_model, edurusma_seri_no, qr_kod, barkod'
+            laptops: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            screens: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            printers: 'id, birim, mahkeme_no, oda_tipi, yazici_marka, yazici_model, yazici_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            scanners: 'id, birim, mahkeme_no, oda_tipi, tarayici_marka, tarayici_model, tarayici_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            tvs: 'id, birim, mahkeme_no, oda_tipi, tv_marka, tv_model, tv_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            cameras: 'id, birim, mahkeme_no, oda_tipi, kamera_marka, kamera_model, kamera_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            segbis: 'id, birim, mahkeme_no, oda_tipi, segbis_marka, segbis_model, segbis_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            microphones: 'id, birim, mahkeme_no, oda_tipi, mikrofon_marka, mikrofon_model, mikrofon_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            e_durusma: 'id, birim, mahkeme_no, oda_tipi, edurusma_marka, edurusma_model, edurusma_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod'
         };
         const tables = Object.keys(tableTypeMap);
         let allDevices = [];
@@ -1412,10 +1487,36 @@ async function updateDeviceInDatabase(device) {
 
 // Get form fields by device type
 function getFormFieldsByType(deviceType) {
+    const unvanField = { 
+        id: 'unvan', 
+        label: 'Unvan', 
+        required: true,
+        type: 'select',
+        options: [
+            'Zabıt Katibi',
+            'Mübaşir',
+            'İcra Katibi',
+            'İcra Memuru',
+            'İcra Müdür Yardımcısı',
+            'İcra Müdürü',
+            'Yazı İşleri Müdürü',
+            'Hakim',
+            'Savcı',
+            'Veznedar',
+            'Hizmetli',
+            'Tarama Memuru',
+            'Memur',
+            'Teknisyen',
+            'Tekniker',
+            'Bilgi İşlem Müdürü',
+            'Uzman'
+        ]
+    };
+
     switch (deviceType) {
         case 'computer':
             return [
-                { id: 'unvan', label: 'Unvan', required: true },
+                unvanField,
                 { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
                 { id: 'sicil_no', label: 'Sicil No', required: true },
                 { id: 'kasa_marka', label: 'Kasa Marka', required: true },
@@ -1424,7 +1525,7 @@ function getFormFieldsByType(deviceType) {
             ];
         case 'laptop':
             return [
-                { id: 'unvan', label: 'Unvan', required: true },
+                unvanField,
                 { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
                 { id: 'sicil_no', label: 'Sicil No', required: true },
                 { id: 'laptop_marka', label: 'Laptop Marka', required: true },
@@ -1433,7 +1534,7 @@ function getFormFieldsByType(deviceType) {
             ];
         case 'screen':
             return [
-                { id: 'unvan', label: 'Unvan', required: true },
+                unvanField,
                 { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
                 { id: 'sicil_no', label: 'Sicil No', required: true },
                 { id: 'ekran_marka', label: 'Monitör Marka', required: true },
@@ -1442,12 +1543,14 @@ function getFormFieldsByType(deviceType) {
             ];
         case 'printer':
             return [
+                unvanField,
                 { id: 'yazici_marka', label: 'Yazıcı Marka', required: true },
                 { id: 'yazici_model', label: 'Yazıcı Model', required: true },
                 { id: 'yazici_seri_no', label: 'Yazıcı Seri No', required: true }
             ];
         case 'scanner':
             return [
+                unvanField,
                 { id: 'tarayici_marka', label: 'Tarayıcı Marka', required: true },
                 { id: 'tarayici_model', label: 'Tarayıcı Model', required: true },
                 { id: 'tarayici_seri_no', label: 'Tarayıcı Seri No', required: true }
@@ -1560,8 +1663,18 @@ function updateNewDeviceFields() {
         const formGroup = document.createElement('div');
         formGroup.className = 'form-group';
         formGroup.innerHTML = `
-            <label for="${field.id}">${field.label}</label>
-            <input type="text" id="${field.id}" name="${field.id}" ${field.required ? 'required' : ''}>
+            <label for="${field.id}">
+                <i class="fas fa-user-tie"></i>
+                ${field.label}
+            </label>
+            ${field.type === 'select' ? `
+                <select id="${field.id}" name="${field.id}" class="modern-select" ${field.required ? 'required' : ''}>
+                    <option value="">${field.label} seçin</option>
+                    ${field.options.map(option => `<option value="${option}">${option}</option>`).join('')}
+                </select>
+            ` : `
+                <input type="text" id="${field.id}" name="${field.id}" class="modern-input" ${field.required ? 'required' : ''}>
+            `}
         `;
         dynamicFields.appendChild(formGroup);
     });
@@ -1588,7 +1701,9 @@ async function saveNewDevice(event) {
 
     // Create new device object
     const newDevice = {
-        birim: formData.get('newBirim') || ''
+        birim: formData.get('birim') || '',
+        oda_tipi: formData.get('oda_tipi') || '',
+        mahkeme_no: formData.get('mahkeme_no') || ''
     };
 
     // Add dynamic fields
@@ -1644,3 +1759,6 @@ window.showNewDeviceModal = showNewDeviceModal;
 window.closeNewDeviceModal = closeNewDeviceModal;
 window.updateNewDeviceFields = updateNewDeviceFields;
 window.saveNewDevice = saveNewDevice;
+
+
+
