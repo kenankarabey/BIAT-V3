@@ -798,8 +798,12 @@ function editDevice(id, type) {
 
 // Show Edit Modal
 function showEditModal(deviceId, deviceType) {
-    console.log('showEditModal çağrıldı:', deviceId, deviceType, devices);
+    console.log('showEditModal çağrıldı:', deviceId, deviceType);
+    console.log('Mevcut cihazlar:', devices);
+    
     const device = devices.find(d => String(d.id) === String(deviceId) && d.type === deviceType);
+    console.log('Bulunan cihaz:', device);
+    
     if (!device) {
         console.error('Düzenleme için cihaz bulunamadı:', deviceId, deviceType);
         return;
@@ -814,13 +818,15 @@ function showEditModal(deviceId, deviceType) {
     document.getElementById('editDeviceType').value = device.type;
     document.getElementById('editBirim').value = device.birim;
 
+    console.log('Form alanları dolduruluyor...');
     updateEditFormFields();
     fillEditFormFields(device);
+    console.log('Form alanları dolduruldu.');
 }
 
 // Update Edit Form Fields
 function updateEditFormFields() {
-    const deviceType = document.getElementById('edit_device_type').value;
+    const deviceType = document.getElementById('editDeviceType').value;
     const dynamicFields = document.getElementById('editDynamicFields');
     dynamicFields.innerHTML = '';
 
@@ -852,32 +858,37 @@ function updateEditFormFields() {
         if (temizlikGroup) {
             temizlikGroup.style.display = deviceType === 'computer' ? 'block' : 'none';
         }
-        // Birim değiştiğinde kontrol et
-        const birimSelect = document.getElementById('editBirim');
-        if (birimSelect && !birimSelect._mahkemeKalemiListener) {
-            birimSelect.addEventListener('change', () => hidePersonFieldsIfMahkemeKalemi('edit_'));
-            birimSelect._mahkemeKalemiListener = true;
-        }
-        hidePersonFieldsIfMahkemeKalemi('edit_');
     }
 }
 
 // Fill Edit Form Fields
 function fillEditFormFields(device) {
+    console.log('fillEditFormFields başladı, cihaz:', device);
+    
     const fields = getFormFieldsByType(device.type);
+    console.log('Cihaz tipi için alanlar:', fields);
+    
     fields.forEach(field => {
         const input = document.getElementById(`edit_${field.id}`);
+        console.log(`Alan dolduruluyor: ${field.id}`, {
+            inputElement: input,
+            deviceValue: device[field.id]
+        });
         if (input) {
             input.value = device[field.id] || '';
         }
     });
 
     // Temel alanları doldur
+    console.log('Temel alanlar dolduruluyor...');
     document.getElementById('editBirim').value = device.birim || '';
     document.getElementById('editMahkemeNo').value = device.mahkeme_no || '';
+    
     const editOdaTipiSelect = document.getElementById('editOdaTipi');
-    const editOdaTipi = editOdaTipiSelect.options[editOdaTipiSelect.selectedIndex].text;
-    document.getElementById('editOdaTipi').value = editOdaTipi;
+    if (editOdaTipiSelect) {
+        const editOdaTipi = editOdaTipiSelect.options[editOdaTipiSelect.selectedIndex].text;
+        document.getElementById('editOdaTipi').value = editOdaTipi;
+    }
 
     // Garanti tarihlerini doldur
     document.getElementById('editIlkGarantiTarihi').value = device.ilk_garanti_tarihi || '';
@@ -885,12 +896,37 @@ function fillEditFormFields(device) {
 
     // Temizlik tarihlerini doldur (sadece kasa için)
     if (device.type === 'computer') {
-        document.querySelector('.edit-temizlik-group').style.display = 'block';
-        document.getElementById('editIlkTemizlikTarihi').value = device.ilk_temizlik_tarihi || '';
-        document.getElementById('editSonTemizlikTarihi').value = device.son_temizlik_tarihi || '';
+        const temizlikGroup = document.querySelector('.temizlik-group');
+        if (temizlikGroup) {
+            temizlikGroup.style.display = 'block';
+            const ilkTemizlikInput = document.getElementById('editIlkTemizlikTarihi');
+            const sonTemizlikInput = document.getElementById('editSonTemizlikTarihi');
+            
+            if (ilkTemizlikInput && sonTemizlikInput) {
+                console.log('Temizlik tarihleri dolduruluyor:', {
+                    ilk: device.ilk_temizlik_tarihi,
+                    son: device.son_temizlik_tarihi
+                });
+                
+                // Tarihleri YYYY-MM-DD formatına çevir
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    return date.toISOString().split('T')[0];
+                };
+
+                ilkTemizlikInput.value = formatDate(device.ilk_temizlik_tarihi);
+                sonTemizlikInput.value = formatDate(device.son_temizlik_tarihi);
+            }
+        }
     } else {
-        document.querySelector('.edit-temizlik-group').style.display = 'none';
+        const temizlikGroup = document.querySelector('.temizlik-group');
+        if (temizlikGroup) {
+            temizlikGroup.style.display = 'none';
+        }
     }
+    
+    console.log('Tüm alanlar dolduruldu.');
 }
 
 // Close Edit Modal

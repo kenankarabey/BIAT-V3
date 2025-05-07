@@ -6973,88 +6973,7 @@ input:checked + .slider:before {
     }
 }
 
-/* Modal Styles */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 9999;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
 
-.modal.show {
-    display: flex;
-    opacity: 1;
-}
-
-.modal-content {
-    background: var(--card-bg);
-    border-radius: var(--border-radius);
-    width: 100%;
-    max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-    animation: modalIn 0.3s ease;
-}
-
-@keyframes modalIn {
-    from {
-        transform: translateY(-20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.modal-header h2 {
-    margin: 0;
-    font-size: 1.25rem;
-    color: var(--text-color);
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    color: var(--text-light);
-    opacity: 0.7;
-    transition: opacity 0.3s ease;
-}
-
-.close-modal:hover {
-    opacity: 1;
-}
-
-.modal-body {
-    padding: 1.5rem;
-}
-
-.modal-footer {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    padding: 1.5rem;
-    border-top: 1px solid var(--border-color);
-}
 
 /* Form Styles */
 .form-group {
@@ -7824,6 +7743,33 @@ input:checked + .slider:before {
     }
 }
 
+html[data-theme="light"] .modal .modal-content,
+html[data-theme="light"] .modal .modal-content input,
+html[data-theme="light"] .modal .modal-content select {
+    background-color: #fff !important;
+    color: #161a4a !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+html[data-theme="light"] .modal .modal-content label {
+    color: #161a4a !important;
+}
+
+html[data-theme="light"] .modal .modal-content .btn-outline,
+html[data-theme="light"] .modal .modal-content .btn-secondary {
+    background-color: #f5f6fa !important;
+    color: #161a4a !important;
+    border: 1px solid #e0e0e0 !important;
+}
+
+html[data-theme="light"] .modal .modal-content .btn-primary {
+    background-color: #4CAF50 !important;
+    color: #fff !important;
+}
+html[data-theme="dark"] .modal .modal-header h2 {
+    color: #fff !important;
+}
+
 .status-badge.maintenance {
     background: #ffe066 !important;
     color: #333 !important;
@@ -7895,5 +7841,102 @@ input:checked + .slider:before {
 [data-theme="dark"] .equipment-item i {
   color: #fff;
 }
+.oda-karti {
+    background: #2d3146;
+    color: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    width: 350px;
+    min-height: 270px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+    margin: 16px 12px;
+  }
+  .oda-karti-header {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .oda-karti-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .oda-detay {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1rem;
+  }
+  .oda-hakimler {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .hakim-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 32px;
+  }
+  .hakim-row.empty {
+    visibility: hidden;
+  }
+  .hakim-isim {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+  .hakim-ikonlar i {
+    margin-left: 8px;
+    font-size: 1.1rem;
+    color: #bfc4d1;
+  }
+  .oda-karti-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .btn-edit, .btn-delete {
+    background: #23263a;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.2s;
+  }
+  .btn-edit:hover { background: #3a3e5a; }
+  .btn-delete { background: #ff5c5c; }
+  .btn-delete:hover { background: #e04a4a; }
+  .chambers-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  @media (max-width: 900px) {
+    .oda-karti { width: 100%; min-width: 0; }
+    .chambers-grid { flex-direction: column; gap: 0; }
+  }
+  html[data-theme="light"] .oda-karti .oda-baslik,
+html[data-theme="light"] .oda-karti .oda-detay,
+html[data-theme="light"] .oda-karti .oda-hakimler,
+html[data-theme="light"] .oda-karti .hakim-row,
+html[data-theme="light"] .oda-karti .hakim-isim,
+html[data-theme="light"] .oda-karti .hakim-birim {
+    color: #161a4a !important;
+}
+html[data-theme="light"] body .oda-karti {
+    background: #fff !important;
+    color: #161a4a !important;
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04) !important;
+}
+
 
 

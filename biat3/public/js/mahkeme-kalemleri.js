@@ -1,8 +1,3 @@
-// Supabase bağlantısı
-const SUPABASE_URL = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
 // Mahkeme Kalemleri verilerini tutacak dizi
 let mahkemeKalemleri = [];
 
@@ -249,7 +244,6 @@ function renderMahkemeKalemleri() {
         card.innerHTML = `
             <div class="card-header">
                 <h3>${kalem.mahkeme_no}. ${kalem.mahkeme_turu}</h3>
-                <span class="status-badge aktif">Aktif</span>
             </div>
             <div class="card-body">
                 <div class="info-row">
@@ -288,12 +282,25 @@ function renderMahkemeKalemleri() {
 }
 
 // Mahkeme kalemi silme
-function deleteKalem(id) {
+async function deleteKalem(id) {
     if (confirm('Bu mahkeme kalemini silmek istediğinize emin misiniz?')) {
-        mahkemeKalemleri = mahkemeKalemleri.filter(kalem => kalem.id !== id);
-        localStorage.setItem('mahkemeKalemleri', JSON.stringify(mahkemeKalemleri));
-        renderMahkemeKalemleri();
+        // Supabase'den sil
+        const { error } = await supabase
+            .from('mahkeme_kalemleri')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            showNotification('Silme işlemi başarısız: ' + error.message, 'error');
+            return;
+        }
+
+        // Başarılı silme işlemi
         showNotification('Mahkeme kalemi başarıyla silindi', 'success');
+        
+        // Verileri tekrar çek ve ekranı güncelle
+        mahkemeKalemleri = await fetchMahkemeKalemleri();
+        renderMahkemeKalemleri();
     }
 }
 

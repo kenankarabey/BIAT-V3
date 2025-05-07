@@ -219,69 +219,6 @@
 
             <!-- Chambers Grid -->
             <div class="chambers-grid" id="chambersContainer">
-                <!-- Chamber Card 1 -->
-                <a href="hakim-odasi-detay.html?id=1" class="chamber-card">
-                    <div class="chamber-header">
-                        <div class="chamber-title">
-                            <div class="chamber-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="chamber-info">
-                                <h2>Ahmet Yılmaz</h2>
-                                <p>Oda 101 - A Blok, 1. Kat</p>
-                            </div>
-                        </div>
-                        <span class="chamber-status active">Aktif</span>
-                    </div>
-                    <div class="chamber-content">
-                        <div class="hardware-status-grid">
-                            <div class="hardware-status-item active">
-                                <i class="fas fa-laptop"></i>
-                                <span>Dizüstü PC</span>
-                            </div>
-                            <div class="hardware-status-item active">
-                                <i class="fas fa-print"></i>
-                                <span>Yazıcı</span>
-                            </div>
-                            <div class="hardware-status-item active">
-                                <i class="fas fa-desktop"></i>
-                                <span>Monitör</span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Chamber Card 2 -->
-                <a href="hakim-odasi-detay.html?id=2" class="chamber-card">
-                    <div class="chamber-header">
-                        <div class="chamber-title">
-                            <div class="chamber-icon">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <div class="chamber-info">
-                                <h2>Ayşe Demir</h2>
-                                <p>Oda 102 - A Blok, 1. Kat</p>
-                            </div>
-                        </div>
-                        <span class="chamber-status issue">Arıza Var</span>
-                    </div>
-                    <div class="chamber-content">
-                        <div class="hardware-status-grid">
-                            <div class="hardware-status-item active">
-                                <i class="fas fa-laptop"></i>
-                                <span>Dizüstü PC</span>
-                            </div>
-                            <div class="hardware-status-item inactive">
-                                <i class="fas fa-print"></i>
-                                <span>Yazıcı</span>
-                            </div>
-                            <div class="hardware-status-item active">
-                                <i class="fas fa-desktop"></i>
-                                <span>Monitör</span>
-                            </div>
-                        </div>
-                    </div>
-                </a>
             </div>
         </main>
     </div>
@@ -299,11 +236,11 @@
                 <form id="chamberForm">
                     <div class="form-group">
                         <label for="roomNumber">Oda Numarası</label>
-                        <input type="text" id="roomNumber" required>
+                        <input type="text" id="roomNumber" name="roomNumber" required>
                     </div>
                     <div class="form-group">
                         <label for="block">Blok</label>
-                        <select id="block" required>
+                        <select id="block" name="block" required>
                             <option value="">Seçiniz</option>
                             <option value="A Blok">A Blok</option>
                             <option value="B Blok">B Blok</option>
@@ -313,7 +250,7 @@
                     </div>
                     <div class="form-group">
                         <label for="floor">Kat</label>
-                        <select id="floor" required>
+                        <select id="floor" name="floor" required>
                             <option value="">Seçiniz</option>
                             <option value="Zemin Kat">Zemin Kat</option>
                             <option value="1. Kat">1. Kat</option>
@@ -331,52 +268,12 @@
                     <div class="form-group">
                         <label>Hakimler</label>
                         <div id="judges-container">
-                            <div class="judge-entry">
-                                <div class="form-row">
-                                    <div class="form-column">
-                                        <label for="judgeName0">Hakim Adı</label>
-                                        <input type="text" id="judgeName0" class="judge-name" required>
-                                    </div>
-                                    <div class="form-column">
-                                        <label for="judgeCourt0">Mahkeme</label>
-                                        <select id="judgeCourt0" class="judge-court" required>
-                                            <option value="">Seçiniz</option>
-                                            <option value="Ağır Ceza">Ağır Ceza</option>
-                                            <option value="Asliye Ceza">Asliye Ceza</option>
-                                            <option value="Asliye Hukuk">Asliye Hukuk</option>
-                                            <option value="Sulh Ceza">Sulh Ceza</option>
-                                            <option value="Sulh Hukuk">Sulh Hukuk</option>
-                                            <option value="İcra">İcra</option>
-                                            <option value="İş">İş</option>
-                                            <option value="Ticaret">Ticaret</option>
-                                            <option value="Çocuk">Çocuk</option>
-                                            <option value="Tüketici">Tüketici</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-column">
-                                        <label for="judgeCourtNumber0">Mahkeme No</label>
-                                        <input type="number" id="judgeCourtNumber0" class="judge-court-number" min="1" required>
-                                    </div>
-                                    <div class="form-action">
-                                        <button type="button" class="btn-icon delete-judge" style="visibility: hidden;">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Hakim alanları JavaScript ile oluşturulacak -->
                         </div>
                         <button type="button" class="btn btn-outline" id="addJudgeBtn">
                             <i class="fas fa-plus"></i>
                             <span>Hakim Ekle</span>
                         </button>
-                    </div>
-                    <div class="form-group">
-                        <label for="status">Durum</label>
-                        <select id="status" required>
-                            <option value="active">Aktif</option>
-                            <option value="maintenance">Bakımda</option>
-                            <option value="issue">Arıza Var</option>
-                        </select>
                     </div>
                 </form>
             </div>
@@ -387,6 +284,7 @@
         </div>
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/main.js"></script>
     <script src="js/theme.js"></script>
     <script src="js/login.js"></script>

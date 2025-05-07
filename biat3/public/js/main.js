@@ -74,12 +74,23 @@ function updateUserInfo(userData) {
 }
 
 // Kullanıcı çıkış fonksiyonu (tüm sayfalarda kullanılabilir)
-function logout() {
-    // LocalStorage'dan kullanıcı bilgilerini temizle
-    localStorage.removeItem('user');
-    
-    // Login sayfasına yönlendir
-    window.location.href = 'login.html';
+async function logout() {
+    try {
+        // LocalStorage'dan kullanıcı bilgilerini temizle
+        localStorage.removeItem('user');
+        
+        // Supabase oturumunu sonlandır (eğer varsa)
+        if (typeof signOutUser === 'function') {
+            await signOutUser();
+        }
+        
+        // Login sayfasına yönlendir
+        window.location.href = 'login.html';
+    } catch (error) {
+        console.error('Çıkış yapılırken hata oluştu:', error);
+        // Hata olsa bile login sayfasına yönlendir
+        window.location.href = 'login.html';
+    }
 }
 
 // Sidebar ayarları
