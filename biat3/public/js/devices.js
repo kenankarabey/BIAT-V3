@@ -265,7 +265,12 @@ async function saveDevice(event) {
             }
             
             if (value) {
-                newDevice[field.id] = value;
+                // PRINTER için sicilno düzeltmesi
+                if (deviceType === 'printer' && field.id === 'sicil_no') {
+                    newDevice.sicilno = value;
+                } else {
+                    newDevice[field.id] = value;
+                }
                 console.log(`${field.id} alanı eklendi:`, value);
             }
         } else {
@@ -638,99 +643,113 @@ function renderDevices(activeTab = 'computer') {
         const row = document.createElement('tr');
         let cells = [];
 
-        // Add Mahkeme No only for device tabs
-        if (deviceTabsWithMahkemeNo.includes(activeTab)) {
-            cells.push(`<td>${device.mahkeme_no || ''}</td>`);
-        }
-        // Birim column (always)
-        cells.push(`<td>${device.birim || ''}</td>`);
-        
-        // Device specific fields
+        // Tüm alanları switch-case içinde ekle
         switch (activeTab) {
             case 'computer':
-                cells.push(
-                    `<td>${device.unvan || ''}</td>`,
-                    `<td>${device.adi_soyadi || ''}</td>`,
-                    `<td>${device.sicil_no || ''}</td>`,
-                    `<td>${device.kasa_marka || ''}</td>`,
-                    `<td>${device.kasa_model || ''}</td>`,
-                    `<td>${device.kasa_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.unvan || '-'}</td>`,
+                    `<td>${device.adi_soyadi || '-'}</td>`,
+                    `<td>${device.sicil_no || '-'}</td>`,
+                    `<td>${device.kasa_marka || '-'}</td>`,
+                    `<td>${device.kasa_model || '-'}</td>`,
+                    `<td>${device.kasa_seri_no || '-'}</td>`
+                ];
                 break;
             case 'laptop':
-                cells.push(
-                    `<td>${device.unvan || ''}</td>`,
-                    `<td>${device.adi_soyadi || ''}</td>`,
-                    `<td>${device.sicil_no || ''}</td>`,
-                    `<td>${device.laptop_marka || ''}</td>`,
-                    `<td>${device.laptop_model || ''}</td>`,
-                    `<td>${device.laptop_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.unvan || '-'}</td>`,
+                    `<td>${device.adi_soyadi || '-'}</td>`,
+                    `<td>${device.sicil_no || '-'}</td>`,
+                    `<td>${device.laptop_marka || '-'}</td>`,
+                    `<td>${device.laptop_model || '-'}</td>`,
+                    `<td>${device.laptop_seri_no || '-'}</td>`
+                ];
                 break;
             case 'screen':
-                cells.push(
-                    `<td>${device.unvan || ''}</td>`,
-                    `<td>${device.adi_soyadi || ''}</td>`,
-                    `<td>${device.sicil_no || ''}</td>`,
-                    `<td>${device.ekran_marka || ''}</td>`,
-                    `<td>${device.ekran_model || ''}</td>`,
-                    `<td>${device.ekran_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.unvan || '-'}</td>`,
+                    `<td>${device.adi_soyadi || '-'}</td>`,
+                    `<td>${device.sicil_no || '-'}</td>`,
+                    `<td>${device.ekran_marka || '-'}</td>`,
+                    `<td>${device.ekran_model || '-'}</td>`,
+                    `<td>${device.ekran_seri_no || '-'}</td>`
+                ];
                 break;
             case 'printer':
-                cells.push(
-                   
-                    `<td>${device.yazici_marka || ''}</td>`,
-                    `<td>${device.yazici_model || ''}</td>`,
-                    `<td>${device.yazici_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.unvan || '-'}</td>`,
+                    `<td>${device.adi_soyadi || '-'}</td>`,
+                    `<td>${device.sicil_no || '-'}</td>`,
+                    `<td>${device.yazici_marka || '-'}</td>`,
+                    `<td>${device.yazici_model || '-'}</td>`,
+                    `<td>${device.yazici_seri_no || '-'}</td>`
+                ];
                 break;
             case 'scanner':
-                cells.push(
-                    
-                    `<td>${device.tarayici_marka || ''}</td>`,
-                    `<td>${device.tarayici_model || ''}</td>`,
-                    `<td>${device.tarayici_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.tarayici_marka || '-'}</td>`,
+                    `<td>${device.tarayici_model || '-'}</td>`,
+                    `<td>${device.tarayici_seri_no || '-'}</td>`
+                ];
                 break;
             case 'tv':
-                cells.push(
-                    `<td>${device.tv_marka || ''}</td>`,
-                    `<td>${device.tv_model || ''}</td>`,
-                    `<td>${device.tv_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.tv_marka || '-'}</td>`,
+                    `<td>${device.tv_model || '-'}</td>`,
+                    `<td>${device.tv_seri_no || '-'}</td>`
+                ];
                 break;
             case 'camera':
-                cells.push(
-                    `<td>${device.kamera_marka || ''}</td>`,
-                    `<td>${device.kamera_model || ''}</td>`,
-                    `<td>${device.kamera_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.kamera_marka || '-'}</td>`,
+                    `<td>${device.kamera_model || '-'}</td>`,
+                    `<td>${device.kamera_seri_no || '-'}</td>`
+                ];
                 break;
             case 'segbis':
-                cells.push(
-                    `<td>${device.segbis_marka || ''}</td>`,
-                    `<td>${device.segbis_model || ''}</td>`,
-                    `<td>${device.segbis_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.segbis_marka || '-'}</td>`,
+                    `<td>${device.segbis_model || '-'}</td>`,
+                    `<td>${device.segbis_seri_no || '-'}</td>`
+                ];
                 break;
             case 'e_durusma':
-                cells.push(
-                    `<td>${device.edurusma_marka || ''}</td>`,
-                    `<td>${device.edurusma_model || ''}</td>`,
-                    `<td>${device.edurusma_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.edurusma_marka || '-'}</td>`,
+                    `<td>${device.edurusma_model || '-'}</td>`,
+                    `<td>${device.edurusma_seri_no || '-'}</td>`
+                ];
                 break;
             case 'microphone':
-                cells.push(
-                    `<td>${device.mikrofon_marka || ''}</td>`,
-                    `<td>${device.mikrofon_model || ''}</td>`,
-                    `<td>${device.mikrofon_seri_no || ''}</td>`
-                );
+                cells = [
+                    `<td>${device.mahkeme_no || '-'}</td>`,
+                    `<td>${device.birim || '-'}</td>`,
+                    `<td>${device.mikrofon_marka || '-'}</td>`,
+                    `<td>${device.mikrofon_model || '-'}</td>`,
+                    `<td>${device.mikrofon_seri_no || '-'}</td>`
+                ];
                 break;
         }
-        
-        // Action buttons
+
+        // İşlem butonlarını ekle
         cells.push(`
             <td class="table-actions">
                 <button onclick="showDeviceDetails('${device.id}', '${device.type}')" class="btn-icon info" title="Detayları Göster">
@@ -744,7 +763,7 @@ function renderDevices(activeTab = 'computer') {
                 </button>
             </td>
         `);
-        
+
         row.innerHTML = cells.join('');
         tbody.appendChild(row);
     });
@@ -973,7 +992,12 @@ async function updateDevice(event) {
     fields.forEach(field => {
         const input = document.getElementById(`edit_${field.id}`);
         if (input) {
-            updatedDevice[field.id] = input.value;
+            // PRINTER için sicilno düzeltmesi
+            if (deviceType === 'printer' && field.id === 'sicil_no') {
+                updatedDevice.sicilno = input.value;
+            } else {
+                updatedDevice[field.id] = input.value;
+            }
         }
     });
 
@@ -1283,6 +1307,9 @@ function mapDeviceKeys(device, type) {
                 birim: device.birim,
                 mahkeme_no: device.mahkeme_no,
                 oda_tipi: device.oda_tipi,
+                unvan: device.unvan,
+                adi_soyadi: device.adi_soyadi,
+                sicil_no: device.sicilno,
                 yazici_marka: device.yazici_marka,
                 yazici_model: device.yazici_model,
                 yazici_seri_no: device.yazici_seri_no,
@@ -1408,7 +1435,7 @@ async function fetchDevices() {
             computers: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, kasa_marka, kasa_model, kasa_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, ilk_temizlik_tarihi, son_temizlik_tarihi, qr_kod, barkod',
             laptops: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, laptop_marka, laptop_model, laptop_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
             screens: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicil_no, ekran_marka, ekran_model, ekran_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
-            printers: 'id, birim, mahkeme_no, oda_tipi, yazici_marka, yazici_model, yazici_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
+            printer: 'id, birim, mahkeme_no, oda_tipi, unvan, adi_soyadi, sicilno, yazici_marka, yazici_model, yazici_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
             scanners: 'id, birim, mahkeme_no, oda_tipi, tarayici_marka, tarayici_model, tarayici_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
             tvs: 'id, birim, mahkeme_no, oda_tipi, tv_marka, tv_model, tv_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
             cameras: 'id, birim, mahkeme_no, oda_tipi, kamera_marka, kamera_model, kamera_seri_no, ilk_garanti_tarihi, son_garanti_tarihi, qr_kod, barkod',
@@ -1428,10 +1455,13 @@ async function fetchDevices() {
                 continue;
             }
             if (data && data.length > 0) {
-                console.log(`${table} tablosundan ${data.length} cihaz bulundu`);
+                console.log(`${table} tablosundan çekilen veriler:`, data);
                 const type = tableTypeMap[table];
                 const devicesWithType = data.map(device => mapDeviceKeys(device, type));
+                console.log(`${table} tablosundan dönüştürülen veriler:`, devicesWithType);
                 allDevices = [...allDevices, ...devicesWithType];
+            } else {
+                console.log(`${table} tablosunda veri bulunamadı`);
             }
         }
         devices = allDevices;
@@ -1457,6 +1487,8 @@ async function saveDeviceToDatabase(device) {
         let table = device.type;
         if (device.type === 'e_durusma') {
             table = 'e_durusma';
+        } else if (device.type === 'printers') {
+            table = 'printers';
         } else {
             table = `${device.type}s`;
         }
@@ -1464,6 +1496,11 @@ async function saveDeviceToDatabase(device) {
         // Veritabanına gönderilecek veriyi hazırla
         const deviceData = { ...device };
         delete deviceData.type; // type alanını kaldır
+        // PRINTER için sicilno düzeltmesi
+        if (device.type === 'printer' && deviceData.sicil_no) {
+            deviceData.sicilno = deviceData.sicil_no;
+            delete deviceData.sicil_no;
+        }
 
         // QR ve barkod oluştur
         const timestamp = new Date().getTime();
@@ -1501,6 +1538,8 @@ async function updateDeviceInDatabase(device) {
         let table = device.type;
         if (device.type === 'e_durusma') {
             table = 'e_durusma';
+        } else if (device.type === 'printers') {
+            table = 'printers';
         } else {
             table = `${device.type}s`;
         }
@@ -1549,44 +1588,69 @@ function getFormFieldsByType(deviceType) {
         ]
     };
 
+    // Get the selected oda_tipi
+    const odaTipiSelect = document.getElementById('oda_tipi') || document.getElementById('editOdaTipi');
+    const isHakimOdasi = odaTipiSelect && odaTipiSelect.value === 'Hakim Odaları';
+
+    let personalFields = [];
+    if (deviceType === 'printer') {
+        // Sadece yazıcı ve Hakim Odaları ise personalFields ekle
+        if (isHakimOdasi) {
+            personalFields = [
+                unvanField,
+                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+                { id: 'sicil_no', label: 'Sicil No', required: true }
+            ];
+        } else {
+            personalFields = [];
+        }
+    } else if (deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen') {
+        // Kasa, laptop, monitör için her zaman personalFields ekle
+        personalFields = [
+            unvanField,
+            { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+            { id: 'sicil_no', label: 'Sicil No', required: true }
+        ];
+    } else if (isHakimOdasi) {
+        // Diğer cihazlarda eski kural geçerli
+        personalFields = [
+            unvanField,
+            { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+            { id: 'sicil_no', label: 'Sicil No', required: true }
+        ];
+    }
+
     switch (deviceType) {
         case 'computer':
             return [
-                unvanField,
-                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
-                { id: 'sicil_no', label: 'Sicil No', required: true },
+                ...personalFields,
                 { id: 'kasa_marka', label: 'Kasa Marka', required: true },
                 { id: 'kasa_model', label: 'Kasa Model', required: true },
                 { id: 'kasa_seri_no', label: 'Kasa Seri No', required: true }
             ];
         case 'laptop':
             return [
-                unvanField,
-                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
-                { id: 'sicil_no', label: 'Sicil No', required: true },
+                ...personalFields,
                 { id: 'laptop_marka', label: 'Laptop Marka', required: true },
                 { id: 'laptop_model', label: 'Laptop Model', required: true },
                 { id: 'laptop_seri_no', label: 'Laptop Seri No', required: true }
             ];
         case 'screen':
             return [
-                unvanField,
-                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
-                { id: 'sicil_no', label: 'Sicil No', required: true },
+                ...personalFields,
                 { id: 'ekran_marka', label: 'Monitör Marka', required: true },
                 { id: 'ekran_model', label: 'Monitör Model', required: true },
                 { id: 'ekran_seri_no', label: 'Monitör Seri No', required: true }
             ];
         case 'printer':
             return [
-                unvanField,
+                ...personalFields,
                 { id: 'yazici_marka', label: 'Yazıcı Marka', required: true },
                 { id: 'yazici_model', label: 'Yazıcı Model', required: true },
                 { id: 'yazici_seri_no', label: 'Yazıcı Seri No', required: true }
             ];
         case 'scanner':
             return [
-                unvanField,
                 { id: 'tarayici_marka', label: 'Tarayıcı Marka', required: true },
                 { id: 'tarayici_model', label: 'Tarayıcı Model', required: true },
                 { id: 'tarayici_seri_no', label: 'Tarayıcı Seri No', required: true }
@@ -1795,6 +1859,33 @@ window.showNewDeviceModal = showNewDeviceModal;
 window.closeNewDeviceModal = closeNewDeviceModal;
 window.updateNewDeviceFields = updateNewDeviceFields;
 window.saveNewDevice = saveNewDevice;
+
+// Add event listener for oda_tipi changes to update form fields
+document.addEventListener('DOMContentLoaded', function() {
+    const odaTipiSelect = document.getElementById('oda_tipi');
+    const editOdaTipiSelect = document.getElementById('editOdaTipi');
+    
+    function updateFormFieldsOnOdaTipiChange() {
+        const deviceTypeSelect = this.id === 'oda_tipi' ? 
+            document.getElementById('deviceType') : 
+            document.getElementById('editDeviceType');
+            
+        if (deviceTypeSelect && deviceTypeSelect.value) {
+            if (this.id === 'oda_tipi') {
+                updateFormFields();
+            } else {
+                updateEditFormFields();
+            }
+        }
+    }
+    
+    if (odaTipiSelect) {
+        odaTipiSelect.addEventListener('change', updateFormFieldsOnOdaTipiChange);
+    }
+    if (editOdaTipiSelect) {
+        editOdaTipiSelect.addEventListener('change', updateFormFieldsOnOdaTipiChange);
+    }
+});
 
 
 

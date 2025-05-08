@@ -14,6 +14,7 @@ const locationFilter = document.getElementById('locationFilter')
 const equipmentFilter = document.getElementById('equipmentFilter')
 const resetFiltersBtn = document.getElementById('resetFilters')
 const applyFiltersBtn = document.getElementById('applyFilters')
+const addJudgeBtn = document.getElementById('addJudgeBtn')
 
 // Odaları yükle
 async function loadChambers() {
@@ -61,53 +62,77 @@ function createChamberCard(chamber) {
     const card = document.createElement('div')
     card.className = 'oda-karti'
     
-    card.innerHTML = `
+    // Kartın içeriğini oluştur
+    const cardContent = `
         <div class="oda-karti-header">
-            <span class="oda-baslik">${chamber.oda_numarasi}</span>
+            <div class="oda-baslik">
+                <h2>${chamber.oda_numarasi} Nolu Oda</h2>
+                <div class="oda-konum">
+                    <i class="fas fa-location-dot"></i>
+                    <span>${chamber.blok}, ${chamber.kat}</span>
+                </div>
+            </div>
         </div>
         <div class="oda-karti-inner">
-            <div class="oda-detay">
-                <i class="fas fa-location-dot"></i>
-                <span>${chamber.blok}, ${chamber.kat}</span>
-            </div>
             <div class="oda-hakimler">
-                ${createJudgeRow(chamber.hakim1_adisoyadi, chamber.hakim1_birimi)}
-                ${createJudgeRow(chamber.hakim2_adisoyadi, chamber.hakim2_birimi)}
-                ${createJudgeRow(chamber.hakim3_adisoyadi, chamber.hakim3_birimi)}
+                ${(createJudgeRow(chamber.hakim1_adisoyadi, chamber.hakim1_birimi, chamber.hakim1_mahkemeno) || '')}
+                ${(createJudgeRow(chamber.hakim2_adisoyadi, chamber.hakim2_birimi, chamber.hakim2_mahkemeno) || '')}
+                ${(createJudgeRow(chamber.hakim3_adisoyadi, chamber.hakim3_birimi, chamber.hakim3_mahkemeno) || '')}
             </div>
-            </div>
+        </div>
         <div class="oda-karti-footer">
-            <button class="btn-edit" onclick="editChamber(${chamber.id})">
+            <button class="btn-edit" onclick="event.stopPropagation(); editChamber(${chamber.id})" title="Düzenle">
                 <i class="fas fa-pen-to-square"></i>
             </button>
-            <button class="btn-delete" onclick="deleteChamber(${chamber.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <button class="btn-delete" onclick="event.stopPropagation(); deleteChamber(${chamber.id})" title="Sil">
+                <i class="fas fa-trash"></i>
+            </button>
         </div>
     `
+
+    card.innerHTML = cardContent
+
+    // Kartın tamamına tıklama olayı ekle
+    card.style.cursor = 'pointer'
+    card.onclick = () => {
+        window.location.href = `hakim-odasi-detay.html?oda=${chamber.oda_numarasi}`
+    }
     
     return card
 }
 
 // Hakim satırı oluştur
-function createJudgeRow(adSoyad, birim) {
-    if (!adSoyad) return '<div class="hakim-row empty"></div>'
-    
+function createJudgeRow(adSoyad, birim, mahkemeNo) {
+    if (!adSoyad) return '';
+    let birimText = '';
+    if (mahkemeNo && birim) {
+        birimText = `${mahkemeNo} ${birim} Mahkemesi`;
+    } else if (birim) {
+        birimText = `${birim} Mahkemesi`;
+    }
     return `
         <div class="hakim-row">
-            <span class="hakim-isim">${adSoyad}</span>
-            <span class="hakim-birim">${birim}</span>
+            <div class="hakim-bilgi">
+                <div class="hakim-isim">
+                    <i class="fas fa-user"></i>
+                    <span>${adSoyad}</span>
+                </div>
+                <div class="hakim-mahkeme">
+                    <i class="fas fa-gavel"></i>
+                    <span>${birimText}</span>
+                </div>
+            </div>
         </div>
-    `
+    `;
 }
 
-// Hakim alanlarını oluştur
-function createJudgeFields() {
+// Hakim alanlarını oluştur (düzenleme ve ekleme için)
+function createJudgeFields(judges = []) {
     const container = document.getElementById('judges-container')
-    container.innerHTML = '' // Mevcut alanları temizle
+    container.innerHTML = ''
 
-    // 3 hakim için alan oluştur
-    for (let i = 0; i < 3; i++) {
+    // Kaç hakim varsa o kadar alan oluştur
+    judges.forEach((judge, i) => {
         const judgeEntry = document.createElement('div')
         judgeEntry.className = 'judge-entry'
         judgeEntry.innerHTML = `
@@ -120,16 +145,23 @@ function createJudgeFields() {
                     <label for="judgeCourt${i}">Mahkeme</label>
                     <select id="judgeCourt${i}" name="judgeCourt${i}" class="judge-court">
                         <option value="">Seçiniz</option>
-                        <option value="Ağır Ceza">Ağır Ceza</option>
-                        <option value="Asliye Ceza">Asliye Ceza</option>
-                        <option value="Asliye Hukuk">Asliye Hukuk</option>
-                        <option value="Sulh Ceza">Sulh Ceza</option>
-                        <option value="Sulh Hukuk">Sulh Hukuk</option>
-                        <option value="İcra">İcra</option>
-                        <option value="İş">İş</option>
-                        <option value="Ticaret">Ticaret</option>
-                        <option value="Çocuk">Çocuk</option>
-                        <option value="Tüketici">Tüketici</option>
+                        <option value="Sulh Hukuk Mahkemesi">Sulh Hukuk Mahkemesi</option>
+                        <option value="Asliye Hukuk Mahkemesi">Asliye Hukuk Mahkemesi</option>
+                        <option value="Tüketici Mahkemesi">Tüketici Mahkemesi</option>
+                        <option value="Kadastro Mahkemesi">Kadastro Mahkemesi</option>
+                        <option value="İş Mahkemesi">İş Mahkemesi</option>
+                        <option value="Aile Mahkemesi">Aile Mahkemesi</option>
+                        <option value="Ağır Ceza Mahkemesi">Ağır Ceza Mahkemesi</option>
+                        <option value="Adalet Komisyonu Başkanlığı">Adalet Komisyonu Başkanlığı</option>
+                        <option value="Sulh Ceza Hakimliği">Sulh Ceza Hakimliği</option>
+                        <option value="İnfaz Hakimliği">İnfaz Hakimliği</option>
+                        <option value="Çocuk Mahkemesi">Çocuk Mahkemesi</option>
+                        <option value="Asliye Ceza Mahkemesi">Asliye Ceza Mahkemesi</option>
+                        <option value="Nöbetçi Sulh Ceza Hakimliği">Nöbetçi Sulh Ceza Hakimliği</option>
+                        <option value="Cumhuriyet Başsavcılığı">Cumhuriyet Başsavcılığı</option>
+                        <option value="Bakanlık Muhabere Bürosu">Bakanlık Muhabere Bürosu</option>
+                        <option value="İcra Hukuk Mahkemesi">İcra Hukuk Mahkemesi</option>
+                        <option value="İcra Ceza Mahkemesi">İcra Ceza Mahkemesi</option>
                     </select>
                 </div>
                 <div class="form-column">
@@ -139,95 +171,103 @@ function createJudgeFields() {
             </div>
         `
         container.appendChild(judgeEntry)
+        // DOM üzerinden value'ları set et
+        const nameInput = judgeEntry.querySelector(`#judgeName${i}`);
+        if (nameInput) nameInput.value = judge.name || '';
+        const courtSelect = judgeEntry.querySelector(`#judgeCourt${i}`);
+        if (courtSelect) courtSelect.value = judge.court || '';
+        const numberInput = judgeEntry.querySelector(`#judgeCourtNumber${i}`);
+        if (numberInput) numberInput.value = judge.number || '';
+    })
+
+    // Eğer 3'ten az hakim varsa, Hakim Ekle butonunu göster
+    let addBtn = document.getElementById('addJudgeBtn')
+    if (judges.length < 3) {
+        addBtn.style.display = 'inline-flex'
+        addBtn.onclick = function() {
+            if (container.children.length < 3) {
+                judges.push({ name: '', court: '', number: '' })
+                createJudgeFields(judges)
+            }
+        }
+    } else {
+        addBtn.style.display = 'none'
+    }
+}
+
+function openChamberModal(judges, isEdit = false) {
+    if (!addChamberModal) return;
+    addChamberModal.classList.add('show');
+
+    // Eğer düzenleme modunda değilse formu sıfırla
+    if (!isEdit && chamberForm) {
+        chamberForm.reset();
+    }
+
+    // Modal başlığını ve butonunu ayarla
+    const modalTitle = document.querySelector('.modal-header h2');
+    const saveButton = document.querySelector('.modal-footer .btn-primary');
+    
+    if (!isEdit) {
+        if (modalTitle) modalTitle.textContent = 'Yeni Hakim Odası Ekle';
+        if (saveButton) {
+            saveButton.textContent = 'Kaydet';
+            saveButton.onclick = saveChamber;
+        }
+    }
+
+    if (judges) {
+        createJudgeFields(judges);
+    } else {
+        createJudgeFields([{ name: '', court: '', number: '' }]);
     }
 }
 
 // Oda düzenle
 async function editChamber(id) {
     try {
-        console.log('Düzenlenecek oda ID:', id)
-        
         const { data: chamber, error } = await supabase
             .from('hakim_odalari')
             .select('*')
             .eq('id', id)
-            .single()
+            .single();
 
-        if (error) {
-            console.error('Supabase hatası:', error)
-            throw error
-        }
+        if (error) throw error;
+        if (!chamber) throw new Error('Oda bulunamadı');
 
-        if (!chamber) {
-            console.error('Oda bulunamadı')
-            throw new Error('Oda bulunamadı')
-        }
-
-        console.log('Yüklenen oda verisi:', chamber)
-
-        // Önce hakim alanlarını oluştur
-        createJudgeFields()
-
-        // Temel form alanlarını doldur
-        const roomNumberField = document.getElementById('roomNumber')
-        const blockField = document.getElementById('block')
-        const floorField = document.getElementById('floor')
-
-        if (!roomNumberField || !blockField || !floorField) {
-            throw new Error('Form alanları bulunamadı!')
-        }
-
-        roomNumberField.value = chamber.oda_numarasi || ''
-        blockField.value = chamber.blok || ''
-        floorField.value = chamber.kat || ''
-
-        // Hakim bilgilerini doldur
-        const judgeData = [
-            {
-                name: chamber.hakim1_adisoyadi,
-                court: chamber.hakim1_birimi,
-                number: chamber.hakim1_mahkemeno
-            },
-            {
-                name: chamber.hakim2_adisoyadi,
-                court: chamber.hakim2_birimi,
-                number: chamber.hakim2_mahkemeno
-            },
-            {
-                name: chamber.hakim3_adisoyadi,
-                court: chamber.hakim3_birimi,
-                number: chamber.hakim3_mahkemeno
-            }
-        ]
-
-        judgeData.forEach((judge, index) => {
-            const nameField = document.getElementById(`judgeName${index}`)
-            const courtField = document.getElementById(`judgeCourt${index}`)
-            const numberField = document.getElementById(`judgeCourtNumber${index}`)
-
-            if (nameField) nameField.value = judge.name || ''
-            if (courtField) courtField.value = judge.court || ''
-            if (numberField) numberField.value = judge.number || ''
-        })
+        // Konsola oda verisini yazdır
+        console.log('Supabase oda verisi:', chamber);
 
         // Modal başlığını güncelle
-        const modalTitle = document.querySelector('.modal-header h2')
-        if (modalTitle) {
-            modalTitle.textContent = 'Hakim Odası Düzenle'
-        }
-        
+        const modalTitle = document.querySelector('.modal-header h2');
+        if (modalTitle) modalTitle.textContent = 'Hakim Odası Düzenle';
+
         // Kaydet butonunu güncelle
-        const saveButton = document.querySelector('.modal-footer .btn-primary')
+        const saveButton = document.querySelector('.modal-footer .btn-primary');
         if (saveButton) {
-            saveButton.textContent = 'Güncelle'
-            saveButton.onclick = () => updateChamber(id)
+            saveButton.textContent = 'Güncelle';
+            saveButton.onclick = () => updateChamber(id);
         }
 
-        // Modal'ı aç
-        openChamberModal()
+        // Modalı aç (düzenleme modu)
+        openChamberModal(null, true);
+
+        // Temel form alanlarını doldur
+        document.getElementById('roomNumber').value = chamber.oda_numarasi || '';
+        document.getElementById('block').value = chamber.blok || '';
+        document.getElementById('floor').value = chamber.kat || '';
+
+        // Hakim bilgilerini diziye aktar
+        const judges = [];
+        if (chamber.hakim1_adisoyadi) judges.push({ name: chamber.hakim1_adisoyadi, court: chamber.hakim1_birimi, number: chamber.hakim1_mahkemeno });
+        if (chamber.hakim2_adisoyadi) judges.push({ name: chamber.hakim2_adisoyadi, court: chamber.hakim2_birimi, number: chamber.hakim2_mahkemeno });
+        if (chamber.hakim3_adisoyadi) judges.push({ name: chamber.hakim3_adisoyadi, court: chamber.hakim3_birimi, number: chamber.hakim3_mahkemeno });
+
+        // Hakim alanlarını oluştur ve doldur
+        createJudgeFields(judges);
+
     } catch (error) {
-        console.error('Oda bilgileri yüklenirken detaylı hata:', error)
-        alert(`Oda bilgileri yüklenirken bir hata oluştu: ${error.message}`)
+        alert(`Oda bilgileri yüklenirken bir hata oluştu: ${error.message}`);
     }
 }
 
@@ -269,31 +309,73 @@ async function updateChamber(id) {
         resetModal()
     } catch (error) {
         console.error('Oda güncellenirken detaylı hata:', error)
-        alert(`Oda güncellenirken bir hata oluştu: ${error.message}`)
+        alert(`Oda bilgileri güncellenirken bir hata oluştu: ${error.message}`)
     }
 }
 
-// Modal'ı sıfırla
-function resetModal() {
-    document.querySelector('.modal-header h2').textContent = 'Yeni Hakim Odası Ekle'
-    const saveButton = document.querySelector('.modal-footer .btn-primary')
-    saveButton.textContent = 'Kaydet'
-    saveButton.onclick = saveChamber
-    chamberForm.reset()
+// Oda ekle
+async function saveChamber() {
+    try {
+        const formData = new FormData(chamberForm);
+        const chamberData = {
+            id: Math.floor(Math.random() * 1000000) + 1, // Rastgele sayısal ID
+            oda_numarasi: formData.get('roomNumber'),
+            blok: formData.get('block'),
+            kat: formData.get('floor'),
+            hakim1_adisoyadi: formData.get('judgeName0'),
+            hakim1_birimi: formData.get('judgeCourt0'),
+            hakim1_mahkemeno: formData.get('judgeCourtNumber0'),
+            hakim2_adisoyadi: formData.get('judgeName1'),
+            hakim2_birimi: formData.get('judgeCourt1'),
+            hakim2_mahkemeno: formData.get('judgeCourtNumber1'),
+            hakim3_adisoyadi: formData.get('judgeName2'),
+            hakim3_birimi: formData.get('judgeCourt2'),
+            hakim3_mahkemeno: formData.get('judgeCourtNumber2')
+        };
+
+        // Boş olan hakimleri temizle (id hariç)
+        Object.keys(chamberData).forEach(key => {
+            if (key !== 'id' && (chamberData[key] === "" || chamberData[key] === null)) {
+                chamberData[key] = null;
+            }
+        });
+
+        console.log('Eklenecek veri:', chamberData); // Veriyi kontrol et
+
+        // Yeni kayıt ekle
+        const { error } = await supabase
+            .from('hakim_odalari')
+            .insert([chamberData]);
+
+        if (error) {
+            console.error('Ekleme hatası:', error);
+            throw error;
+        }
+
+        closeChamberModal();
+        loadChambers();
+        resetModal();
+    } catch (error) {
+        console.error('Oda ekleme hatası:', error);
+        alert(`Oda eklenirken bir hata oluştu: ${error.message}`);
+    }
 }
 
 // Oda sil
 async function deleteChamber(id) {
-    if (!confirm('Bu odayı silmek istediğinizden emin misiniz?')) return
-
     try {
+        console.log('Oda siliniyor:', id)
         const { error } = await supabase
             .from('hakim_odalari')
             .delete()
             .eq('id', id)
 
-        if (error) throw error
+        if (error) {
+            console.error('Supabase hatası:', error)
+            throw error
+        }
 
+        closeChamberModal()
         loadChambers()
     } catch (error) {
         console.error('Oda silinirken hata:', error)
@@ -301,74 +383,66 @@ async function deleteChamber(id) {
     }
 }
 
-// Modal işlemleri
-function openChamberModal() {
-    const modal = document.getElementById('addChamberModal')
-    if (!modal) {
-        console.error('Modal elementi bulunamadı!')
-        return
-    }
-    
-    // Modal'ı görünür yap
-    modal.style.display = 'flex'
-    modal.style.opacity = '1'
-    modal.style.visibility = 'visible'
-    
-    // Modal içeriğini görünür yap
-    const modalContent = modal.querySelector('.modal-content')
-    if (modalContent) {
-        modalContent.style.display = 'block'
-        modalContent.style.opacity = '1'
-        modalContent.style.transform = 'translateY(0)'
-    }
-    
-    console.log('Modal açıldı ve görünür yapıldı')
-}
-
+// Modal kapat
 function closeChamberModal() {
-    const modal = document.getElementById('addChamberModal')
-    if (!modal) {
-        console.error('Modal elementi bulunamadı!')
-        return
+    if (addChamberModal) {
+        addChamberModal.classList.remove('show')
     }
-    
-    // Modal'ı gizle
-    modal.style.display = 'none'
-    modal.style.opacity = '0'
-    modal.style.visibility = 'hidden'
-    
-    // Modal içeriğini gizle
-    const modalContent = modal.querySelector('.modal-content')
-    if (modalContent) {
-        modalContent.style.display = 'none'
-        modalContent.style.opacity = '0'
-        modalContent.style.transform = 'translateY(-20px)'
-    }
-    
-    resetModal()
-    console.log('Modal kapatıldı ve gizlendi')
 }
 
-// Event Listeners
-addNewChamberBtn.addEventListener('click', openChamberModal)
-closeModalBtn.addEventListener('click', closeChamberModal)
+// Form resetle
+function resetModal() {
+    if (chamberForm) {
+        chamberForm.reset()
+    }
+}
 
-// Arama ve filtreleme
-searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase()
-    filterChambers(searchTerm)
-})
+// Filtreleri uygula
+function applyFilters() {
+    // Filtre işlemleri burada yapılabilir
+    console.log('Filtreler uygulanıyor...')
+    loadChambers()
+}
 
-function filterChambers(searchTerm) {
-    const cards = document.querySelectorAll('.oda-karti')
-    
-    cards.forEach(card => {
-        const text = card.textContent.toLowerCase()
-        card.style.display = text.includes(searchTerm) ? 'block' : 'none'
+// Filtreleri sıfırla
+function resetFilters() {
+    // Filtre işlemleri burada sıfırlanabilir
+    console.log('Filtreler sıfırlandı')
+    loadChambers()
+}
+
+// Event listeners
+if (addNewChamberBtn) {
+    addNewChamberBtn.addEventListener('click', () => {
+        resetModal(); // Formu temizle
+        openChamberModal();
     })
 }
 
-// Sayfa yüklendiğinde
-document.addEventListener('DOMContentLoaded', () => {
-    loadChambers()
-}) 
+if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', () => {
+        closeChamberModal()
+    })
+}
+
+if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener('click', () => {
+        resetFilters()
+    })
+}
+
+if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener('click', () => {
+        applyFilters()
+    })
+}
+
+if (addJudgeBtn) {
+    addJudgeBtn.addEventListener('click', () => {
+        // Hakim ekleme işlemi burada yapılabilir
+        console.log('Hakim ekleme işlemi')
+    })
+}
+
+// İlk yükleme işlemi
+loadChambers()
