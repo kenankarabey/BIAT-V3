@@ -1,4 +1,7 @@
 // Profile Navigation
+
+const supabase = window.supabaseClient;
+
 function switchProfileSection(sectionId) {
     // Hide all sections
     document.querySelectorAll('.profile-section').forEach(section => {

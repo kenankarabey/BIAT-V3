@@ -1,3 +1,9 @@
+const supabaseUrl = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+window.supabase = window.supabase || window.supabase; // kütüphane zaten window.supabase olarak geliyor
+window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
 // Örnek Veri
 const state = {
     hakimOdalari: [
@@ -674,3 +680,4 @@ function setupThemeToggle() {
         console.warn('Tema değiştirme butonu bulunamadı!');
     }
 } 
+

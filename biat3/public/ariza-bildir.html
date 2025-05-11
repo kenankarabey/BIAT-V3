@@ -6,6 +6,7 @@
     <title>Arıza Bildir - BIAT</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- Toggle Theme -->
@@ -14,7 +15,6 @@
     </button>
     
     <div class="app-container">
-        <!-- Sidebar -->
         <div class="sidebar">
             <!-- Toggle Sidebar -->
             <button class="toggle-sidebar">
@@ -25,7 +25,7 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li>
-                        <a href="index.html">
+                        <a href="index.html" class="active">
                             <i class="fas fa-home"></i>
                             <span>Ana Sayfa</span>
                         </a>
@@ -38,7 +38,7 @@
                         </a>
                         <ul class="submenu">
                             <li>
-                                <a href="tum-cihazlar.html">
+                                <a href="tum-cihazlar.html" >
                                     <i class="fas fa-list"></i>
                                     <span>Tüm Cihazlar</span>
                                 </a>
@@ -63,7 +63,7 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="has-submenu active">
+                    <li class="has-submenu">
                         <a href="#">
                             <i class="fas fa-tools"></i>
                             <span>Arıza Takip</span>
@@ -71,7 +71,7 @@
                         </a>
                         <ul class="submenu">
                             <li>
-                                <a href="ariza-bildir.html" class="active">
+                                <a href="ariza-bildir.html">
                                     <i class="fas fa-plus-circle"></i>
                                     <span>Arıza Bildir</span>
                                 </a>
@@ -112,158 +112,45 @@
 
         <!-- Main Content -->
         <main class="main-content">
-            <div class="content-header">
+            <div class="card card-header-blue" style="margin-bottom:32px;">
                 <h1>Arıza Bildir</h1>
                 <p>Lütfen arıza bildirimi için aşağıdaki formu doldurunuz.</p>
             </div>
 
-            <div class="issue-report-form">
+            <div class="card card-form-blue">
                 <form id="issueForm" class="form-grid">
-                    <!-- Lokasyon Bilgileri -->
-                    <div class="form-group">
-                        <label for="location">Lokasyon</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-building"></i>
-                            </span>
-                            <select id="location" name="location" required>
-                                <option value="">Lokasyon Seçiniz</option>
-                                <option value="mahkeme-kalemi">Mahkeme Kalemi</option>
-                                <option value="durusma-salonu">Duruşma Salonu</option>
-                                <option value="hakim-odasi">Hakim Odası</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="subLocation">Alt Lokasyon</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-door-open"></i>
-                            </span>
-                            <select id="subLocation" name="subLocation" required>
-                                <option value="">Alt Lokasyon Seçiniz</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Cihaz Bilgileri -->
-                    <div class="form-group">
-                        <label for="deviceType">Cihaz Türü</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-hdd"></i>
-                            </span>
-                            <select id="deviceType" name="deviceType" required>
-                                <option value="">Cihaz Türü Seçiniz</option>
-                                <option value="bilgisayar">Bilgisayar</option>
-                                <option value="yazici">Yazıcı</option>
-                                <option value="tarayici">Tarayıcı</option>
-                                <option value="tv">Televizyon</option>
-                                <option value="kamera">Kamera</option>
-                                <option value="segbis">SEGBİS</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="deviceId">Cihaz No</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-barcode"></i>
-                            </span>
-                            <select id="deviceId" name="deviceId" required>
-                                <option value="">Cihaz Seçiniz</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Arıza Bilgileri -->
-                    <div class="form-group">
-                        <label for="issueType">Arıza Türü</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </span>
-                            <select id="issueType" name="issueType" required>
-                                <option value="">Arıza Türü Seçiniz</option>
-                                <option value="donanim">Donanım Arızası</option>
-                                <option value="yazilim">Yazılım Arızası</option>
-                                <option value="ag">Ağ Arızası</option>
-                                <option value="diger">Diğer</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="urgencyLevel">Aciliyet Seviyesi</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-flag"></i>
-                            </span>
-                            <select id="urgencyLevel" name="urgencyLevel" required>
-                                <option value="">Aciliyet Seçiniz</option>
-                                <option value="low">Düşük - Çalışmayı Etkilemiyor</option>
-                                <option value="medium">Orta - Kısmen Etkiliyor</option>
-                                <option value="high">Yüksek - Ciddi Şekilde Etkiliyor</option>
-                                <option value="critical">Kritik - Çalışmayı Durduruyor</option>
-                            </select>
-                        </div>
-                    </div>
-
                     <div class="form-group full-width">
-                        <label for="description">Arıza Açıklaması</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-comment-alt"></i>
-                            </span>
-                            <textarea id="description" name="description" placeholder="Lütfen arızayı detaylı bir şekilde açıklayınız..." required></textarea>
-                        </div>
+                        <label for="sicilNo">
+                            <i class="fas fa-id-card icon"></i>
+                            Sicil Numarası
+                        </label>
+                        <input type="text" id="sicilNo" name="sicilNo" required placeholder="Sicil numaranızı giriniz">
                     </div>
-
-                    <!-- İletişim Bilgileri -->
-                    <div class="form-group">
-                        <label for="contactName">İletişim İsmi</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-user"></i>
-                            </span>
-                            <input type="text" id="contactName" name="contactName" placeholder="İletişim kurulacak kişi" required>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="contactPhone">İletişim Telefonu</label>
-                        <div class="input-group">
-                            <span class="input-icon">
-                                <i class="fas fa-phone"></i>
-                            </span>
-                            <input type="tel" id="contactPhone" name="contactPhone" placeholder="0(5XX) XXX XX XX" required>
-                        </div>
-                    </div>
-
-                    <!-- Dosya Yükleme -->
                     <div class="form-group full-width">
-                        <label for="fileUpload">Ekran Görüntüsü veya Fotoğraf</label>
-                        <div class="file-upload-container" id="dropZone">
-                            <div class="upload-icon">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                            </div>
-                            <div class="upload-text">
-                                <p>Dosyaları sürükleyip bırakın veya seçmek için tıklayın</p>
-                                <span>En fazla 5 dosya, her biri maksimum 5MB. (PNG, JPG, JPEG)</span>
-                            </div>
-                            <input type="file" id="fileUpload" name="fileUpload" accept="image/*" multiple>
-                            <div class="file-upload-preview"></div>
+                        <label for="description">
+                            <i class="fas fa-comment-dots icon"></i>
+                            Arıza Açıklaması
+                        </label>
+                        <textarea id="description" name="description" placeholder="Lütfen arızayı detaylı bir şekilde açıklayınız..." required></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="telefon">
+                            <i class="fas fa-phone icon"></i>
+                            Telefon Numarası
+                        </label>
+                        <input type="tel" id="telefon" name="telefon" required placeholder="0(5XX) XXX XX XX">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="fileUpload">
+                            <i class="fas fa-camera icon"></i>
+                            Fotoğraf Ekle (isteğe bağlı)
+                        </label>
+                        <div class="custom-file-upload">
+                            <input type="file" id="fileUpload" name="fileUpload" accept="image/*" onchange="updateFileName(this)">
+                            <span id="fileUploadLabel">Dosya seçilmedi</span>
                         </div>
                     </div>
-
-                    <!-- Form Submit -->
                     <div class="form-actions full-width">
-                        <button type="button" class="btn-preview" id="previewBtn">
-                            <i class="fas fa-eye"></i>
-                            Önizle
-                        </button>
                         <button type="submit" class="btn-submit">
                             <i class="fas fa-paper-plane"></i>
                             Arıza Bildir
@@ -361,5 +248,39 @@
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
     <script src="js/ariza-bildir.js"></script>
+    <script>
+    function updateFileName(input) {
+        const label = document.getElementById('fileUploadLabel');
+        if (input.files && input.files.length > 0) {
+            label.textContent = input.files[0].name;
+        } else {
+            label.textContent = 'Dosya seçilmedi';
+        }
+    }
+
+    // Navbar'da Supabase Auth ile giriş yapan kullanıcının ad_soyad bilgisini göster
+    document.addEventListener('DOMContentLoaded', async function() {
+        const supabaseUrl = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const userInfoP = document.querySelector('.user-info p');
+        if (!userInfoP) return;
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            userInfoP.textContent = 'Giriş yapmadınız';
+            return;
+        }
+        const { data: userData, error: userError } = await supabase
+            .from('users')
+            .select('ad_soyad')
+            .eq('email', user.email)
+            .maybeSingle();
+        if (userError || !userData) {
+            userInfoP.textContent = user.email;
+        } else {
+            userInfoP.textContent = userData.ad_soyad;
+        }
+    });
+    </script>
 </body>
 </html> 

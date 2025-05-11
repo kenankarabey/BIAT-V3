@@ -5,6 +5,9 @@
 // }
 
 // Toggle password visibility
+// Supabase client'ı tekrar tekrar tanımlamayı önle
+var supabase = window.supabaseClient;
+
 function togglePassword() {
     const passwordInput = document.getElementById('password');
     const toggleBtn = document.querySelector('.toggle-password i');
@@ -70,8 +73,23 @@ async function handleLogin(event) {
         const { success, data, error } = await signInUser(username, password);
         
         if (success) {
-            // Redirect to dashboard on success
-            window.location.href = 'index.html';
+            // Kullanıcının yetkisini kontrol et
+            const { data: userData, error: userError } = await supabase
+                .from('users')
+                .select('yetki')
+                .eq('email', username)
+                .single();
+
+            if (userError) {
+                throw userError;
+            }
+
+            // Yetkiye göre yönlendirme yap
+            if (userData.yetki === 'admin') {
+                window.location.href = 'index.html';
+            } else {
+                window.location.href = 'ariza-bildir-personel.html';
+            }
         } else {
             // Show error message
             showNotification(error?.message || 'Giriş başarısız. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.', 'error');
@@ -82,7 +100,7 @@ async function handleLogin(event) {
         }
     } catch (error) {
         console.error('Login error:', error);
-        alert("Veritabanına bağlanırken bir hata oluştu. Lütfen internet bağlantınızı ve Supabase ayarlarınızı kontrol edin.");
+        showNotification("Giriş yapılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.", 'error');
         
         // Reset button state
         loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Giriş Yap</span>';
@@ -140,14 +158,33 @@ function showNotification(message, type = 'info') {
 }
 
 // Check if user is already logged in and redirect
+
+    async function signInUser(email, password) {
+        try {
+            const { data, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .eq('sifre', password)
+                .single();
+    
+            if (error || !data) {
+                return { success: false, error: error || { message: 'Kullanıcı bulunamadı veya şifre yanlış.' } };
+            }
+            // Kullanıcıyı localStorage'a kaydet
+            localStorage.setItem('user', JSON.stringify(data));
+            return { success: true, data };
+        } catch (err) {
+            return { success: false, error: err };
+        }
+    }
+    
+
 document.addEventListener('DOMContentLoaded', async () => {
-    // Only run this check on login page
     if (window.location.pathname.includes('login.html')) {
         try {
             const user = await checkAuth();
-            
             if (user) {
-                // User is already logged in, redirect to dashboard
                 window.location.href = 'index.html';
             }
         } catch (error) {

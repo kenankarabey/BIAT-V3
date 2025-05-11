@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Arıza Listesi - BİAT</title>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
@@ -148,7 +149,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-count" id="completedCount">0</div>
-                        <div class="stat-label">Tamamlanan</div>
+                        <div class="stat-label">Çözüldü</div>
                     </div>
                 </div>
                 <div class="stat-card canceled">
@@ -157,7 +158,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-count" id="canceledCount">0</div>
-                        <div class="stat-label">İptal Edilen</div>
+                        <div class="stat-label">İptal Edildi</div>
                     </div>
                 </div>
             </div>
@@ -229,15 +230,35 @@
                         <tr>
                             <th>Arıza No</th>
                             <th>Tarih</th>
-                            <th>Lokasyon</th>
-                            <th>Cihaz</th>
-                            <th>Arıza Türü</th>
-                            <th>Aciliyet</th>
-                            <th>Durum</th>
+                            <th>Görevli Personel</th>
+                            <th>Arızayı Bildiren Personel</th>
+                            <th>Telefon</th>
+                            <th>Arıza Durumu</th>
                             <th>İşlemler</th>
                         </tr>
                     </thead>
                     <tbody id="issuesTableBody">
+                        <!-- JavaScript ile doldurulacak -->
+                    </tbody>
+                </table>
+
+                <!-- Çözülen Arızalar Tablosu -->
+
+            </div>
+            <div class="table-container" style="margin-top: 32px;">
+                <table class="issues-table">
+                    <thead>
+                        <tr>
+                            <th>Arıza No</th>
+                            <th>Tarih</th>
+                            <th>Arızayı Çözen Personel</th>
+                            <th>Arızayı Bildiren Personel</th>
+                            <th>Telefon</th>
+                            <th>Arıza Durumu</th>
+                            <th>İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="solvedIssuesTableBody">
                         <!-- JavaScript ile doldurulacak -->
                     </tbody>
                 </table>
@@ -246,20 +267,57 @@
     </div>
 
     <!-- Issue Details Modal -->
-    <div class="modal" id="issueDetailsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Arıza Detayları</h2>
-                <button class="close-modal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="issueDetails">
-                    <!-- JavaScript ile doldurulacak -->
-                </div>
-            </div>
+    <div id="issueDetailsModal" class="custom-modal">
+      <div class="custom-modal-content">
+        <span class="close-modal" onclick="closeIssueDetailModal()">&times;</span>
+        <h2 class="modal-title">Arıza Detayları</h2>
+        <div class="modal-divider"></div>
+        <div class="issuemodal-card-grid vertical">
+          <div class="issuemodal-card">
+            <i class="fas fa-hashtag"></i>
+            <div class="issuemodal-card-label">Arıza No</div>
+            <div class="issuemodal-card-value" id="detailArizaNo"></div>
+          </div>
+          <div class="issuemodal-card">
+            <i class="fas fa-calendar-alt"></i>
+            <div class="issuemodal-card-label">Tarih</div>
+            <div class="issuemodal-card-value" id="detailTarih"></div>
+          </div>
+          <div class="issuemodal-card">
+            <i class="fas fa-user-cog"></i>
+            <div class="issuemodal-card-label">Arızayı Çözen Personel</div>
+            <div class="issuemodal-card-value" id="detailGorevli"></div>
+          </div>
+          <div class="issuemodal-card">
+            <i class="fas fa-user"></i>
+            <div class="issuemodal-card-label">Arızayı Bildiren</div>
+            <div class="issuemodal-card-value" id="detailBildiren"></div>
+          </div>
+          <div class="issuemodal-card">
+            <i class="fas fa-phone"></i>
+            <div class="issuemodal-card-label">Telefon</div>
+            <div class="issuemodal-card-value" id="detailTelefon"></div>
+          </div>
+          <div class="issuemodal-card">
+            <i class="fas fa-info-circle"></i>
+            <div class="issuemodal-card-label">Arıza Durumu</div>
+            <div class="issuemodal-card-value" id="detailDurum"></div>
+          </div>
+          <div class="issuemodal-card issuemodal-card-photo">
+            <i class="fas fa-image"></i>
+            <div class="issuemodal-card-label">Fotoğraf</div>
+            <div class="issuemodal-card-value" id="detailFoto"></div>
+          </div>
+          <div class="issuemodal-card issuemodal-card-description">
+            <i class="fas fa-align-left"></i>
+            <div class="issuemodal-card-label">Açıklama</div>
+            <div class="issuemodal-card-value" id="detailDescription" style="cursor:pointer;"></div>
+          </div>
         </div>
+        <div class="modal-actions" style="margin-top: 24px; text-align: right;">
+          <button id="resolveIssueBtn" class="btn btn-success">Düzenle</button>
+        </div>
+      </div>
     </div>
 
     <!-- Issue Edit Modal -->
@@ -343,7 +401,46 @@
         </div>
     </div>
 
-    <script src="js/theme.js"></script>
+    <!-- Fotoğraf Modalı -->
+    <div id="photoModal" class="custom-modal">
+      <div class="custom-modal-content photo-modal-content">
+        <span class="close-modal" onclick="closePhotoModal()">&times;</span>
+        <img id="photoModalImg" src="" alt="Büyük Fotoğraf">
+      </div>
+    </div>
+
+    <!-- Arıza Durumu Düzenle Modalı -->
+    <div id="editStatusModal" class="custom-modal">
+      <div class="custom-modal-content" style="max-width: 400px;">
+        <span class="close-modal" onclick="closeEditStatusModal()">&times;</span>
+        <h2 class="modal-title">Arıza Durumunu Düzenle</h2>
+        <div class="modal-divider"></div>
+        <div style="margin: 24px 0;">
+          <label for="editStatusSelect" style="font-weight:600;">Arıza Durumu</label>
+          <select id="editStatusSelect" style="width:100%;padding:10px;margin-top:8px;">
+            <option value="Beklemede">Beklemede</option>
+            <option value="İşlemde">İşlemde</option>
+            <option value="Çözüldü">Çözüldü</option>
+            <option value="İptal Edildi">İptal Edildi</option>
+          </select>
+        </div>
+        <div style="text-align:right;">
+          <button class="btn btn-secondary" onclick="closeEditStatusModal()">İptal</button>
+          <button class="btn btn-success" id="saveStatusBtn">Kaydet</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Açıklama Modalı -->
+    <div id="descriptionModal" class="custom-modal">
+      <div class="custom-modal-content" style="max-width: 600px; width: 100%;">
+        <span class="close-modal" onclick="closeDescriptionModal()">&times;</span>
+        <h2 class="modal-title">Açıklama</h2>
+        <div class="modal-divider"></div>
+        <div id="fullDescriptionText" style="margin: 24px 0; font-size:1.1rem; color:#fff; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;"></div>
+      </div>
+    </div>
+
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
     <script src="js/ariza-listesi.js"></script>

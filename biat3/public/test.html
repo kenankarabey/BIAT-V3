@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Supabase Test</title>
+  </head>
+  <body>
+    <input id="email" placeholder="Email"><br>
+    <input id="password" type="password" placeholder="Şifre"><br>
+    <button onclick="signup()">Kayıt Ol</button>
+    <button onclick="login()">Giriş Yap</button>
+    <button onclick="checkUser()">Oturumu Kontrol Et</button>
+    <button onclick="debugAdSoyad()">ad_soyad Debug</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const supabaseUrl = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
+      const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      async function signup() {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if (error) {
+          alert('Kayıt başarısız: ' + error.message);
+        } else {
+          alert('Kayıt başarılı! Lütfen emailini onayla.');
+        }
+      }
+
+async function login() {
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    alert('Giriş başarısız: ' + error.message);
+  } else {
+    alert('Giriş başarılı!');
+    checkUser();
+  }
+}
+
+async function checkUser() {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+          alert('Oturum kontrolünde hata: ' + error.message);
+          return;
+        }
+        const user = data?.user;
+  console.log('Aktif kullanıcı:', user);
+  alert(user ? 'Kullanıcı oturumu var: ' + user.email : 'Oturum yok!');
+}
+
+      // DEBUG: Giriş yapan kullanıcının ad_soyad bilgisini users tablosundan çek
+      async function debugAdSoyad() {
+        const { data: authData, error: authError } = await supabase.auth.getUser();
+        console.log('Auth Error:', authError);
+        console.log('Giriş yapan kullanıcı:', authData?.user);
+
+        if (!authData?.user) {
+          alert('Kullanıcı oturumu bulunamadı!');
+          return;
+        }
+        const email = authData.user.email;
+        console.log('Sorgulanan email:', email);
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('ad_soyad, email')
+          .eq('email', email)
+          .maybeSingle();
+        console.log('Sorgu sonucu userData:', userData);
+        console.log('Sorgu hatası userError:', userError);
+        if (userError) {
+          alert('Kullanıcı adı sorgusunda hata: ' + userError.message);
+        } else if (!userData) {
+          alert('Kullanıcı adı bulunamadı! (Sorgu null döndü)');
+        } else {
+          alert('Kullanıcı adı bulundu: ' + userData.ad_soyad);
+        }
+      }
+</script>
+  </body>
+</html>
