@@ -110,53 +110,6 @@ async function handleLogin(event) {
     return false;
 }
 
-// Show notification
-function showNotification(message, type = 'info') {
-    // Check if notification container exists
-    let notificationContainer = document.querySelector('.notification-container');
-    
-    // Create container if it doesn't exist
-    if (!notificationContainer) {
-        notificationContainer = document.createElement('div');
-        notificationContainer.className = 'notification-container';
-        document.body.appendChild(notificationContainer);
-    }
-    
-    // Create notification element
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.innerHTML = `
-        <div class="notification-icon">
-            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-        </div>
-        <div class="notification-content">
-            <p>${message}</p>
-        </div>
-        <button class="notification-close">
-            <i class="fas fa-times"></i>
-        </button>
-    `;
-    
-    // Add notification to container
-    notificationContainer.appendChild(notification);
-    
-    // Add event listener to close button
-    notification.querySelector('.notification-close').addEventListener('click', () => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    });
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 5000);
-}
-
 // Check if user is already logged in and redirect
 
     async function signInUser(email, password) {

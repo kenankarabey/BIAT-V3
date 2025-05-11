@@ -31,7 +31,7 @@ async function loadChambers() {
         displayChambers(chambers)
     } catch (error) {
         console.error('Odalar yüklenirken hata:', error)
-        alert('Odalar yüklenirken bir hata oluştu!')
+        showNotification('Odalar yüklenirken bir hata oluştu!', 'error')
     }
 }
 

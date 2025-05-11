@@ -38,6 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
     setupContent();
     checkUserAuthStatus();
     setupThemeToggle();
+    updateSidebarUser();
     
     // Tema değişimini test et
     console.log('Mevcut tema:', document.documentElement.getAttribute('data-theme'));
@@ -547,103 +548,6 @@ function saveDeviceToStorage(deviceData) {
     localStorage.setItem('devices', JSON.stringify(devices));
 }
 
-// Bildirim göster
-function showNotification(message, type = 'success') {
-    console.log('Bildirim gösteriliyor:', { message, type });
-    
-    try {
-        // Önceki bildirimleri temizle
-        const existingNotifications = document.querySelectorAll('.notification');
-        console.log('Mevcut bildirim sayısı:', existingNotifications.length);
-        existingNotifications.forEach(notification => {
-            console.log('Eski bildirim kaldırılıyor:', notification);
-            notification.remove();
-        });
-
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        console.log('Bildirim elementi oluşturuldu:', notification);
-        
-        notification.innerHTML = `
-            <div class="notification-content">
-                <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
-                <span>${message}</span>
-            </div>
-            <button class="notification-close">
-                <i class="fas fa-times"></i>
-            </button>
-        `;
-        
-        // Bildirimi sayfanın üst kısmına ekle
-        document.body.insertBefore(notification, document.body.firstChild);
-        console.log('Bildirim DOM\'a eklendi');
-        
-        // Bildirimi göster
-        setTimeout(() => {
-            console.log('Bildirim gösteriliyor (show class eklendi)');
-            notification.classList.add('show');
-        }, 10);
-        
-        // Otomatik kapanma süresi
-        const autoHide = setTimeout(() => {
-            console.log('Bildirim otomatik kapanıyor');
-            hideNotification(notification);
-        }, 8000);
-        
-        // Kapatma butonu işlevi
-        const closeBtn = notification.querySelector('.notification-close');
-        if (closeBtn) {
-            console.log('Kapatma butonu bulundu');
-            closeBtn.addEventListener('click', () => {
-                console.log('Kapatma butonuna tıklandı');
-                clearTimeout(autoHide);
-                hideNotification(notification);
-            });
-        } else {
-            console.warn('Kapatma butonu bulunamadı!');
-        }
-    } catch (error) {
-        console.error('Bildirim gösterilirken hata oluştu:', error);
-        console.error('Hata detayı:', {
-            message: error.message,
-            stack: error.stack,
-            type: error.name
-        });
-    }
-}
-
-// Bildirimi gizle
-function hideNotification(notification) {
-    console.log('Bildirim gizleniyor:', notification);
-    
-    try {
-        if (!notification) {
-            console.warn('Gizlenecek bildirim bulunamadı!');
-            return;
-        }
-        
-        notification.classList.remove('show');
-        notification.classList.add('hide');
-        console.log('Bildirim gizleme sınıfları eklendi');
-        
-        setTimeout(() => {
-            if (notification && notification.parentNode) {
-                console.log('Bildirim DOM\'dan kaldırılıyor');
-                notification.parentNode.removeChild(notification);
-            } else {
-                console.warn('Bildirim veya parent node bulunamadı!');
-            }
-        }, 300);
-    } catch (error) {
-        console.error('Bildirim gizlenirken hata oluştu:', error);
-        console.error('Hata detayı:', {
-            message: error.message,
-            stack: error.stack,
-            type: error.name
-        });
-    }
-}
-
 // Tema değiştirme butonunu ayarla
 function setupThemeToggle() {
     const toggleThemeButton = document.querySelector('.toggle-theme');
@@ -679,5 +583,72 @@ function setupThemeToggle() {
     } else {
         console.warn('Tema değiştirme butonu bulunamadı!');
     }
+}
+
+function updateSidebarUser() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return;
+    // Fotoğraf
+    const sidebarImg = document.querySelector('.user-profile img');
+    if (sidebarImg && (user.foto_url || user.avatar_url)) {
+        sidebarImg.src = user.foto_url || user.avatar_url;
+        sidebarImg.alt = user.ad_soyad || 'Kullanıcı Avatarı';
+    }
+    // Ad Soyad
+    const sidebarName = document.querySelector('.user-info p');
+    if (sidebarName) {
+        sidebarName.textContent = user.ad_soyad || 'Kullanıcı';
+    }
+}
+
+// Modern notification fonksiyonları
+function showNotification(message, type = 'info', duration = 4000) {
+    // Önceki bildirimi kaldır
+    const old = document.querySelector('.notification');
+    if (old) old.remove();
+
+    // Bildirim elementi oluştur
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+
+    // İçerik
+    notification.innerHTML = `
+        <div class="notification-content">
+            <i class="fas ${
+                type === 'success' ? 'fa-check-circle' :
+                type === 'error' ? 'fa-exclamation-circle' :
+                'fa-info-circle'
+            }"></i>
+            <span>${message}</span>
+        </div>
+        <button class="notification-close" aria-label="Kapat">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    // Kapatma butonu
+    notification.querySelector('.notification-close').onclick = () => {
+        hideNotification(notification);
+    };
+
+    // DOM'a ekle
+    document.body.appendChild(notification);
+
+    // Animasyon için show class'ı ekle
+    setTimeout(() => notification.classList.add('show'), 10);
+
+    // Otomatik kapanma
+    if (duration > 0) {
+        setTimeout(() => hideNotification(notification), duration);
+    }
+}
+
+function hideNotification(notification) {
+    if (!notification) return;
+    notification.classList.remove('show');
+    notification.classList.add('hide');
+    setTimeout(() => {
+        notification.remove();
+    }, 300); // Animasyon süresiyle uyumlu olmalı
 } 
 

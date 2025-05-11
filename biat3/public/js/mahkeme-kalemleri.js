@@ -405,20 +405,4 @@ function validateDeviceForm(device) {
            device.recipient.title && 
            device.recipient.id && 
            device.recipient.name;
-}
-
-// Bildirim gösterme fonksiyonu
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
 } 

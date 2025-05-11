@@ -5,80 +5,124 @@
 console.log('ariza-listesi.js loaded');
 var supabase = window.supabaseClient;
 
-async function loadArizaListesi() {
+// Pagination değişkenleri
+let issuesCurrentPage = 1;
+let solvedIssuesCurrentPage = 1;
+const ROWS_PER_PAGE = 5;
+let _allArizaRows = [];
+let _allCozulenArizaRows = [];
+let _allDeviceData = [];
+let _allDeviceDataLoaded = false;
+
+function renderPaginationControls(totalRows, currentPage, onPageChange, containerId) {
+    const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Önceki';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => onPageChange(currentPage - 1);
+    container.appendChild(prevBtn);
+    for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        if (i === currentPage) pageBtn.classList.add('active');
+        pageBtn.onclick = () => onPageChange(i);
+        container.appendChild(pageBtn);
+    }
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Sonraki';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => onPageChange(currentPage + 1);
+    container.appendChild(nextBtn);
+}
+
+async function fetchAllDeviceData() {
+    if (_allDeviceDataLoaded) return _allDeviceData;
+    const tables = ['computers', 'laptops', 'screens', 'printers', 'scanners', 'segbis', 'tvs', 'microphones', 'cameras', 'e_durusma'];
+    let allDeviceData = [];
+    for (const table of tables) {
+        const { data } = await supabase.from(table).select('*');
+        if (data) allDeviceData.push(...data);
+    }
+    _allDeviceData = allDeviceData;
+    _allDeviceDataLoaded = true;
+    return _allDeviceData;
+}
+
+async function fetchArizaData() {
     // 1. Üst tabloyu çek
-    const { data: arizalar, error: arizaError } = await supabase
+    const { data: arizalar } = await supabase
         .from('ariza_bildirimleri')
         .select('*');
     // 2. Alt tabloyu çek
-    const { data: cozulenArizalar, error: cozulenError } = await supabase
+    const { data: cozulenArizalar } = await supabase
         .from('cozulen_arizalar')
         .select('*');
+    return { arizalar, cozulenArizalar };
+}
 
+async function loadArizaListesi(forceFetch = false) {
+    // Verileri bir kez çek ve bellekte tut
+    if (forceFetch || _allArizaRows.length === 0 || _allCozulenArizaRows.length === 0) {
+        const { arizalar, cozulenArizalar } = await fetchArizaData();
+        const allDeviceData = await fetchAllDeviceData();
+        // 4. Admin personelleri çek (ad_soyad kullanılacak)
+        const { data: users } = await supabase
+            .from('users')
+            .select('*')
+            .eq('yetki', 'admin');
+        const adminler = users || [];
+        let adminIndex = 0;
+        // 5. Arızaları eski->yeni sırada adminlere sırayla ata
+        const arizaRows = arizalar ? arizalar.map((ariza, i) => {
+            let gpersonel = '-';
+            if (adminler.length > 0) {
+                gpersonel = adminler[adminIndex % adminler.length].ad_soyad || '-';
+                adminIndex++;
+            }
+            let bildirenAd = ariza.sicil_no;
+            const cihazKaydi = allDeviceData.find(c => String(c.sicil_no) === String(ariza.sicil_no));
+            if (cihazKaydi) {
+                bildirenAd =
+                    cihazKaydi.adi_soyadi ||
+                    cihazKaydi.ad_soyad ||
+                    cihazKaydi.personel_ad_soyad ||
+                    cihazKaydi.personel_adi_soyadi ||
+                    ariza.sicil_no;
+            }
+            return {
+                ...ariza,
+                gpersonel,
+                bildirenAd
+            };
+        }) : [];
+        _allArizaRows = [...arizaRows].reverse();
+        _allCozulenArizaRows = cozulenArizalar ? [...cozulenArizalar] : [];
+    }
     // Kart sayılarını güncelle
-    // Beklemede ve İşlemde sadece üst tablodan
+    const arizalar = _allArizaRows;
+    const cozulenArizalar = _allCozulenArizaRows;
     const bekleyen = arizalar ? arizalar.filter(a => a.ariza_durumu === 'Beklemede').length : 0;
     const islemde = arizalar ? arizalar.filter(a => a.ariza_durumu === 'İşlemde').length : 0;
-    // Çözüldü sadece alt tablodan
     const cozuldu = cozulenArizalar ? cozulenArizalar.filter(a => a.ariza_durumu === 'Çözüldü').length : 0;
-    // İptal Edildi hem üst hem alt tablodan
     const iptalUst = arizalar ? arizalar.filter(a => a.ariza_durumu === 'İptal Edildi').length : 0;
     const iptalAlt = cozulenArizalar ? cozulenArizalar.filter(a => a.ariza_durumu === 'İptal Edildi').length : 0;
     const iptal = iptalUst + iptalAlt;
-
     document.getElementById('pendingCount').textContent = bekleyen;
     document.getElementById('inProgressCount').textContent = islemde;
     document.getElementById('completedCount').textContent = cozuldu;
     document.getElementById('canceledCount').textContent = iptal;
-
-    // 3. Tüm cihaz tablolarını çek
-    const tables = ['computers', 'laptops', 'screens', 'printers', 'scanners', 'segbis', 'tvs', 'microphones', 'cameras', 'e_durusma'];
-    const allDeviceData = [];
-    for (const table of tables) {
-        const { data, error } = await supabase.from(table).select('*');
-        if (data) allDeviceData.push(...data);
-    }
-
-    // 4. Admin personelleri çek (ad_soyad kullanılacak)
-    const { data: users, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('yetki', 'admin');
-
-    const adminler = users || [];
-    let adminIndex = 0;
-
-    // 5. Arızaları eski->yeni sırada adminlere sırayla ata
-    const arizaRows = arizalar ? arizalar.map((ariza, i) => {
-        // Görevli Personel: adminler sırayla (ad_soyad)
-        let gpersonel = '-';
-        if (adminler.length > 0) {
-            gpersonel = adminler[adminIndex % adminler.length].ad_soyad || '-';
-            adminIndex++;
-        }
-        // Arızayı Bildiren Personel: cihaz tablosunda sicil_no eşleşirse adi_soyadi veya ad_soyad, yoksa sicil_no
-        let bildirenAd = ariza.sicil_no;
-        const cihazKaydi = allDeviceData.find(c => String(c.sicil_no) === String(ariza.sicil_no));
-        if (cihazKaydi) {
-            bildirenAd =
-                cihazKaydi.adi_soyadi ||
-                cihazKaydi.ad_soyad ||
-                cihazKaydi.personel_ad_soyad ||
-                cihazKaydi.personel_adi_soyadi ||
-                ariza.sicil_no;
-        }
-        return {
-            ...ariza,
-            gpersonel,
-            bildirenAd
-        };
-    }) : [];
-
     // Tabloyu en yeni arıza üstte olacak şekilde ters çevirerek ekrana bas
     const tbody = document.getElementById('issuesTableBody');
     tbody.innerHTML = '';
-    const reversedRows = [...arizaRows].reverse();
-    reversedRows.forEach((row, idx) => {
+    const reversedRows = _allArizaRows;
+    const totalRows = reversedRows.length;
+    const startIdx = (issuesCurrentPage - 1) * ROWS_PER_PAGE;
+    const endIdx = startIdx + ROWS_PER_PAGE;
+    const pageRows = reversedRows.slice(startIdx, endIdx);
+    pageRows.forEach((row, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td>${row.ariza_no}</td>
@@ -88,39 +132,29 @@ async function loadArizaListesi() {
             <td>${row.telefon || '-'}</td>
             <td>${row.ariza_durumu || '-'}</td>
             <td>
-                <button class="action-btn view" onclick="viewIssueDetail(${idx})"><i class="fas fa-eye"></i></button>
-                <button class="action-btn delete" onclick="deleteIssue(${idx})"><i class="fas fa-trash"></i></button>
+                <button class="action-btn view" onclick="viewIssueDetail(${startIdx + idx})"><i class="fas fa-eye"></i></button>
+                <button class="action-btn delete" onclick="deleteIssue(${startIdx + idx})"><i class="fas fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(tr);
     });
-    // Detay modalı için arıza satırlarını globalde tut
     window._arizaRows = reversedRows;
-
-    // Sayfa yüklenirken ve işlem sonrası çağır
+    renderPaginationControls(totalRows, issuesCurrentPage, (page) => { issuesCurrentPage = page; loadArizaListesi(); }, 'issuesPagination');
     loadCozulenArizalar();
 }
 
 async function loadCozulenArizalar() {
-    const { data: cozulenArizalar, error } = await supabase
-        .from('cozulen_arizalar')
-        .select('*')
-        .order('cozulme_tarihi', { ascending: false });
-
-    // Tüm cihaz tablolarını çek
-    const tables = ['computers', 'laptops', 'screens', 'printers', 'scanners', 'segbis', 'tvs', 'microphones', 'cameras', 'e_durusma'];
-    const allDeviceData = [];
-    for (const table of tables) {
-        const { data, error } = await supabase.from(table).select('*');
-        if (data) allDeviceData.push(...data);
-    }
-
+    const allDeviceData = await fetchAllDeviceData();
     const tbody = document.getElementById('solvedIssuesTableBody');
     tbody.innerHTML = '';
+    const cozulenArizalar = _allCozulenArizaRows;
     if (cozulenArizalar) {
         window._cozulenArizaRows = cozulenArizalar;
-        cozulenArizalar.forEach((row, idx) => {
-            // Arızayı Bildiren Personel: cihaz tablosunda sicil_no eşleşirse adi_soyadi veya ad_soyad, yoksa sicil_no
+        const totalRows = cozulenArizalar.length;
+        const startIdx = (solvedIssuesCurrentPage - 1) * ROWS_PER_PAGE;
+        const endIdx = startIdx + ROWS_PER_PAGE;
+        const pageRows = cozulenArizalar.slice(startIdx, endIdx);
+        pageRows.forEach((row, idx) => {
             let bildirenAd = row.sicil_no;
             const cihazKaydi = allDeviceData.find(c => String(c.sicil_no) === String(row.sicil_no));
             if (cihazKaydi) {
@@ -131,7 +165,6 @@ async function loadCozulenArizalar() {
                     cihazKaydi.personel_adi_soyadi ||
                     row.sicil_no;
             }
-
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td>${row.ariza_no}</td>
@@ -141,12 +174,13 @@ async function loadCozulenArizalar() {
                 <td>${row.telefon || '-'}</td>
                 <td>${row.ariza_durumu || '-'}</td>
                 <td>
-                    <button class="action-btn view" onclick="viewSolvedIssueDetail(${idx})"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn delete" onclick="deleteSolvedIssue(${idx})"><i class="fas fa-trash"></i></button>
+                    <button class="action-btn view" onclick="viewSolvedIssueDetail(${startIdx + idx})"><i class="fas fa-eye"></i></button>
+                    <button class="action-btn delete" onclick="deleteSolvedIssue(${startIdx + idx})"><i class="fas fa-trash"></i></button>
                 </td>
             `;
             tbody.appendChild(tr);
         });
+        renderPaginationControls(totalRows, solvedIssuesCurrentPage, (page) => { solvedIssuesCurrentPage = page; loadCozulenArizalar(); }, 'solvedIssuesPagination');
     }
 }
 
@@ -251,34 +285,60 @@ function viewIssueDetail(idx) {
                 if (currentEditIdx === null) return;
                 const editRow = window._arizaRows[currentEditIdx];
                 const newStatus = select.value;
-                if (newStatus === 'Çözüldü') {
-                    // localStorage'dan kullanıcı adını çek
-                    let currentUserName = 'Bilinmeyen Kullanıcı';
-                    try {
-                        const userStr = localStorage.getItem('user');
-                        if (userStr) {
-                            const userObj = JSON.parse(userStr);
-                            if (userObj.ad_soyad) {
-                                currentUserName = userObj.ad_soyad;
-                            }
+                let currentUserName = 'Bilinmeyen Kullanıcı';
+                try {
+                    const userStr = localStorage.getItem('user');
+                    if (userStr) {
+                        const userObj = JSON.parse(userStr);
+                        if (userObj.ad_soyad) {
+                            currentUserName = userObj.ad_soyad;
                         }
-                    } catch (e) {}
-                    await markAsResolvedAndRemove(editRow.ariza_no, currentUserName);
-                    closeEditStatusModal();
-                    closeIssueDetailModal();
-                    return;
+                    }
+                } catch (e) {}
+                if (newStatus === 'Çözüldü') {
+                    const result = await markAsResolvedOrCancelledAndRemove(editRow.ariza_no, currentUserName, newStatus);
+                    if (result) {
+                        showNotification('Arıza ' + newStatus + ' olarak kaydedildi ve üst tablodan silindi!', 'success');
+                        setTimeout(() => { location.reload(); }, 100);
+                        return;
+                    }
+                } else if (newStatus === 'İptal Edildi') {
+                    // 1. Alt tabloya ekle
+                    const { error: insertError } = await supabase
+                        .from('cozulen_arizalar')
+                        .insert([{
+                            ariza_no: editRow.ariza_no,
+                            sicil_no: editRow.sicil_no,
+                            arizayi_cozen_personel: currentUserName,
+                            telefon: editRow.telefon,
+                            ariza_aciklamasi: editRow.ariza_aciklamasi,
+                            foto_url: editRow.foto_url,
+                            ariza_durumu: newStatus,
+                            cozulme_tarihi: new Date().toISOString()
+                        }]);
+                    // 2. Üst tablodaki kaydı sadece güncelle
+                    const { error: updateError } = await supabase
+                        .from('ariza_bildirimleri')
+                        .update({ ariza_durumu: newStatus })
+                        .eq('ariza_no', editRow.ariza_no);
+                    if (!insertError && !updateError) {
+                        showNotification('Arıza ' + newStatus + ' olarak kaydedildi!', 'success');
+                        setTimeout(() => { location.reload(); }, 100);
+                        return;
+                    } else {
+                        if (insertError) showNotification('Çözülen arızalar tablosuna eklenemedi: ' + insertError.message, 'error');
+                        if (updateError) showNotification('Arıza üst tabloda güncellenemedi: ' + updateError.message, 'error');
+                    }
                 }
                 const { error } = await supabase
                     .from('ariza_bildirimleri')
                     .update({ ariza_durumu: newStatus })
                     .eq('ariza_no', editRow.ariza_no);
                 if (!error) {
-                    alert('Arıza durumu güncellendi!');
-                    closeEditStatusModal();
-                    closeIssueDetailModal();
-                    loadArizaListesi();
+                    showNotification('Arıza durumu güncellendi!', 'success');
+                    setTimeout(() => { location.reload(); }, 100);
                 } else {
-                    alert('Bir hata oluştu: ' + error.message);
+                    showNotification('Bir hata oluştu: ' + error.message, 'error');
                 }
             };
         };
@@ -322,8 +382,8 @@ function closeEditStatusModal() {
     currentEditIdx = null;
 }
 
-// Arızayı çözüldü olarak işaretle ve üst tablodan sil
-async function markAsResolvedAndRemove(arizaNo, currentUserName) {
+// Arızayı çözüldü veya iptal edildi olarak işaretle ve üst tablodan sil
+async function markAsResolvedOrCancelledAndRemove(arizaNo, currentUserName, newStatus) {
     // 1. Arızayı bul
     const { data: ariza, error } = await supabase
         .from('ariza_bildirimleri')
@@ -332,8 +392,8 @@ async function markAsResolvedAndRemove(arizaNo, currentUserName) {
         .single();
 
     if (error || !ariza) {
-        alert('Arıza bulunamadı!');
-        return;
+        showNotification('Arıza bulunamadı!', 'error');
+        return false;
     }
 
     // 2. cozulen_arizalar tablosuna ekle
@@ -346,13 +406,13 @@ async function markAsResolvedAndRemove(arizaNo, currentUserName) {
             telefon: ariza.telefon,
             ariza_aciklamasi: ariza.ariza_aciklamasi,
             foto_url: ariza.foto_url,
-            ariza_durumu: 'Çözüldü',
+            ariza_durumu: newStatus,
             cozulme_tarihi: new Date().toISOString()
         }]);
 
     if (insertError) {
-        alert('Çözülen arızalar tablosuna eklenemedi: ' + insertError.message);
-        return;
+        showNotification('Çözülen arızalar tablosuna eklenemedi: ' + insertError.message, 'error');
+        return false;
     }
 
     // 3. ariza_bildirimleri tablosundan sil
@@ -362,13 +422,13 @@ async function markAsResolvedAndRemove(arizaNo, currentUserName) {
         .eq('ariza_no', arizaNo);
 
     if (deleteError) {
-        alert('Arıza üst tablodan silinemedi: ' + deleteError.message);
-        return;
+        showNotification('Arıza üst tablodan silinemedi: ' + deleteError.message, 'error');
+        return false;
     }
 
-    alert('Arıza çözüldü olarak kaydedildi ve üst tablodan silindi!');
-    loadArizaListesi();
-    loadCozulenArizalar();
+    showNotification('Arıza ' + newStatus + ' olarak kaydedildi ve üst tablodan silindi!', 'success');
+    setTimeout(() => { location.reload(); }, 100);
+    return true;
 }
 
 // Çözülen arıza detay modalı aç
@@ -429,11 +489,10 @@ function viewSolvedIssueDetail(idx) {
                     .update({ ariza_durumu: newStatus })
                     .eq('ariza_no', row.ariza_no);
                 if (!error) {
-                    alert('Arıza durumu güncellendi!');
-                    closeEditStatusModal();
-                    loadCozulenArizalar();
+                    showNotification('Arıza durumu güncellendi!', 'success');
+                    setTimeout(() => { location.reload(); }, 100);
                 } else {
-                    alert('Bir hata oluştu: ' + error.message);
+                    showNotification('Bir hata oluştu: ' + error.message, 'error');
                 }
             };
         };
@@ -453,10 +512,10 @@ async function deleteSolvedIssue(idx) {
         .delete()
         .eq('ariza_no', row.ariza_no);
     if (!error) {
-        alert('Çözülen arıza silindi!');
-        loadCozulenArizalar();
+        showNotification('Çözülen arıza silindi!', 'success');
+        setTimeout(() => { location.reload(); }, 100);
     } else {
-        alert('Bir hata oluştu: ' + error.message);
+        showNotification('Bir hata oluştu: ' + error.message, 'error');
     }
 }
 
@@ -471,10 +530,10 @@ function deleteIssue(idx) {
         .eq('ariza_no', row.ariza_no)
         .then(({ error }) => {
             if (!error) {
-                alert('Arıza silindi!');
+                showNotification('Arıza silindi!', 'success');
                 loadArizaListesi();
             } else {
-                alert('Bir hata oluştu: ' + (error.message || JSON.stringify(error)));
+                showNotification('Bir hata oluştu: ' + (error.message || JSON.stringify(error)), 'error');
             }
         });
 }

@@ -241,42 +241,44 @@ function filterActivity(filter) {
 }
 
 // Profile Picture
-function changeProfilePicture() {
+async function changeProfilePicture() {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    
-    input.onchange = e => {
+
+    input.onchange = async e => {
         const file = e.target.files[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                document.querySelector('.profile-avatar').src = event.target.result;
-                // Here you would typically upload the file to your backend
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const userId = user?.id || user?.user_id || user?.uuid || 'user';
+                const fileExt = file.name.split('.').pop();
+                const filePath = `avatars/${userId}_${Date.now()}.${fileExt}`;
+                let { data, error } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+                if (error) throw error;
+
+                const { data: publicUrlData } = supabase.storage.from('avatars').getPublicUrl(filePath);
+                const publicUrl = publicUrlData?.publicUrl;
+                if (!publicUrl) throw new Error('Fotoğraf URL alınamadı!');
+
+                const { error: updateError } = await supabase
+                    .from('users')
+                    .update({ foto_url: publicUrl })
+                    .eq('id', userId);
+                if (updateError) throw updateError;
+
+                user.foto_url = publicUrl;
+                localStorage.setItem('user', JSON.stringify(user));
+                updateUserAvatar(user);
+                populateProfileData(user);
                 showNotification('Profil fotoğrafı başarıyla güncellendi', 'success');
-            };
-            reader.readAsDataURL(file);
+            } catch (err) {
+                console.error('Profil fotoğrafı güncelleme hatası:', err);
+                showNotification('Profil fotoğrafı güncellenemedi: ' + (err.message || 'Bilinmeyen hata'), 'error');
+            }
         }
     };
-    
     input.click();
-}
-
-// Utility Functions
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    
-    document.body.appendChild(notification);
-    
-    // Remove notification after 3 seconds
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => {
-            notification.remove();
-        }, 300);
-    }, 3000);
 }
 
 // Event Listeners
@@ -387,14 +389,13 @@ function updateFormInput(fieldName, value) {
 // Kullanıcı avatarını güncelleme
 function updateUserAvatar(userData) {
     const avatarElements = document.querySelectorAll('.profile-avatar, .user-profile img');
+    const url = userData.foto_url || userData.avatar_url;
     avatarElements.forEach(avatar => {
-        // Eğer kullanıcının avatar URL'si varsa kullan, yoksa varsayılan resmi kullan
-        if (userData.avatar_url) {
-            avatar.src = userData.avatar_url;
+        if (url) {
+            avatar.src = url;
             avatar.alt = userData.ad_soyad || 'Kullanıcı Avatarı';
         }
     });
-    
     // Sidebar kullanıcı bilgisini de güncelle
     const sidebarUserName = document.querySelector('.user-info p');
     if (sidebarUserName) {

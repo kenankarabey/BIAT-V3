@@ -241,9 +241,7 @@
                         <!-- JavaScript ile doldurulacak -->
                     </tbody>
                 </table>
-
-                <!-- Çözülen Arızalar Tablosu -->
-
+                <div class="pagination-controls" id="issuesPagination"></div>
             </div>
             <div class="table-container" style="margin-top: 32px;">
                 <table class="issues-table">
@@ -262,6 +260,7 @@
                         <!-- JavaScript ile doldurulacak -->
                     </tbody>
                 </table>
+                <div class="pagination-controls" id="solvedIssuesPagination"></div>
             </div>
         </main>
     </div>
@@ -382,10 +381,10 @@
                     <div class="form-group">
                         <label for="editStatus">Durum</label>
                         <select id="editStatus" required>
-                            <option value="beklemede">Beklemede</option>
-                            <option value="islemde">İşlemde</option>
-                            <option value="tamamlandi">Tamamlandı</option>
-                            <option value="iptal">İptal Edildi</option>
+                            <option value="Beklemede">Beklemede</option>
+                            <option value="İşlemde">İşlemde</option>
+                            <option value="Çözüldü">Çözüldü</option>
+                            <option value="İptal Edildi">İptal Edildi</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -442,7 +441,8 @@
     </div>
 
     <script src="js/main.js"></script>
-    <script src="js/login.js"></script>
     <script src="js/ariza-listesi.js"></script>
+    <script src="js/login.js"></script>
+   
 </body>
 </html> 

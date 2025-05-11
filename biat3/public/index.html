@@ -130,8 +130,19 @@
                         </div>
                         <div class="stat-info">
                             <h3>Toplam Mahkeme</h3>
-                            <p class="stat-number">24</p>
-                            <span class="stat-text">Aktif Mahkeme</span>
+                            <p class="stat-number" id="totalCourt">0</p>
+                            <span class="stat-text">Mahkeme</span>
+                        </div>
+                    </div>
+                    <!-- Toplam Duruşma Salonu -->
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-gavel"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Toplam Duruşma Salonu</h3>
+                            <p class="stat-number" id="totalCourtroom">0</p>
+                            <span class="stat-text">Duruşma Salonu</span>
                         </div>
                     </div>
                     <!-- Aktif Arıza -->
@@ -141,125 +152,49 @@
                         </div>
                         <div class="stat-info">
                             <h3>Aktif Arıza</h3>
-                            <p class="stat-number">5</p>
-                            <span class="stat-text">Bekleyen Arıza</span>
+                            <p class="stat-number" id="activeIssue">0</p>
+                            <span class="stat-text">Bekleyen/İşlemde</span>
                         </div>
                     </div>
-                    <!-- Bakım Sayısı -->
-                    <div class="stat-card">
-                        <div class="stat-icon info">
-                            <i class="fas fa-tools"></i>
-                        </div>
-                        <div class="stat-info">
-                            <h3>Bakım Sayısı</h3>
-                            <p class="stat-number">12</p>
-                            <span class="stat-text">Bu Ay</span>
-                        </div>
-                    </div>
-                    <!-- Aktif Cihaz -->
+                    <!-- Çözülen Arıza -->
                     <div class="stat-card">
                         <div class="stat-icon success">
-                            <i class="fas fa-laptop"></i>
+                            <i class="fas fa-check-circle"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>Aktif Cihaz</h3>
-                            <p class="stat-number">85</p>
-                            <span class="stat-text">Çalışır Durumda</span>
+                            <h3>Çözülen Arıza</h3>
+                            <p class="stat-number" id="solvedIssue">0</p>
+                            <span class="stat-text">Toplam</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- İstatistik Detay Grid -->
                 <div class="stats-detail-grid">
-                    <!-- Arıza Dağılımı -->
+                    <!-- Son Eklenen Cihazlar -->
                     <div class="stat-detail-item">
                         <div class="stat-detail-header">
-                            <h3>Arıza Dağılımı</h3>
-                            <span class="date-range">Son 30 Gün</span>
+                            <h3>Son Eklenen Cihazlar</h3>
                         </div>
-                        <div class="stat-numbers">
-                            <div class="stat-row">
-                                <div class="stat-icon printer">
-                                    <i class="fas fa-print"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-label">Yazıcı</span>
-                                    <span class="stat-value">15</span>
-                                    <span class="stat-change increase">+12.5%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 45%"></div>
-                                </div>
-                            </div>
-                            <div class="stat-row">
-                                <div class="stat-icon computer">
-                                    <i class="fas fa-desktop"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-label">Bilgisayar</span>
-                                    <span class="stat-value">8</span>
-                                    <span class="stat-change decrease">-5.3%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 25%"></div>
-                                </div>
-                            </div>
-                            <div class="stat-row">
-                                <div class="stat-icon network">
-                                    <i class="fas fa-network-wired"></i>
-                                </div>
-                                <div class="stat-info">
-                                    <span class="stat-label">Network</span>
-                                    <span class="stat-value">12</span>
-                                    <span class="stat-change increase">+8.7%</span>
-                                </div>
-                                <div class="progress-bar">
-                                    <div class="progress" style="width: 35%"></div>
-                                </div>
+                        <div class="recent-devices">
+                            <div class="last-devices-grid" id="recentDevicesList">
+                                <!-- JavaScript ile doldurulacak -->
                             </div>
                         </div>
                     </div>
-
-                    <!-- Performans Metrikleri -->
-                    <div class="stat-detail-item">
+                    <!-- Ayın Elemanı -->
+                    <div class="stat-detail-item" id="employeeOfMonthCard">
                         <div class="stat-detail-header">
-                            <h3>Performans Metrikleri</h3>
-                            <span class="date-range">Bu Ay</span>
+                            <h3>Ayın Elemanı</h3>
                         </div>
-                        <div class="metrics-grid">
-                            <div class="metric-card">
-                                <h4>Ortalama Çözüm Süresi</h4>
-                                <div class="metric-value">
-                                    <span>2.5 Saat</span>
-                                    <div class="trend-indicator positive">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span>12%</span>
-                                    </div>
-                                </div>
+                        <div class="ayin-elemani-card">
+                            <div class="ayin-elemani-photo">
+                                <img id="employeePhoto" src="img/user.jpg" alt="Ayın Elemanı">
                             </div>
-                            <div class="metric-card">
-                                <h4>Yanıt Hızı</h4>
-                                <div class="metric-value">
-                                    <span>15 Dakika</span>
-                                    <div class="trend-indicator positive">
-                                        <i class="fas fa-arrow-down"></i>
-                                        <span>8%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <h4>Memnuniyet Oranı</h4>
-                                <div class="metric-value">
-                                    <span>94%</span>
-                                    <div class="trend-indicator positive">
-                                        <i class="fas fa-arrow-up"></i>
-                                        <span>3%</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <div class="ayin-elemani-name" id="employeeName">-</div>
+                            <div class="ayin-elemani-sicil" id="employeeSicil">-</div>
                         </div>
                     </div>
-
                     <!-- Aylık Özet -->
                     <div class="stat-detail-item">
                         <div class="stat-detail-header">
@@ -297,6 +232,26 @@
                                     <span class="trend-value decrease">-8.3%</span>
                                 </div>
                             </div>
+                            <div class="monthly-stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-label">İşlemde</span>
+                                    <span class="stat-value">0</span>
+                                </div>
+                                <div class="stat-trend">
+                                    <div class="trend-line"></div>
+                                    <span class="trend-value">0%</span>
+                                </div>
+                            </div>
+                            <div class="monthly-stat-item">
+                                <div class="stat-header">
+                                    <span class="stat-label">İptal Edilen</span>
+                                    <span class="stat-value">0</span>
+                                </div>
+                                <div class="stat-trend">
+                                    <div class="trend-line"></div>
+                                    <span class="trend-value">0%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -307,5 +262,6 @@
     <div class="sidebar-overlay"></div>
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
+    <script src="js/dashboard-stats.js"></script>
 </body>
 </html> 

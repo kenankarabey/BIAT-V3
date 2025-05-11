@@ -1,4 +1,3 @@
-
 ;
 
 // URL'den oda numarasını al
@@ -276,7 +275,7 @@ window.showDeviceDetailsModalFromLaptop = function(laptopStr) {
     try {
         laptop = typeof laptopStr === 'string' ? JSON.parse(laptopStr) : laptopStr;
     } catch (e) {
-        alert('Cihaz verisi okunamadı!');
+        showNotification('Cihaz verisi okunamadı!', 'error');
         return;
     }
     fillDeviceDetailsModal({
@@ -301,7 +300,7 @@ window.showDeviceDetailsModalFromMonitor = function(monitorStr) {
     try {
         monitor = typeof monitorStr === 'string' ? JSON.parse(monitorStr) : monitorStr;
     } catch (e) {
-        alert('Cihaz verisi okunamadı!');
+        showNotification('Cihaz verisi okunamadı!', 'error');
         return;
     }
     fillDeviceDetailsModal({
@@ -326,7 +325,7 @@ window.showDeviceDetailsModalFromPrinter = function(printerStr) {
     try {
         printer = typeof printerStr === 'string' ? JSON.parse(printerStr) : printerStr;
     } catch (e) {
-        alert('Cihaz verisi okunamadı!');
+        showNotification('Cihaz verisi okunamadı!', 'error');
         return;
     }
     fillDeviceDetailsModal({

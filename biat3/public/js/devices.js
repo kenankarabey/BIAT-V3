@@ -1,5 +1,3 @@
-
-
 // Sample device data
 let devices = [];
 
@@ -357,20 +355,6 @@ async function saveDevice(event) {
     }
 }
 
-// Show notification
-function showNotification(message, type = 'success') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-
-    // 3 saniye sonra bildirimi kaldır
-    setTimeout(() => {
-        notification.classList.add('hide');
-        setTimeout(() => notification.remove(), 300);
-    }, 3000);
-}
-
 // Toggle Filter Section
 function toggleFilter() {
     isFilterVisible = !isFilterVisible;
@@ -616,31 +600,32 @@ function updateDeviceStats() {
 // Render devices in their respective tables
 function renderDevices(activeTab = 'computer') {
     console.log('Rendering devices for tab:', activeTab);
-    
+    if (!devicesCurrentPage[activeTab]) devicesCurrentPage[activeTab] = 1;
     // Get devices for the active tab
     const filteredDevices = devices.filter(device => device.type === activeTab);
     console.log(`${activeTab} için ${filteredDevices.length} cihaz bulundu`);
-    
     // Get the appropriate table body
     const tbody = document.getElementById(`${activeTab}TableBody`);
     if (!tbody) {
         console.warn(`Table body not found for tab: ${activeTab}`);
         return;
     }
-    
-    // Clear the table
     tbody.innerHTML = '';
-    
+    // Pagination
+    const totalRows = filteredDevices.length;
+    const currentPage = devicesCurrentPage[activeTab];
+    const startIdx = (currentPage - 1) * ROWS_PER_PAGE;
+    const endIdx = startIdx + ROWS_PER_PAGE;
+    const pageRows = filteredDevices.slice(startIdx, endIdx);
     // Render devices
     const deviceTabsWithMahkemeNo = [
         'computer', 'laptop', 'screen', 'printer', 'scanner',
         'tv', 'camera', 'segbis', 'microphone', 'e_durusma'
     ];
-    filteredDevices.forEach(device => {
+    pageRows.forEach(device => {
         const row = document.createElement('tr');
         let cells = [];
-
-        // Tüm alanları switch-case içinde ekle
+        // ... mevcut switch-case ile hücreleri doldur ...
         switch (activeTab) {
             case 'computer':
                 cells = [
@@ -745,7 +730,6 @@ function renderDevices(activeTab = 'computer') {
                 ];
                 break;
         }
-
         // İşlem butonlarını ekle
         cells.push(`
             <td class="table-actions">
@@ -760,11 +744,11 @@ function renderDevices(activeTab = 'computer') {
                 </button>
             </td>
         `);
-
         row.innerHTML = cells.join('');
         tbody.appendChild(row);
     });
-    
+    // Pagination kontrollerini ekle
+    renderPaginationControlsDevices(totalRows, currentPage, (page) => { devicesCurrentPage[activeTab] = page; renderDevices(activeTab); }, `${activeTab}Pagination`);
     // Update device statistics
     updateDeviceStats();
 }
@@ -1883,6 +1867,35 @@ document.addEventListener('DOMContentLoaded', function() {
         editOdaTipiSelect.addEventListener('change', updateFormFieldsOnOdaTipiChange);
     }
 });
+
+// ... mevcut kodun başına ekle ...
+const ROWS_PER_PAGE = 5;
+let devicesCurrentPage = {};
+
+function renderPaginationControlsDevices(totalRows, currentPage, onPageChange, containerId) {
+    const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+    const prevBtn = document.createElement('button');
+    prevBtn.textContent = 'Önceki';
+    prevBtn.disabled = currentPage === 1;
+    prevBtn.onclick = () => onPageChange(currentPage - 1);
+    container.appendChild(prevBtn);
+    for (let i = 1; i <= totalPages; i++) {
+        const pageBtn = document.createElement('button');
+        pageBtn.textContent = i;
+        if (i === currentPage) pageBtn.classList.add('active');
+        pageBtn.onclick = () => onPageChange(i);
+        container.appendChild(pageBtn);
+    }
+    const nextBtn = document.createElement('button');
+    nextBtn.textContent = 'Sonraki';
+    nextBtn.disabled = currentPage === totalPages;
+    nextBtn.onclick = () => onPageChange(currentPage + 1);
+    container.appendChild(nextBtn);
+}
 
 
 

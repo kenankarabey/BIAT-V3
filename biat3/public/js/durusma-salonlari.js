@@ -1,4 +1,4 @@
-
+window.supabase = window.supabaseClient;
 
 let durusmaSalonlari = [];
 
@@ -93,7 +93,7 @@ async function saveDurusmaSalonu() {
         .from('durusma_salonlari')
         .insert([yeniSalon]);
     if (error) {
-        alert('Kayıt eklenemedi: ' + error.message);
+        showNotification('Kayıt eklenemedi: ' + error.message, 'error');
         return;
     }
     form.reset();
@@ -108,7 +108,7 @@ async function deleteDurusmaSalonu(id) {
         .delete()
         .eq('id', id);
     if (error) {
-        alert('Silinemedi: ' + error.message);
+        showNotification('Silinemedi: ' + error.message, 'error');
         return;
     }
     await loadDurusmaSalonlari();
@@ -209,7 +209,7 @@ window.editDurusmaSalonu = function(id) {
             .update(updatedSalon)
             .eq('id', salon.id);
         if (error) {
-            alert('Güncelleme hatası: ' + error.message);
+            showNotification('Güncelleme hatası: ' + error.message, 'error');
             return;
         }
         form.reset();
