@@ -2,11 +2,14 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
-import BarcodeDisplay from '../../components/BarcodeDisplay';
+import BarcodeDisplay, { QRCodeDisplay, BarcodeOnlyDisplay } from '../../components/BarcodeDisplay';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
+
 
 const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode }) => {
   const { device } = route.params;
+  console.log('Device detail:', route?.params?.device);
 
   // Cihaz türüne göre ek detayları belirleme
   const isUserDevice = ['pc', 'monitor'].includes(device.type);
@@ -142,6 +145,31 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
 
   const status = getStatusInfo();
 
+  // Fonksiyon: Kullanıcı bilgileri gösterilsin mi?
+  const shouldShowUserInfo = () => {
+    if (device.oda_tipi === 'Duruşma Salonu') return false;
+    if ((device.tip === 'Yazıcı' || device.tip === 'yazıcı') && device.oda_tipi !== 'Hakim Odası') return false;
+    return true;
+  };
+
+  // Cihaz tipi prefix haritası
+  const prefixMap = {
+    Kasa: 'kasa',
+    Monitör: 'ekran',
+    Yazıcı: 'yazici',
+    Tarayıcı: 'tarayici',
+    SEGBİS: 'segbis',
+    Mikrofon: 'mikrofon',
+    Kamera: 'kamera',
+    TV: 'tv',
+    'E-Duruşma': 'e_durusma'
+  };
+  const prefix = prefixMap[device.tip] || '';
+
+  const displayMarka = device[`${prefix}_marka`] || device.kasa_marka || device.marka || '-';
+  const displayModel = device[`${prefix}_model`] || device.kasa_model || device.model || '-';
+  const displaySeriNo = device[`${prefix}_seri_no`] || device.kasa_seri_no || device.seri_no || '-';
+
   return (
     <>
       <View style={[styles.header, themedStyles.header]}>
@@ -159,119 +187,117 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
           <Swipeable renderRightActions={renderRightActions}>
             <View style={[styles.deviceCard, themedStyles.card, themedStyles.shadow]}>
               <View style={styles.deviceHeader}>
-                <View style={[styles.iconContainer, { backgroundColor: device.typeColor || '#4f46e5' }]}>
-                  <Ionicons name={getDeviceTypeIcon()} size={32} color="#FFFFFF" />
+                <View style={[styles.iconContainer, { backgroundColor: device.color || '#4f46e5' }]}>
+                  <Ionicons name={device.icon || getDeviceTypeIcon()} size={32} color="#FFFFFF" />
                 </View>
                 <View style={styles.titleContainer}>
-                  <Text style={[styles.deviceName, themedStyles.text]}>{device.name}</Text>
-                  <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
-                    <Text style={styles.statusText}>{status.text}</Text>
-                  </View>
+                  <Text style={[styles.deviceName, themedStyles.text]}>{displayMarka + ' ' + displayModel}</Text>
                 </View>
               </View>
 
               <View style={styles.infoSection}>
                 <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Bilgileri</Text>
-                
-                <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
-                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Tür</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{
-                      {
-                        pc: 'Kasa',
-                        monitor: 'Monitör',
-                        printer: 'Yazıcı',
-                        scanner: 'Tarayıcı',
-                        segbis: 'SEGBİS',
-                        hearing: 'E-Duruşma',
-                        microphone: 'Mikrofon',
-                        tv: 'TV'
-                      }[device.type] || 'Bilinmiyor'
-                    }</Text>
+                <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>  
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Mahkeme No</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.mahkeme_no || device.kasa_mahkeme_no || '-'}</Text>
+                  </View>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Birim</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.birim || '-'}</Text>
+                  </View>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Oda Tipi</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.oda_tipi || device.kasa_oda_tipi || '-'}</Text>
                   </View>
 
-                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Konum</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.location || 'Belirtilmemiş'}</Text>
-                  </View>
+                  {/* Kasa, Laptop, Monitör için Unvan, Sicil No, İsim Soyisim */}
+                  {(['Kasa', 'Laptop', 'Monitör'].includes(device.tip) && device.oda_tipi !== 'Duruşma Salonu') && (
+                    <>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.unvan || '-'}</Text>
+                      </View>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Adı Soyadı</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.adi_soyadi || '-'}</Text>
+                      </View>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sicil No</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.sicil_no || '-'}</Text>
+                      </View>
+                    </>
+                  )}
 
-                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                  {/* Sadece Yazıcı ve oda_tipi Hakim Odaları ise Unvan, Sicil No, İsim Soyisim */}
+                  {(device.tip === 'Yazıcı' && device.oda_tipi === 'Hakim Odaları') && (
+                    <>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.unvan || '-'}</Text>
+                      </View>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Adı Soyadı</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.adi_soyadi || '-'}</Text>
+                      </View>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sicil No</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.sicilno || '-'}</Text>
+                      </View>
+                    </>
+                  )}
+
+                  {/* Marka, Model, Seri No, İlk/Son Garanti Tarihi her cihazda gösterilsin */}
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                     <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Marka</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.brand || 'Belirtilmemiş'}</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{displayMarka}</Text>
                   </View>
-
-                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                     <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Model</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.model || 'Belirtilmemiş'}</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{displayModel}</Text>
+                  </View>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Seri No</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{displaySeriNo}</Text>
+                  </View>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>İlk Garanti Tarihi</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.ilk_garanti_tarihi || '-'}</Text>
+                  </View>
+                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Son Garanti Tarihi</Text>
+                    <Text style={[styles.infoValue, themedStyles.text]}>{device.son_garanti_tarihi || '-'}</Text>
                   </View>
 
-                  <View style={styles.infoItem}>
-                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Seri No</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.serialNumber || 'Belirtilmemiş'}</Text>
-                  </View>
+                  {/* Sadece Kasa için temizlik tarihleri */}
+                  {device.tip === 'Kasa' && (
+                    <>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>İlk Temizlik Tarihi</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.ilk_temizlik_tarihi || '-'}</Text>
+                      </View>
+                      <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
+                        <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Son Temizlik Tarihi</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.son_temizlik_tarihi || '-'}</Text>
+                      </View>
+                    </>
+                  )}
                 </View>
               </View>
-
-              {isUserDevice && (
-                <View style={styles.infoSection}>
-                  <Text style={[styles.sectionTitle, themedStyles.text]}>Kullanıcı Bilgileri</Text>
-                  
-                  <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
-                    <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Kullanıcı</Text>
-                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userName || 'Belirtilmemiş'}</Text>
-                    </View>
-                    
-                    <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
-                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userTitle || 'Belirtilmemiş'}</Text>
-                    </View>
-                    
-                    <View style={styles.infoItem}>
-                      <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sicil No</Text>
-                      <Text style={[styles.infoValue, themedStyles.text]}>{device.userRegistrationNumber || 'Belirtilmemiş'}</Text>
-                    </View>
-                  </View>
-                </View>
-              )}
 
               <View style={styles.infoSection}>
-                <Text style={[styles.sectionTitle, themedStyles.text]}>Bakım Bilgileri</Text>
-                
-                <View style={[styles.infoCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
-                  <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Son Bakım</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.lastMaintenance || 'Belirtilmemiş'}</Text>
+                <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Kodları</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
+                  {/* QR Kod Kutusu */}
+                  <View style={styles.codeBox}>
+                    <QRCodeDisplay value={device.qr_kod || ''} />
+                    <Text style={styles.codeLabel}>QR Kod</Text>
                   </View>
-                  
-                  <View style={styles.infoItem}>
-                    <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sonraki Bakım</Text>
-                    <Text style={[styles.infoValue, themedStyles.text]}>{device.nextMaintenance || 'Belirtilmemiş'}</Text>
+                  {/* Barkod Kutusu */}
+                  <View style={styles.codeBox}>
+                    <BarcodeOnlyDisplay value={device.barkod || ''} />
+                    <Text style={styles.codeLabel}>Barkod</Text>
                   </View>
-                </View>
-              </View>
-
-              <View style={styles.barcodeSection}>
-                <Text style={[styles.sectionTitle, themedStyles.text]}>Barkod Bilgileri</Text>
-                
-                <View style={[styles.barcodeCard, themedStyles.card, { borderColor: theme.border, borderWidth: 1 }]}>
-                  {device.barcodeValue && (
-                    <BarcodeDisplay 
-                      value={device.barcodeValue} 
-                      qrValue={`BIAT-Cihaz:${device.barcodeValue}\nTür:${device.type}\nMarka:${device.brand || 'Belirtilmemiş'}\nModel:${device.model || 'Belirtilmemiş'}\nSeri No:${device.serialNumber || 'Belirtilmemiş'}`}
-                      textColor={theme.text}
-                      backgroundColor={theme.card}
-                      borderColor={theme.border}
-                    />
-                  )}
-                  
-                  <TouchableOpacity 
-                    style={[styles.shareButton, { backgroundColor: theme.primary }]} 
-                    onPress={handleShareCodes}
-                  >
-                    <Ionicons name="share-outline" size={22} color="#FFFFFF" />
-                    <Text style={styles.shareButtonText}>Paylaş/Yazdır</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
             </View>
@@ -410,7 +436,20 @@ const styles = StyleSheet.create({
   },
   bottomPadding: {
     height: 40,
-  }
+  },
+  codeBox: {
+    backgroundColor: '#f3f4f6',
+    borderRadius: 16,
+    padding: 16,
+    alignItems: 'center',
+    width: '47%',
+  },
+  codeLabel: {
+    marginTop: 8,
+    fontWeight: '600',
+    color: '#64748b',
+    fontSize: 16,
+  },
 });
 
 export default withThemedScreen(DeviceDetailScreen); 

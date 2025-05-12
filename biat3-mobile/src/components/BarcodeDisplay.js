@@ -249,4 +249,54 @@ const styles = StyleSheet.create({
   }
 });
 
-export default BarcodeDisplay; 
+export default BarcodeDisplay;
+
+// --- Sadece QR Kod gösteren bileşen ---
+export const QRCodeDisplay = ({ value, size = 180 }) => (
+  <View style={qrStyles.container}>
+    <QRCode value={value || '-'} size={size} backgroundColor="white" color="black" />
+    <Text style={qrStyles.text}>Telefonla taranabilir</Text>
+    <Text style={qrStyles.content}>QR Kod İçeriği: {value || '-'}</Text>
+  </View>
+);
+
+const qrStyles = StyleSheet.create({
+  container: { alignItems: 'center', marginVertical: 16 },
+  text: { fontSize: 12, color: '#64748b', marginTop: 4 },
+  content: { fontSize: 12, color: '#64748b', marginTop: 2 },
+});
+
+// --- Sadece Barkod gösteren bileşen ---
+export const BarcodeOnlyDisplay = ({ value, width = 290, height = 60 }) => {
+  // Basit barkod çizimi (örnek, gerçek barkod için kütüphane önerilir)
+  const barWidth = 2;
+  const spacing = 1;
+  const chars = (value || '').toString().split('');
+  const totalBars = chars.length * 2 + 8;
+  const svgWidth = (barWidth + spacing) * totalBars;
+  let x = 0;
+  const bars = [];
+  for (let i = 0; i < totalBars; i++) {
+    bars.push({ x, width: barWidth, height });
+    x += barWidth + spacing;
+  }
+  return (
+    <View style={barcodeStyles.container}>
+      <Svg height={height} width={width} viewBox={`0 0 ${svgWidth} ${height}`}>
+        <G>
+          {bars.map((bar, idx) => (
+            <Rect key={idx} x={bar.x} y={0} width={bar.width} height={bar.height} fill="#000" />
+          ))}
+        </G>
+      </Svg>
+      <Text style={barcodeStyles.text}>Telefonla taranabilir</Text>
+      <Text style={barcodeStyles.content}>Barkod İçeriği: {value || '-'}</Text>
+    </View>
+  );
+};
+
+const barcodeStyles = StyleSheet.create({
+  container: { alignItems: 'center', marginVertical: 16 },
+  text: { fontSize: 12, color: '#64748b', marginTop: 4 },
+  content: { fontSize: 12, color: '#64748b', marginTop: 2 },
+}); 

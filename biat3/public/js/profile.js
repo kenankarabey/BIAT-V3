@@ -281,6 +281,55 @@ async function changeProfilePicture() {
     input.click();
 }
 
+// Fetch and render user's solved issues in activity section
+async function renderUserSolvedIssues() {
+    try {
+        // Kullanıcı adı (arizayi_cozen_personel) localStorage'dan veya profilden alınır
+        const user = JSON.parse(localStorage.getItem('user'));
+        const userName = user?.ad_soyad;
+        if (!userName) return;
+        // Supabase'den son çözdüğü arızaları çek
+        const { data, error } = await supabase
+            .from('cozulen_arizalar')
+            .select('*')
+            .eq('arizayi_cozen_personel', userName)
+            .order('cozulme_tarihi', { ascending: false })
+            .limit(10);
+        if (error) {
+            console.error('Çözülen arızalar alınamadı:', error);
+            return;
+        }
+        const timeline = document.getElementById('activityTimeline');
+        if (!timeline) return;
+        timeline.innerHTML = '';
+        if (!data || data.length === 0) {
+            timeline.innerHTML = '<div style="padding:24px;color:#888;">Son çözdüğünüz arıza bulunamadı.</div>';
+            return;
+        }
+        data.forEach(issue => {
+            const tarih = issue.cozulme_tarihi ? new Date(issue.cozulme_tarihi).toLocaleString('tr-TR') : '-';
+            const aciklama = issue.ariza_aciklamasi || '-';
+            const html = `
+                <div class="timeline-item" data-type="issue">
+                    <div class="timeline-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <h3>Arıza Çözüldü</h3>
+                            <span class="timeline-time">${tarih}</span>
+                        </div>
+                        <p>${aciklama}</p>
+                    </div>
+                </div>
+            `;
+            timeline.insertAdjacentHTML('beforeend', html);
+        });
+    } catch (err) {
+        console.error('Aktivite arıza listesi hatası:', err);
+    }
+}
+
 // Event Listeners
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -305,6 +354,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Add event listeners
         setupEventListeners();
+        // Kullanıcının çözdüğü arızaları getir
+        renderUserSolvedIssues();
     } catch (error) {
         console.error('Profile initialization error:', error);
         showNotification('Profil sayfası yüklenirken bir hata oluştu.', 'error');

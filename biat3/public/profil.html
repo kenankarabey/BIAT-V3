@@ -85,12 +85,6 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="raporlar.html">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Raporlar</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="profil.html" class="active">
                             <i class="fas fa-user"></i>
                             <span>Profil</span>
@@ -159,10 +153,6 @@
                     <button class="nav-item" data-section="password">
                         <i class="fas fa-key"></i>
                         <span>Şifre Değiştir</span>
-                    </button>
-                    <button class="nav-item" data-section="notifications">
-                        <i class="fas fa-bell"></i>
-                        <span>Bildirimler</span>
                     </button>
                     <button class="nav-item" data-section="activity">
                         <i class="fas fa-history"></i>
@@ -243,125 +233,10 @@
                         </div>
                     </div>
 
-                    <!-- Notifications Section -->
-                    <div class="profile-section" id="notifications">
-                        <div class="section-header">
-                            <h2>Bildirim Ayarları</h2>
-                        </div>
-                        <div class="notification-settings">
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>E-posta Bildirimleri</h3>
-                                    <p>Yeni arıza bildirimleri ve güncellemeler</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="emailNotifications" onchange="toggleNotification('emailNotifications')" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>Masaüstü Bildirimleri</h3>
-                                    <p>Anlık bildirimler ve uyarılar</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="desktopNotifications" onchange="toggleNotification('desktopNotifications')" checked>
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                            <div class="setting-item">
-                                <div class="setting-info">
-                                    <h3>SMS Bildirimleri</h3>
-                                    <p>Acil durumlar ve önemli güncellemeler</p>
-                                </div>
-                                <label class="switch">
-                                    <input type="checkbox" id="smsNotifications" onchange="toggleNotification('smsNotifications')">
-                                    <span class="slider"></span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Activity Section -->
                     <div class="profile-section" id="activity">
-                        <div class="section-header">
-                            <h2>Son Aktiviteler</h2>
-                            <div class="activity-filter">
-                                <select onchange="filterActivity(this.value)">
-                                    <option value="all">Tüm Aktiviteler</option>
-                                    <option value="issue">Arıza Bildirimleri</option>
-                                    <option value="maintenance">Bakım İşlemleri</option>
-                                    <option value="system">Sistem Güncellemeleri</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="activity-timeline">
-                            <div class="timeline-item" data-type="issue">
-                                <div class="timeline-icon success">
-                                    <i class="fas fa-check-circle"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <h3>Arıza Çözüldü</h3>
-                                        <span class="timeline-time">2 saat önce</span>
-                                    </div>
-                                    <p>3 Nolu Duruşma Salonu yazıcı arızası giderildi.</p>
-                                    <div class="timeline-meta">
-                                        <span class="meta-item">
-                                            <i class="fas fa-map-marker-alt"></i>
-                                            3 Nolu Duruşma Salonu
-                                        </span>
-                                        <span class="meta-item">
-                                            <i class="fas fa-print"></i>
-                                            HP LaserJet Pro
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="timeline-item">
-                                <div class="timeline-icon info">
-                                    <i class="fas fa-tools"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <h3>Bakım Yapıldı</h3>
-                                        <span class="timeline-time">1 gün önce</span>
-                                    </div>
-                                    <p>Hakim odaları rutin bakım işlemleri tamamlandı.</p>
-                                    <div class="timeline-meta">
-                                        <span class="meta-item">
-                                            <i class="fas fa-user-tie"></i>
-                                            5 Hakim Odası
-                                        </span>
-                                        <span class="meta-item">
-                                            <i class="fas fa-clock"></i>
-                                            2 saat sürdü
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="timeline-item">
-                                <div class="timeline-icon warning">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </div>
-                                <div class="timeline-content">
-                                    <div class="timeline-header">
-                                        <h3>Arıza Bildirimi</h3>
-                                        <span class="timeline-time">2 gün önce</span>
-                                    </div>
-                                    <p>2 Nolu Mahkeme Kalemi monitör arızası bildirildi.</p>
-                                    <div class="timeline-meta">
-                                        <span class="meta-item">
-                                            <i class="fas fa-building"></i>
-                                            2 Nolu Mahkeme Kalemi
-                                        </span>
-                                        <span class="meta-item">
-                                            <i class="fas fa-desktop"></i>
-                                            Dell P2419H
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="activity-timeline" id="activityTimeline">
+                            <!-- Kullanıcının çözdüğü arızalar buraya JS ile eklenecek -->
                         </div>
                     </div>
                 </div>
@@ -369,7 +244,6 @@
         </main>
     </div>
 
-    t>
     <script src="https://unpkg.com/@supabase/supabase-js"></script>
     <script src="js/supabase.js"></script>
     <script src="js/main.js"></script>

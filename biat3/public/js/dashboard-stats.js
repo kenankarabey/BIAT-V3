@@ -138,13 +138,10 @@ async function updateDashboardStats() {
       const totalThisMonth = (thisMonthIssues?.length || 0) + (thisMonthSolved?.length || 0);
       const totalPrevMonth = (prevMonthIssues?.length || 0) + (prevMonthSolved?.length || 0);
       document.querySelector('.monthly-stat-item:nth-child(1) .stat-value').textContent = totalThisMonth;
-      document.querySelector('.monthly-stat-item:nth-child(1) .trend-value').textContent = `${calcPercentChange(totalThisMonth, totalPrevMonth)}%`;
       // Çözülen
       document.querySelector('.monthly-stat-item:nth-child(2) .stat-value').textContent = thisMonthSolved?.length || 0;
-      document.querySelector('.monthly-stat-item:nth-child(2) .trend-value').textContent = `${calcPercentChange(thisMonthSolved?.length || 0, prevMonthSolved?.length || 0)}%`;
       // Bekleyen
       document.querySelector('.monthly-stat-item:nth-child(3) .stat-value').textContent = thisMonthPending?.length || 0;
-      document.querySelector('.monthly-stat-item:nth-child(3) .trend-value').textContent = `${calcPercentChange(thisMonthPending?.length || 0, prevMonthPending?.length || 0)}%`;
       // İşlemde (her iki tablonun toplamı)
       const { data: thisMonthInProgressAriza } = await supabase
         .from('ariza_bildirimleri')
@@ -173,12 +170,10 @@ async function updateDashboardStats() {
       const totalThisMonthInProgress = (thisMonthInProgressAriza?.length || 0) + (thisMonthInProgressCozulen?.length || 0);
       const totalPrevMonthInProgress = (prevMonthInProgressAriza?.length || 0) + (prevMonthInProgressCozulen?.length || 0);
       document.querySelector('.monthly-stat-item:nth-child(4) .stat-value').textContent = totalThisMonthInProgress;
-      document.querySelector('.monthly-stat-item:nth-child(4) .trend-value').textContent = `${calcPercentChange(totalThisMonthInProgress, totalPrevMonthInProgress)}%`;
       // İptal Edilen (her iki tablonun toplamı, alan adı kesin)
       const totalThisMonthCancelled = (thisMonthCancelledAriza?.length || 0) + (thisMonthCancelledCozulen?.length || 0);
       const totalPrevMonthCancelled = (prevMonthCancelledAriza?.length || 0) + (prevMonthCancelledCozulen?.length || 0);
       document.querySelector('.monthly-stat-item:nth-child(5) .stat-value').textContent = totalThisMonthCancelled;
-      document.querySelector('.monthly-stat-item:nth-child(5) .trend-value').textContent = `${calcPercentChange(totalThisMonthCancelled, totalPrevMonthCancelled)}%`;
       const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
       document.querySelector('.stat-detail-header .date-range').textContent = `${monthNames[month-1]} ${year}`;
     }

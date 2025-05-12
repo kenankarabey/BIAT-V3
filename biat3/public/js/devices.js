@@ -1543,132 +1543,126 @@ async function updateDeviceInDatabase(device) {
 
 // Get form fields by device type
 function getFormFieldsByType(deviceType) {
-    const unvanField = { 
-        id: 'unvan', 
-        label: 'Unvan', 
-        required: true,
-        type: 'select',
-        options: [
-            'Zabıt Katibi',
-            'Mübaşir',
-            'İcra Katibi',
-            'İcra Memuru',
-            'İcra Müdür Yardımcısı',
-            'İcra Müdürü',
-            'Yazı İşleri Müdürü',
-            'Hakim',
-            'Savcı',
-            'Veznedar',
-            'Hizmetli',
-            'Tarama Memuru',
-            'Memur',
-            'Teknisyen',
-            'Tekniker',
-            'Bilgi İşlem Müdürü',
-            'Uzman'
-        ]
-    };
+    const odaTipiElement = document.getElementById('oda_tipi') || document.getElementById('editOdaTipi');
+    const odaTipi = odaTipiElement?.value;
+    const isDurusmaSalonu = odaTipi === 'Duruşma Salonu';
+    const isHakimOdasi = odaTipi === 'Hakim Odaları';
 
-    // Get the selected oda_tipi
-    const odaTipiSelect = document.getElementById('oda_tipi') || document.getElementById('editOdaTipi');
-    const isHakimOdasi = odaTipiSelect && odaTipiSelect.value === 'Hakim Odaları';
+    let fields = [];
 
-    let personalFields = [];
-    if (deviceType === 'printer') {
-        // Sadece yazıcı ve Hakim Odaları ise personalFields ekle
-        if (isHakimOdasi) {
-            personalFields = [
-                unvanField,
-                { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
+    // Unvan alanını sadece Duruşma Salonu değilse ekle
+    if (!isDurusmaSalonu) {
+        let unvanField = {
+            id: 'unvan',
+            label: 'Unvan',
+            required: true,
+            type: 'select',
+            options: isHakimOdasi ? ['Hakim', 'Savcı'] : [
+                'Zabıt Katibi',
+                'Mübaşir',
+                'İcra Katibi',
+                'İcra Memuru',
+                'İcra Müdür Yardımcısı',
+                'İcra Müdürü',
+                'Yazı İşleri Müdürü',
+                'Hakim',
+                'Savcı',
+                'Veznedar',
+                'Hizmetli',
+                'Tarama Memuru',
+                'Memur',
+                'Teknisyen',
+                'Tekniker',
+                'Bilgi İşlem Müdürü',
+                'Uzman'
+            ]
+        };
+        fields.push(unvanField);
+
+        // Kişisel bilgi alanlarını ekle (Duruşma Salonu değilse)
+        if (deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen') {
+            fields.push(
+                { id: 'adi_soyadi', label: 'Ad Soyad', required: true },
                 { id: 'sicil_no', label: 'Sicil No', required: true }
-            ];
-        } else {
-            personalFields = [];
+            );
         }
-    } else if (deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen') {
-        // Kasa, laptop, monitör için her zaman personalFields ekle
-        personalFields = [
-            unvanField,
-            { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
-            { id: 'sicil_no', label: 'Sicil No', required: true }
-        ];
-    } else if (isHakimOdasi) {
-        // Diğer cihazlarda eski kural geçerli
-        personalFields = [
-            unvanField,
-            { id: 'adi_soyadi', label: 'Adı Soyadı', required: true },
-            { id: 'sicil_no', label: 'Sicil No', required: true }
-        ];
     }
 
+    // Cihaz tipine göre özel alanları ekle
     switch (deviceType) {
         case 'computer':
-            return [
-                ...personalFields,
+            fields.push(
                 { id: 'kasa_marka', label: 'Kasa Marka', required: true },
                 { id: 'kasa_model', label: 'Kasa Model', required: true },
                 { id: 'kasa_seri_no', label: 'Kasa Seri No', required: true }
-            ];
+            );
+            break;
         case 'laptop':
-            return [
-                ...personalFields,
+            fields.push(
                 { id: 'laptop_marka', label: 'Laptop Marka', required: true },
                 { id: 'laptop_model', label: 'Laptop Model', required: true },
                 { id: 'laptop_seri_no', label: 'Laptop Seri No', required: true }
-            ];
+            );
+            break;
         case 'screen':
-            return [
-                ...personalFields,
+            fields.push(
                 { id: 'ekran_marka', label: 'Monitör Marka', required: true },
                 { id: 'ekran_model', label: 'Monitör Model', required: true },
                 { id: 'ekran_seri_no', label: 'Monitör Seri No', required: true }
-            ];
+            );
+            break;
         case 'printer':
-            return [
-                ...personalFields,
+            fields.push(
                 { id: 'yazici_marka', label: 'Yazıcı Marka', required: true },
                 { id: 'yazici_model', label: 'Yazıcı Model', required: true },
                 { id: 'yazici_seri_no', label: 'Yazıcı Seri No', required: true }
-            ];
+            );
+            break;
         case 'scanner':
-            return [
+            fields.push(
                 { id: 'tarayici_marka', label: 'Tarayıcı Marka', required: true },
                 { id: 'tarayici_model', label: 'Tarayıcı Model', required: true },
                 { id: 'tarayici_seri_no', label: 'Tarayıcı Seri No', required: true }
-            ];
+            );
+            break;
         case 'tv':
-            return [
+            fields.push(
                 { id: 'tv_marka', label: 'TV Marka', required: true },
                 { id: 'tv_model', label: 'TV Model', required: true },
                 { id: 'tv_seri_no', label: 'TV Seri No', required: true }
-            ];
+            );
+            break;
         case 'camera':
-            return [
+            fields.push(
                 { id: 'kamera_marka', label: 'Kamera Marka', required: true },
                 { id: 'kamera_model', label: 'Kamera Model', required: true },
                 { id: 'kamera_seri_no', label: 'Kamera Seri No', required: true }
-            ];
+            );
+            break;
         case 'segbis':
-            return [
+            fields.push(
                 { id: 'segbis_marka', label: 'SEGBIS Marka', required: true },
                 { id: 'segbis_model', label: 'SEGBIS Model', required: true },
                 { id: 'segbis_seri_no', label: 'SEGBIS Seri No', required: true }
-            ];
+            );
+            break;
         case 'microphone':
-            return [
+            fields.push(
                 { id: 'mikrofon_marka', label: 'Mikrofon Marka', required: true },
                 { id: 'mikrofon_model', label: 'Mikrofon Model', required: true },
                 { id: 'mikrofon_seri_no', label: 'Mikrofon Seri No', required: true }
-            ];
+            );
+            break;
         case 'e_durusma':
-            return [
+            fields.push(
                 { id: 'edurusma_marka', label: 'E-Duruşma Marka', required: true },
                 { id: 'edurusma_model', label: 'E-Duruşma Model', required: true },
                 { id: 'edurusma_seri_no', label: 'E-Duruşma Seri No', required: true }
-            ];
-        default:
-            return [];
+            );
+            break;
     }
+
+    return fields;
 }
 
 // Show new device modal
@@ -1896,6 +1890,186 @@ function renderPaginationControlsDevices(totalRows, currentPage, onPageChange, c
     nextBtn.onclick = () => onPageChange(currentPage + 1);
     container.appendChild(nextBtn);
 }
+
+// Hakim Odaları için özel birim listesi
+const HAKIM_ODALARI_BIRIMLERI = [
+    'Sulh Hukuk Mahkemesi',
+    'Asliye Hukuk Mahkemesi',
+    'Tüketici Mahkemesi',
+    'Kadastro Mahkemesi',
+    'İş Mahkemesi',
+    'Aile Mahkemesi',
+    'Ağır Ceza Mahkemesi',
+    'Adalet Komisyonu Başkanlığı',
+    'Sulh Ceza Hakimliği',
+    'İnfaz Hakimliği',
+    'Çocuk Mahkemesi',
+    'Asliye Ceza Mahkemesi',
+    'İdari İşler Müdürlüğü',
+    'Nöbetçi Sulh Ceza Hakimliği',
+    'Cumhuriyet Başsavcılığı',
+    'İcra Hukuk Mahkemesi',
+    'İcra Ceza Mahkemesi'
+];
+
+// Hakim Odaları için cihaz türleri
+const HAKIM_ODALARI_CIHAZLARI = [
+    { value: 'laptop', label: 'Laptop' },
+    { value: 'screen', label: 'Monitör' },
+    { value: 'printer', label: 'Yazıcı' }
+];
+
+// Mahkeme Kalemi için cihaz türleri
+const MAHKEME_KALEMI_CIHAZLARI = [
+    { value: 'computer', label: 'Kasa' },
+    { value: 'laptop', label: 'Laptop' },
+    { value: 'screen', label: 'Monitör' },
+    { value: 'printer', label: 'Yazıcı' },
+    { value: 'scanner', label: 'Tarayıcı' }
+];
+
+// Duruşma Salonu için cihaz türleri
+const DURUSMA_SALONU_CIHAZLARI = [
+    { value: 'computer', label: 'Kasa' },
+    { value: 'screen', label: 'Monitör' },
+    { value: 'printer', label: 'Yazıcı' },
+    { value: 'scanner', label: 'Tarayıcı' },
+    { value: 'segbis', label: 'SEGBIS' },
+    { value: 'tv', label: 'Televizyon' },
+    { value: 'camera', label: 'Kamera' },
+    { value: 'microphone', label: 'Mikrofon' },
+    { value: 'e_durusma', label: 'E-Duruşma' }
+];
+
+// Diğer odalar için birim listesi
+const DIGER_BIRIMLER = [
+    'Sulh Hukuk Mahkemesi', 'Hukuk Ön Büro', 'Hukuk Vezne', 'Asliye Hukuk Mahkemesi',
+    'Tüketici Mahkemesi', 'Kadastro Mahkemesi', 'İş Mahkemesi', 'Aile Mahkemesi',
+    'Ağır Ceza Mahkemesi', 'Adalet Komisyonu Başkanlığı', 'Sulh Ceza Hakimliği',
+    'İnfaz Hakimliği', 'Çocuk Mahkemesi', 'Savcılık İnfaz Bürosu', 'Asliye Ceza Mahkemesi',
+    'Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları', 'Ceza Ön Büro',
+    'Ceza Vezne', 'Soruşturma Bürosu', 'İdari İşler Müdürlüğü', 'Müracaat Bürosu',
+    'Muhabere Bürosu', 'Talimat Bürosu', 'Emanet Bürosu', 'Nöbetçi Sulh Ceza Hakimliği',
+    'Cumhuriyet Başsavcılığı', 'Bakanlık Muhabere Bürosu', 'CMK', 'Maaş',
+    'İcra Müdürlüğü', 'Adli Sicil Şefliği', 'İcra Hukuk Mahkemesi', 'İcra Ceza Mahkemesi'
+];
+
+// Diğer odalar için cihaz türleri
+const DIGER_CIHAZLAR = [
+    { value: 'computer', label: 'Kasa' },
+    { value: 'laptop', label: 'Laptop' },
+    { value: 'screen', label: 'Monitör' },
+    { value: 'printer', label: 'Yazıcı' },
+    { value: 'scanner', label: 'Tarayıcı' },
+    { value: 'tv', label: 'Televizyon' },
+    { value: 'camera', label: 'Kamera' },
+    { value: 'segbis', label: 'SEGBIS' },
+    { value: 'microphone', label: 'Mikrofon' },
+    { value: 'e_durusma', label: 'E-Duruşma' }
+];
+
+// Duruşma Salonu için birim listesi
+const DURUSMA_SALONU_BIRIMLERI = [
+    'Sulh Hukuk Mahkemesi',
+    'Asliye Hukuk Mahkemesi',
+    'Tüketici Mahkemesi',
+    'Kadastro Mahkemesi',
+    'İş Mahkemesi',
+    'Aile Mahkemesi',
+    'Ağır Ceza Mahkemesi',
+    'Sulh Ceza Hakimliği',
+    'İnfaz Hakimliği',
+    'Çocuk Mahkemesi',
+    'Asliye Ceza Mahkemesi',
+    'İdari İşler Müdürlüğü',
+    'Nöbetçi Sulh Ceza Hakimliği',
+    'İcra Hukuk Mahkemesi',
+    'İcra Ceza Mahkemesi'
+];
+
+function fillBirimSelect(selectId, odaTipi) {
+    const birimSelect = document.getElementById(selectId);
+    if (!birimSelect) return;
+
+    birimSelect.innerHTML = '<option value="">Birim seçin</option>';
+    let birimler;
+    if (odaTipi === 'Hakim Odaları') {
+        birimler = HAKIM_ODALARI_BIRIMLERI;
+    } else if (odaTipi === 'Duruşma Salonu') {
+        birimler = DURUSMA_SALONU_BIRIMLERI;
+    } else {
+        birimler = DIGER_BIRIMLER;
+    }
+    
+    birimler.forEach(birim => {
+        const option = document.createElement('option');
+        option.value = birim;
+        option.textContent = birim;
+        birimSelect.appendChild(option);
+    });
+}
+
+function fillDeviceTypeSelect(selectId, odaTipi) {
+    const deviceTypeSelect = document.getElementById(selectId);
+    if (!deviceTypeSelect) return;
+
+    deviceTypeSelect.innerHTML = '<option value="">Cihaz türü seçin</option>';
+    let cihazlar;
+    
+    if (odaTipi === 'Hakim Odaları') {
+        cihazlar = HAKIM_ODALARI_CIHAZLARI;
+    } else if (odaTipi === 'Mahkeme Kalemi') {
+        cihazlar = MAHKEME_KALEMI_CIHAZLARI;
+    } else if (odaTipi === 'Duruşma Salonu') {
+        cihazlar = DURUSMA_SALONU_CIHAZLARI;
+    } else {
+        cihazlar = DIGER_CIHAZLAR;
+    }
+    
+    cihazlar.forEach(cihaz => {
+        const option = document.createElement('option');
+        option.value = cihaz.value;
+        option.textContent = cihaz.label;
+        deviceTypeSelect.appendChild(option);
+    });
+}
+
+// Oda tipi değiştiğinde form alanlarını güncelle
+function updateFormOnOdaTipiChange(isEdit = false) {
+    const prefix = isEdit ? 'edit' : '';
+    const odaTipiId = isEdit ? 'editOdaTipi' : 'oda_tipi';
+    const birimId = isEdit ? 'editBirim' : 'birim';
+    const deviceTypeId = isEdit ? 'editDeviceType' : 'deviceType';
+
+    const odaTipi = document.getElementById(odaTipiId).value;
+    
+    // Birim listesini güncelle
+    fillBirimSelect(birimId, odaTipi);
+    
+    // Cihaz türü listesini güncelle
+    fillDeviceTypeSelect(deviceTypeId, odaTipi);
+    
+    // Form alanlarını güncelle
+    if (isEdit) {
+        updateEditFormFields();
+    } else {
+        updateFormFields();
+    }
+}
+
+// Event listener'ları ekle
+document.addEventListener('DOMContentLoaded', function() {
+    const odaTipiAdd = document.getElementById('oda_tipi');
+    const odaTipiEdit = document.getElementById('editOdaTipi');
+    
+    if (odaTipiAdd) {
+        odaTipiAdd.addEventListener('change', () => updateFormOnOdaTipiChange(false));
+    }
+    
+    if (odaTipiEdit) {
+        odaTipiEdit.addEventListener('change', () => updateFormOnOdaTipiChange(true));
+    }
+});
 
 
 

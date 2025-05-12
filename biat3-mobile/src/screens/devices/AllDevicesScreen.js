@@ -3,251 +3,75 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert }
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
 
-const deviceTypes = [
-  { id: 'pc', title: 'Kasa', icon: 'desktop', color: '#4f46e5' },
-  { id: 'monitor', title: 'Monitör', icon: 'tv', color: '#10b981' },
-  { id: 'printer', title: 'Yazıcı', icon: 'print', color: '#f59e0b' },
-  { id: 'scanner', title: 'Tarayıcı', icon: 'scan', color: '#ef4444' },
-  { id: 'segbis', title: 'SEGBİS', icon: 'videocam', color: '#6366f1' },
-  { id: 'hearing', title: 'E-Duruşma', icon: 'people', color: '#8b5cf6' },
-  { id: 'microphone', title: 'Mikrofon', icon: 'mic', color: '#ec4899' },
-  { id: 'tv', title: 'TV', icon: 'tv', color: '#14b8a6' },
-];
-
-// Örnek cihaz verileri
-const mockDevices = [
-  { 
-    id: '1', 
-    name: 'PC-106', 
-    type: 'pc', 
-    location: 'Ağır Ceza 1', 
-    status: 'active',
-    brand: 'HP',
-    model: 'EliteDesk 800 G7',
-    serialNumber: 'PC202201101',
-    userName: 'Ahmet Yılmaz',
-    userTitle: 'Hakim',
-    userRegistrationNumber: '12345',
-    lastMaintenance: '15.01.2023',
-    nextMaintenance: '15.01.2024',
-    typeColor: '#4f46e5',
-    barcodeValue: 'PC2022XYZ101',
-    qrValue: JSON.stringify({
-      id: 'PC2022XYZ101',
-      type: 'pc',
-      brand: 'HP',
-      model: 'EliteDesk 800 G7',
-      serialNumber: 'PC202201101',
-      timestamp: 1673758800000
-    })
-  },
-  { 
-    id: '2', 
-    name: 'MON-102', 
-    type: 'monitor', 
-    location: 'Asliye Hukuk 2', 
-    status: 'active',
-    brand: 'Dell',
-    model: 'P2419H',
-    serialNumber: 'MON202201102',
-    userName: 'Ayşe Kaya',
-    userTitle: 'Zabıt Katibi',
-    userRegistrationNumber: '23456',
-    lastMaintenance: '20.02.2023',
-    nextMaintenance: '20.02.2024',
-    typeColor: '#10b981',
-    barcodeValue: 'MON2022XYZ102',
-    qrValue: JSON.stringify({
-      id: 'MON2022XYZ102',
-      type: 'monitor',
-      brand: 'Dell',
-      model: 'P2419H',
-      serialNumber: 'MON202201102',
-      timestamp: 1676844000000
-    })
-  },
-  { 
-    id: '3', 
-    name: 'PRN-103', 
-    type: 'printer', 
-    location: 'Sulh Ceza 1', 
-    status: 'maintenance',
-    brand: 'HP',
-    model: 'LaserJet Pro M428',
-    serialNumber: 'PRN202201103',
-    lastMaintenance: '10.03.2023',
-    nextMaintenance: '10.03.2024',
-    typeColor: '#f59e0b',
-    barcodeValue: 'PRN2022XYZ103',
-    qrValue: JSON.stringify({
-      id: 'PRN2022XYZ103',
-      type: 'printer',
-      brand: 'HP',
-      model: 'LaserJet Pro M428',
-      serialNumber: 'PRN202201103',
-      timestamp: 1678453200000
-    })
-  },
-  { 
-    id: '4', 
-    name: 'SCN-104', 
-    type: 'scanner', 
-    location: 'İcra 1', 
-    status: 'active',
-    brand: 'Canon',
-    model: 'DR-C225',
-    serialNumber: 'SCN202201104',
-    lastMaintenance: '05.04.2023',
-    nextMaintenance: '05.04.2024',
-    typeColor: '#ef4444',
-    barcodeValue: 'SCN2022XYZ104',
-    qrValue: JSON.stringify({
-      id: 'SCN2022XYZ104',
-      type: 'scanner',
-      brand: 'Canon',
-      model: 'DR-C225',
-      serialNumber: 'SCN202201104',
-      timestamp: 1680652800000
-    })
-  },
-  { 
-    id: '5', 
-    name: 'SEG-105', 
-    type: 'segbis', 
-    location: 'Ağır Ceza 2', 
-    status: 'error',
-    brand: 'Logitech',
-    model: 'Rally Plus',
-    serialNumber: 'SEG202201105',
-    lastMaintenance: '18.05.2023',
-    nextMaintenance: '18.05.2024',
-    typeColor: '#6366f1',
-    barcodeValue: 'SEG2022XYZ105',
-    qrValue: JSON.stringify({
-      id: 'SEG2022XYZ105',
-      type: 'segbis',
-      brand: 'Logitech',
-      model: 'Rally Plus',
-      serialNumber: 'SEG202201105',
-      timestamp: 1684364400000
-    })
-  },
-  { 
-    id: '6', 
-    name: 'EDR-106', 
-    type: 'hearing', 
-    location: 'Asliye Ceza 1', 
-    status: 'active',
-    brand: 'Poly',
-    model: 'Studio X50',
-    serialNumber: 'EDR202201106',
-    lastMaintenance: '25.06.2023',
-    nextMaintenance: '25.06.2024',
-    typeColor: '#8b5cf6',
-    barcodeValue: 'EDR2022XYZ106',
-    qrValue: JSON.stringify({
-      id: 'EDR2022XYZ106',
-      type: 'hearing',
-      brand: 'Poly',
-      model: 'Studio X50',
-      serialNumber: 'EDR202201106',
-      timestamp: 1687651200000
-    })
-  },
-  { 
-    id: '7', 
-    name: 'MIC-107', 
-    type: 'microphone', 
-    location: 'Ağır Ceza 3', 
-    status: 'active',
-    brand: 'Shure',
-    model: 'MX418',
-    serialNumber: 'MIC202201107',
-    lastMaintenance: '30.07.2023',
-    nextMaintenance: '30.07.2024',
-    typeColor: '#ec4899',
-    barcodeValue: 'MIC2022XYZ107',
-    qrValue: JSON.stringify({
-      id: 'MIC2022XYZ107',
-      type: 'microphone',
-      brand: 'Shure',
-      model: 'MX418',
-      serialNumber: 'MIC202201107',
-      timestamp: 1690675200000
-    })
-  },
-  { 
-    id: '8', 
-    name: 'TV-108', 
-    type: 'tv', 
-    location: 'Bekleme Salonu', 
-    status: 'active',
-    brand: 'Samsung',
-    model: 'QE55Q80T',
-    serialNumber: 'TV202201108',
-    lastMaintenance: '12.08.2023',
-    nextMaintenance: '12.08.2024',
-    typeColor: '#14b8a6',
-    barcodeValue: 'TV2022XYZ108',
-    qrValue: JSON.stringify({
-      id: 'TV2022XYZ108',
-      type: 'tv',
-      brand: 'Samsung',
-      model: 'QE55Q80T',
-      serialNumber: 'TV202201108',
-      timestamp: 1691798400000
-    })
-  },
+const DEVICE_TABLES = [
+  { table: 'computers', prefix: 'kasa', type: 'Kasa', icon: 'desktop', color: '#4f46e5' },
+  { table: 'screens', prefix: 'ekran', type: 'Monitör', icon: 'tv', color: '#10b981' },
+  { table: 'printers', prefix: 'yazici', type: 'Yazıcı', icon: 'print', color: '#f59e0b' },
+  { table: 'scanners', prefix: 'tarayici', type: 'Tarayıcı', icon: 'scan', color: '#ef4444' },
+  { table: 'segbis', prefix: 'segbis', type: 'SEGBİS', icon: 'videocam', color: '#6366f1' },
+  { table: 'microphones', prefix: 'mikrofon', type: 'Mikrofon', icon: 'mic', color: '#ec4899' },
+  { table: 'cameras', prefix: 'kamera', type: 'Kamera', icon: 'camera', color: '#f472b6' },
+  { table: 'tvs', prefix: 'tv', type: 'TV', icon: 'tv', color: '#14b8a6' },
+  { table: 'e_durusmas', prefix: 'e_durusma', type: 'E-Duruşma', icon: 'people', color: '#8b5cf6' },
 ];
 
 function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }) {
-  const [selectedType, setSelectedType] = useState(null);
-  const [devices, setDevices] = useState(mockDevices);
+  const [selectedType, setSelectedType] = useState('Kasa');
+  const [devices, setDevices] = useState([]);
 
-  // Check if a new device was added or updated
   useEffect(() => {
-    if (route.params?.updatedDevice) {
-      // Handle the updated device (in a real app this would update the database)
-      const updatedDevice = route.params.updatedDevice;
-      const existingDeviceIndex = devices.findIndex(d => d.id === updatedDevice.id);
-      
-      if (existingDeviceIndex !== -1) {
-        // Update existing device
-        const updatedDevices = [...devices];
-        updatedDevices[existingDeviceIndex] = {
-          ...updatedDevices[existingDeviceIndex],
-          ...updatedDevice
-        };
-        setDevices(updatedDevices);
-      } else {
-        // Add new device with generated ID
-        const newDevice = {
-          ...updatedDevice,
-          id: (devices.length + 1).toString(),
-          name: `${updatedDevice.type.toUpperCase()}-${100 + devices.length + 1}`,
-          typeColor: deviceTypes.find(t => t.id === updatedDevice.type)?.color || '#4f46e5'
-        };
-        setDevices([...devices, newDevice]);
+    const fetchAllDevices = async () => {
+      let allDevices = [];
+      for (const dev of DEVICE_TABLES) {
+        const { data, error } = await supabase.from(dev.table).select('*');
+        if (!error && data) {
+          const mapped = data.map(item => ({
+            id: item.id,
+            kasa_marka: item[`${dev.prefix}_marka`] || '',
+            kasa_model: item[`${dev.prefix}_model`] || '',
+            kasa_seri_no: item[`${dev.prefix}_seri_no`] || '',
+            oda_tipi: item.oda_tipi || '',
+            unvan: item.unvan || '',
+            adi_soyadi: item.adi_soyadi || '',
+            ...(dev.prefix === 'yazici'
+              ? { sicilno: item.sicilno || '' }
+              : { sicil_no: item.sicil_no || '' }
+            ),
+            kasa_ilk_temizlik_tarihi: dev.prefix === 'kasa' ? (item.kasa_ilk_temizlik_tarihi || '') : '',
+            kasa_son_temizlik_tarihi: dev.prefix === 'kasa' ? (item.kasa_son_temizlik_tarihi || '') : '',
+            ilk_temizlik_tarihi: item.ilk_temizlik_tarihi || '',
+            son_temizlik_tarihi: item.son_temizlik_tarihi || '',
+            ilk_garanti_tarihi: item.ilk_garanti_tarihi || '',
+            son_garanti_tarihi: item.son_garanti_tarihi || '',
+            qr_kod: item.qr_kod || '',
+            barkod: item.barkod || '',
+            tip: dev.type,
+            icon: dev.icon,
+            color: dev.color,
+            mahkeme_no: item.mahkeme_no || '',
+            birim: item.birim || '',
+            durum: item[`${dev.prefix}_durum`] || 'active',
+          }));
+          allDevices = allDevices.concat(mapped);
+        }
       }
-    }
-  }, [route.params?.updatedDevice]);
+      setDevices(allDevices);
+    };
+    fetchAllDevices();
+  }, []);
 
-  const filteredDevices = selectedType
-    ? devices.filter(device => device.type === selectedType)
-    : devices;
+  const filteredDevices = devices.filter(device => device.tip === selectedType);
 
-  // Düzenleme işlevi
   const handleEdit = (device) => {
-    // Düzenleme formuna gidebilir veya modal açabilirsiniz
-    navigation.navigate('DeviceForm', { deviceType: { id: device.type, name: deviceTypes.find(t => t.id === device.type)?.title || 'Cihaz' }, device });
+    navigation.navigate('DeviceForm', { deviceType: { id: device.tip, name: device.tip }, device });
   };
 
-  // Silme işlevi
   const handleDelete = (device) => {
     Alert.alert(
       "Cihazı Sil",
-      `${device.name} cihazını silmek istediğinize emin misiniz?`,
+      `${device.kasa_marka} ${device.kasa_model} cihazını silmek istediğinize emin misiniz?`,
       [
         {
           text: "İptal",
@@ -256,7 +80,6 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
         { 
           text: "Sil", 
           onPress: () => {
-            // Filter out the device to delete
             const updatedDevices = devices.filter(d => d.id !== device.id);
             setDevices(updatedDevices);
             Alert.alert("Başarılı", "Cihaz başarıyla silindi");
@@ -267,7 +90,6 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
     );
   };
 
-  // Sola kaydırma aksiyonları
   const renderRightActions = (device, closeRow) => (
     <View style={styles.rightActionsContainer}>
       <TouchableOpacity 
@@ -296,12 +118,12 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
       style={[
         styles.typeCard, 
         { backgroundColor: item.color + '20' }, 
-        selectedType === item.id && { borderColor: item.color, borderWidth: 2 }
+        selectedType === item.type && { borderColor: item.color, borderWidth: 2 }
       ]} 
-      onPress={() => setSelectedType(item.id === selectedType ? null : item.id)}
+      onPress={() => setSelectedType(item.type === selectedType ? null : item.type)}
     >
       <Ionicons name={item.icon} size={24} color={item.color} />
-      <Text style={[styles.typeTitle, themedStyles.text]}>{item.title}</Text>
+      <Text style={[styles.typeTitle, themedStyles.text]}>{item.type}</Text>
     </TouchableOpacity>
   );
 
@@ -343,26 +165,24 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
             style={[styles.deviceItem, themedStyles.card, themedStyles.shadow]} 
             onPress={() => navigation.navigate('DeviceDetail', { device: item })}
           >
-            <View style={[styles.deviceIcon, { backgroundColor: item.typeColor + '20' }]}>
+            <View style={[styles.deviceIcon, { backgroundColor: item.color + '20' }]}>
               <Ionicons 
-                name={deviceTypes.find(type => type.id === item.type)?.icon || 'help-circle'} 
+                name={item.icon} 
                 size={24} 
-                color={item.typeColor} 
+                color={item.color} 
               />
             </View>
             <View style={styles.deviceInfo}>
               <View style={styles.deviceHeader}>
-                <Text style={[styles.deviceName, themedStyles.text]}>{item.name}</Text>
+                <Text style={[styles.deviceName, themedStyles.text]}>{(item.kasa_marka || '') + ' ' + (item.kasa_model || '')}</Text>
                 <View style={styles.statusContainer}>
-                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.status) }]} />
-                  <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+                  <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.durum) }]} />
+                  <Text style={styles.statusText}>{getStatusText(item.durum)}</Text>
                 </View>
               </View>
               <View style={styles.deviceDetails}>
-                <Text style={[styles.deviceType, themedStyles.textSecondary]}>
-                  {deviceTypes.find(type => type.id === item.type)?.title || 'Bilinmiyor'}
-                </Text>
-                <Text style={[styles.deviceLocation, themedStyles.textSecondary]}>{item.location}</Text>
+                <Text style={[styles.deviceType, themedStyles.textSecondary]}>{item.tip}</Text>
+                <Text style={[styles.deviceLocation, themedStyles.textSecondary]}>{(item.mahkeme_no || '') + ' ' + (item.birim || '')}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -393,8 +213,8 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
             showsHorizontalScrollIndicator={false} 
             contentContainerStyle={styles.typeCardContainer}
           >
-            {deviceTypes.map(item => (
-              <DeviceTypeCard key={item.id} item={item} />
+            {DEVICE_TABLES.map((item, index) => (
+              <DeviceTypeCard key={item.type + '_' + index} item={item} />
             ))}
           </ScrollView>
         </View>
@@ -402,7 +222,7 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
         <FlatList
           data={filteredDevices}
           renderItem={({ item }) => <DeviceItem item={item} />}
-          keyExtractor={item => item.id}
+          keyExtractor={(item, index) => item.tip + '_' + (item.id ? item.id.toString() : index.toString())}
           contentContainerStyle={styles.listContainer}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

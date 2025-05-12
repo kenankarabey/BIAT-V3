@@ -1,13 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import withThemedScreen from '../components/withThemedScreen';
 
-const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
-  // Cihaz türleri
-  const deviceTypes = [
+const ODA_TIPLERI = {
+  MAHKEME_KALEMLERI: 'Mahkeme Kalemleri',
+  HAKIM_ODALARI: 'Hakim Odaları',
+  DURUSMA_SALONU: 'Duruşma Salonu'
+};
+
+const CIHAZ_KISITLAMALARI = {
+  kasa: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.DURUSMA_SALONU],
+  laptop: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI],
+  monitör: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
+  yazıcı: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
+  tarayıcı: [ODA_TIPLERI.MAHKEME_KALEMLERI],
+  segbis: [ODA_TIPLERI.DURUSMA_SALONU],
+  tv: [ODA_TIPLERI.DURUSMA_SALONU],
+  kamera: [ODA_TIPLERI.DURUSMA_SALONU],
+  mikrofon: [ODA_TIPLERI.DURUSMA_SALONU],
+  edurusma: [ODA_TIPLERI.DURUSMA_SALONU]
+};
+
+const AddDeviceScreen = ({ navigation, route, theme }) => {
+  const { odaTipi, birim, mahkemeNo } = route.params || {};
+
+  useEffect(() => {
+    if (!odaTipi || !birim || !mahkemeNo) {
+      navigation.replace('RoomTypeSelection');
+    }
+  }, [odaTipi, birim, mahkemeNo]);
+
+  const cihazTipleri = [
     {
-      id: 'pc',
+      id: 'kasa',
       name: 'Kasa',
       icon: 'desktop-outline',
       color: '#4f46e5',
@@ -15,26 +41,34 @@ const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
       isUserDevice: true,
     },
     {
-      id: 'monitor',
+      id: 'laptop',
+      name: 'Laptop',
+      icon: 'laptop-outline',
+      color: '#0891b2',
+      description: 'Dizüstü bilgisayar',
+      isUserDevice: true,
+    },
+    {
+      id: 'monitör',
       name: 'Monitör',
       icon: 'tv-outline',
-      color: '#0891b2',
+      color: '#10b981',
       description: 'Bilgisayar monitörü',
       isUserDevice: true,
     },
     {
-      id: 'printer',
+      id: 'yazıcı',
       name: 'Yazıcı',
       icon: 'print-outline',
-      color: '#10b981',
+      color: '#f59e0b',
       description: 'Yazıcı veya çok fonksiyonlu yazıcı',
       isUserDevice: false,
     },
     {
-      id: 'scanner',
+      id: 'tarayıcı',
       name: 'Tarayıcı',
       icon: 'scan-outline',
-      color: '#f59e0b',
+      color: '#ef4444',
       description: 'Doküman tarayıcı',
       isUserDevice: false,
     },
@@ -42,23 +76,23 @@ const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
       id: 'segbis',
       name: 'SEGBİS',
       icon: 'videocam-outline',
-      color: '#ef4444',
+      color: '#8b5cf6',
       description: 'Ses ve Görüntü Bilişim Sistemi',
       isUserDevice: false,
     },
     {
-      id: 'hearing',
+      id: 'edurusma',
       name: 'E-Duruşma',
       icon: 'people-outline',
-      color: '#8b5cf6',
+      color: '#f97316',
       description: 'E-Duruşma sistemi',
       isUserDevice: false,
     },
     {
-      id: 'microphone',
+      id: 'mikrofon',
       name: 'Mikrofon',
       icon: 'mic-outline',
-      color: '#f97316',
+      color: '#14b8a6',
       description: 'Mikrofon sistemleri',
       isUserDevice: false,
     },
@@ -66,12 +100,12 @@ const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
       id: 'tv',
       name: 'TV',
       icon: 'tv-outline',
-      color: '#14b8a6',
+      color: '#6366f1',
       description: 'Televizyon',
       isUserDevice: false,
     },
     {
-      id: 'camera',
+      id: 'kamera',
       name: 'Kamera',
       icon: 'camera-outline',
       color: '#6366f1',
@@ -80,8 +114,26 @@ const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
     }
   ];
 
-  const handleSelectDeviceType = (deviceType) => {
-    navigation.navigate('DeviceForm', { deviceType });
+  const handleCihazSecimi = (cihazTipi) => {
+    if (!CIHAZ_KISITLAMALARI[cihazTipi.id].includes(odaTipi)) {
+      // Hata mesajı göster
+      return;
+    }
+
+    navigation.navigate('DeviceForm', {
+      cihazTipi,
+      odaTipi,
+      birim,
+      mahkemeNo,
+      kullaniciBilgileriGoster: kullaniciBilgileriGoster(cihazTipi.id, odaTipi)
+    });
+  };
+
+  const kullaniciBilgileriGoster = (cihazId, odaTipi) => {
+    if (odaTipi === ODA_TIPLERI.DURUSMA_SALONU) {
+      return false;
+    }
+    return ['kasa', 'laptop', 'monitör'].includes(cihazId);
   };
 
   return (
@@ -100,25 +152,27 @@ const AddDeviceScreen = ({ navigation, theme, themedStyles }) => {
         </Text>
 
         <View style={styles.typesContainer}>
-          {deviceTypes.map((deviceType) => (
-            <TouchableOpacity 
-              key={deviceType.id}
+          {cihazTipleri.map((cihazTipi) => (
+            <TouchableOpacity
+              key={cihazTipi.id}
               style={[
                 styles.typeCard, 
                 { 
                   backgroundColor: theme.cardBackground,
                   borderColor: theme.border,
                   borderWidth: 1,
-                  elevation: 0
+                  elevation: 0,
+                  opacity: !CIHAZ_KISITLAMALARI[cihazTipi.id].includes(odaTipi) ? 0.5 : 1
                 }
               ]}
-              onPress={() => handleSelectDeviceType(deviceType)}
+              onPress={() => handleCihazSecimi(cihazTipi)}
+              disabled={!CIHAZ_KISITLAMALARI[cihazTipi.id].includes(odaTipi)}
             >
-              <View style={[styles.iconContainer, { backgroundColor: deviceType.color }]}>
-                <Ionicons name={deviceType.icon} size={24} color="#FFFFFF" />
+              <View style={[styles.iconContainer, { backgroundColor: cihazTipi.color }]}>
+                <Ionicons name={cihazTipi.icon} size={24} color="#FFFFFF" />
               </View>
-              <Text style={[styles.typeName, { color: theme.text }]}>{deviceType.name}</Text>
-              <Text style={[styles.typeDescription, { color: theme.textSecondary }]}>{deviceType.description}</Text>
+              <Text style={[styles.typeName, { color: theme.text }]}>{cihazTipi.name}</Text>
+              <Text style={[styles.typeDescription, { color: theme.textSecondary }]}>{cihazTipi.description}</Text>
             </TouchableOpacity>
           ))}
         </View>

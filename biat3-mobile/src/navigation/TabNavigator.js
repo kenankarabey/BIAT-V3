@@ -20,6 +20,7 @@ import ProfileScreen from '../screens/ProfileScreen';
 import DeviceDetailScreen from '../screens/devices/DeviceDetailScreen';
 import AddDeviceScreen from '../screens/AddDeviceScreen';
 import DeviceFormScreen from '../screens/DeviceFormScreen';
+import RoomTypeSelectionScreen from '../screens/RoomTypeSelectionScreen';
 import CourtOfficeForm from '../screens/CourtOfficeForm';
 import CourtOfficeDetailScreen from '../screens/devices/CourtOfficeDetailScreen';
 import CourtOfficePersonnelForm from '../screens/CourtOfficePersonnelForm';
@@ -68,6 +69,7 @@ const DevicesStackNavigator = () => {
       <DevicesStack.Screen name="JudgeRoomForm" component={JudgeRoomForm} />
       <DevicesStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
       <DevicesStack.Screen name="AddDevice" component={AddDeviceScreen} />
+      <DevicesStack.Screen name="RoomTypeSelection" component={RoomTypeSelectionScreen} />
       <DevicesStack.Screen name="DeviceForm" component={DeviceFormScreen} />
       <DevicesStack.Screen name="CourtOfficeForm" component={CourtOfficeForm} />
       <DevicesStack.Screen name="CourtOfficeDetail" component={CourtOfficeDetailScreen} />

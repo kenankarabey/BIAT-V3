@@ -89,12 +89,6 @@
                         </ul>
                     </li>
                     <li>
-                        <a href="raporlar.html">
-                            <i class="fas fa-chart-bar"></i>
-                            <span>Raporlar</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="profil.html">
                             <i class="fas fa-user"></i>
                             <span>Profil</span>
@@ -205,11 +199,11 @@
                             <div class="monthly-stat-item">
                                 <div class="stat-header">
                                     <span class="stat-label">Toplam Kayıt</span>
-                                    <span class="stat-value">156</span>
+                                    <span class="stat-value" id="totalRecord">156</span>
                                 </div>
                                 <div class="stat-trend">
                                     <div class="trend-line"></div>
-                                    <span class="trend-value increase">+12.5%</span>
+                                    <span class="trend-value"></span>
                                 </div>
                             </div>
                             <div class="monthly-stat-item">
@@ -217,39 +211,39 @@
                                     <span class="stat-label">Çözülen</span>
                                     <span class="stat-value">142</span>
                                 </div>
-                                <div class="stat-trend">
+                                <div>
                                     <div class="trend-line"></div>
-                                    <span class="trend-value increase">+15.2%</span>
+                                    <span class="trend-value increase"></span>
                                 </div>
                             </div>
                             <div class="monthly-stat-item">
                                 <div class="stat-header">
                                     <span class="stat-label">Bekleyen</span>
-                                    <span class="stat-value">14</span>
+                                    <span class="stat-value" id="pendingIssue">14</span>
                                 </div>
                                 <div class="stat-trend">
                                     <div class="trend-line"></div>
-                                    <span class="trend-value decrease">-8.3%</span>
+                                    <span class="trend-value decrease"></span>
                                 </div>
                             </div>
                             <div class="monthly-stat-item">
                                 <div class="stat-header">
                                     <span class="stat-label">İşlemde</span>
-                                    <span class="stat-value">0</span>
+                                    <span class="stat-value" id="inProgressIssue"></span>
                                 </div>
                                 <div class="stat-trend">
                                     <div class="trend-line"></div>
-                                    <span class="trend-value">0%</span>
+                                    <span class="trend-value"></span>
                                 </div>
                             </div>
                             <div class="monthly-stat-item">
                                 <div class="stat-header">
                                     <span class="stat-label">İptal Edilen</span>
-                                    <span class="stat-value">0</span>
+                                    <span class="stat-value" id="canceledIssue">0</span>
                                 </div>
                                 <div class="stat-trend">
                                     <div class="trend-line"></div>
-                                    <span class="trend-value">0%</span>
+                                    <span class="trend-value"></span>
                                 </div>
                             </div>
                         </div>

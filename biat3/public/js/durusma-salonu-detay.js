@@ -1,5 +1,5 @@
 // Supabase bağlantısı ve ekipman kartlarını dolduracak temel fonksiyonlar buraya gelecek.
-
+var supabase = window.supabaseClient;
 
 function getQueryParam(name) {
     const url = new URL(window.location.href);
