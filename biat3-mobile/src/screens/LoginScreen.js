@@ -14,35 +14,37 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { supabase } from '../supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width, height } = Dimensions.get('window');
 
 const LoginScreen = ({ navigation }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = () => {
-    // Temizle önceki hata mesajlarını
+  const handleLogin = async () => {
     setError('');
-    
-    // Basit doğrulama kontrolü
-    if (!username || !password) {
-      setError('Kullanıcı adı ve şifre gereklidir');
+    if (!email || !password) {
+      setError('E-posta ve şifre gereklidir');
       return;
     }
-    
-    // Kullanıcı adı ve şifre kontrolü (Kenan/Kenan)
-    if (username.toLowerCase() === 'kenan' && password === 'kenan') {
-      console.log('Login successful!');
-      // Ana sayfaya yönlendir ve stack'i temizle
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainApp' }],
-      });
-    } else {
-      setError('Kullanıcı adı veya şifre hatalı');
+    const { data, error: supabaseError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .eq('sifre', password)
+      .single();
+    if (supabaseError || !data) {
+      setError('E-posta veya şifre hatalı');
+      return;
     }
+    await AsyncStorage.setItem('user_email', email);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainApp' }],
+    });
   };
 
   return (
@@ -69,14 +71,14 @@ const LoginScreen = ({ navigation }) => {
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Kullanıcı Adı</Text>
+              <Text style={styles.inputLabel}>E-posta</Text>
               <TextInput
                 style={styles.input}
-                placeholder="Kullanıcı adınızı girin"
+                placeholder="E-posta adresinizi girin"
                 placeholderTextColor="#A0A0A0"
                 autoCapitalize="none"
-                value={username}
-                onChangeText={setUsername}
+                value={email}
+                onChangeText={setEmail}
               />
             </View>
 

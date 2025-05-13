@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../supabaseClient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create a theme context
 const ThemeContext = createContext();
@@ -47,21 +49,11 @@ const darkTheme = {
 const ProfileScreen = ({ navigation }) => {
   const deviceTheme = useColorScheme();
   const { theme, isDarkMode, toggleTheme } = useTheme();
-  const [user] = useState({
-    name: 'Kenan',
-    surname: 'Karabey',
-    role: 'Sistem Yöneticisi',
-    email: 'kenan@biat.gov.tr',
-    phone: '+90 555 123 4567',
-    location: 'Ankara, Türkiye',
-    department: 'Bilgi İşlem',
-    joinDate: '15.04.2020',
-    lastActivity: '27.04.2023',
-  });
+  const [user, setUser] = useState(null);
+  const [resolvedCount, setResolvedCount] = useState(0);
 
   const [activityStats] = useState({
     deviceManaged: 342,
-    issuesResolved: 178,
     maintenancePerformed: 56
   });
 
@@ -85,14 +77,33 @@ const ProfileScreen = ({ navigation }) => {
 
   // Simulate loading user data
   useEffect(() => {
-    const loadData = async () => {
+    const fetchUser = async () => {
       setIsLoading(true);
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500));
+      const email = await AsyncStorage.getItem('user_email');
+      console.log('Supabase email:', email);
+      if (email) {
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', email)
+          .single();
+        console.log('Supabase data:', data);
+        console.log('Supabase error:', error);
+        if (data) {
+          setUser(data);
+          // Çözülen arıza sayısını çek
+          const { count, error: arizaError } = await supabase
+            .from('cozulen_arizalar')
+            .select('*', { count: 'exact', head: true })
+            .eq('arizayi_cozen_personel', data.ad_soyad)
+            .eq('ariza_durumu', 'Çözüldü');
+          if (!arizaError) setResolvedCount(count || 0);
+          else console.log('Arıza count error:', arizaError);
+        }
+      }
       setIsLoading(false);
     };
-    
-    loadData();
+    fetchUser();
   }, []);
 
   const togglePreference = (key) => {
@@ -182,6 +193,14 @@ const ProfileScreen = ({ navigation }) => {
       Alert.alert("Başarılı", "Şifreniz başarıyla değiştirildi.");
     }, 1500);
   };
+
+  if (!isLoading && !user) {
+    return (
+      <SafeAreaView style={[styles.container, styles.loadingContainer, { backgroundColor: theme.background }]}> 
+        <Text style={[styles.loadingText, { color: theme.text }]}>Kullanıcı bilgisi bulunamadı.</Text>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -291,19 +310,6 @@ const ProfileScreen = ({ navigation }) => {
                 onValueChange={() => togglePreference('darkMode')}
                 trackColor={{ false: theme.border, true: `${theme.primary}80` }}
                 thumbColor={isDarkMode ? theme.primary : "#f4f4f5"}
-              />
-            </View>
-            
-            <View style={[styles.settingItem, { borderBottomColor: theme.border }]}>
-              <View style={styles.settingInfo}>
-                <Text style={[styles.settingTitle, dynamicStyles.text]}>Konum İzleme</Text>
-                <Text style={[styles.settingDescription, dynamicStyles.secondaryText]}>Cihazların coğrafi konumunu izle</Text>
-              </View>
-              <Switch
-                value={preferences.locationTracking}
-                onValueChange={() => togglePreference('locationTracking')}
-                trackColor={{ false: theme.border, true: `${theme.primary}80` }}
-                thumbColor={preferences.locationTracking ? theme.primary : "#f4f4f5"}
               />
             </View>
           </ScrollView>
@@ -521,8 +527,8 @@ const ProfileScreen = ({ navigation }) => {
                 style={styles.aboutLogo}
                 resizeMode="contain"
               />
-              <Text style={styles.aboutAppName}>BIAT Kontrol Uygulaması</Text>
-              <Text style={styles.aboutVersion}>Sürüm 1.2.5</Text>
+              <Text style={styles.aboutAppName}>BIAT</Text>
+              <Text style={styles.aboutVersion}>Sürüm 1.0.0</Text>
             </View>
             
             <Text style={styles.aboutDescription}>
@@ -534,18 +540,13 @@ const ProfileScreen = ({ navigation }) => {
             </Text>
             
             <View style={styles.aboutSection}>
-              <Text style={styles.aboutSectionTitle}>Geliştirici</Text>
-              <Text style={styles.aboutSectionText}>Kenan Karabey</Text>
-            </View>
-            
-            <View style={styles.aboutSection}>
               <Text style={styles.aboutSectionTitle}>İletişim</Text>
-              <Text style={styles.aboutSectionText}>info@biat.gov.tr</Text>
-              <Text style={styles.aboutSectionText}>+90 312 123 4567</Text>
+              <Text style={styles.aboutSectionText}>ab306515@adalet.gov.tr</Text>
+              <Text style={styles.aboutSectionText}>552 363 14 01</Text>
             </View>
             
             <View style={styles.aboutSection}>
-              <Text style={styles.aboutSectionTitle}>© 2023 BIAT</Text>
+              <Text style={styles.aboutSectionTitle}>© 2025 BIAT</Text>
               <Text style={styles.aboutSectionText}>Tüm hakları saklıdır.</Text>
             </View>
           </ScrollView>
@@ -559,69 +560,56 @@ const ProfileScreen = ({ navigation }) => {
       <SafeAreaView style={[styles.container, dynamicStyles.container]}>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <ScrollView showsVerticalScrollIndicator={false}>
-          <View style={[styles.header, dynamicStyles.header]}>
-        <Image
-          source={require('../../images/BIAT-logo.png')}
-          style={styles.profileImage}
-          resizeMode="contain"
-        />
-            <Text style={[styles.userName, dynamicStyles.userName]}>{`${user.name} ${user.surname}`}</Text>
-            <Text style={[styles.userRole, dynamicStyles.userRole]}>{user.role}</Text>
-            <View style={styles.badgeContainer}>
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>Bilgi İşlem</Text>
-              </View>
-              <View style={[styles.badge, styles.activeBadge]}>
-                <Text style={styles.activeBadgeText}>Aktif</Text>
+          {user && (
+            <View style={[styles.header, dynamicStyles.header]}>
+              <Image
+                source={user.foto_url ? { uri: user.foto_url } : require('../../images/BIAT-logo.png')}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+              <Text style={[styles.userName, dynamicStyles.userName]}>{user.ad_soyad}</Text>
+              <View style={styles.badgeContainer}>
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{user.departman}</Text>
+                </View>
+                <View style={[styles.badge, styles.activeBadge]}>
+                  <Text style={styles.activeBadgeText}>Aktif</Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
 
           <View style={[styles.statsContainer, dynamicStyles.card]}>
             <View style={styles.statItem}>
-              <Text style={[styles.statValue, dynamicStyles.text]}>{activityStats.deviceManaged}</Text>
-              <Text style={[styles.statLabel, dynamicStyles.secondaryText]}>Yönetilen Cihaz</Text>
-            </View>
-            <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, dynamicStyles.text]}>{activityStats.issuesResolved}</Text>
+              <Text style={[styles.statValue, dynamicStyles.text]}>{resolvedCount}</Text>
               <Text style={[styles.statLabel, dynamicStyles.secondaryText]}>Çözülen Arıza</Text>
             </View>
-            <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-            <View style={styles.statItem}>
-              <Text style={[styles.statValue, dynamicStyles.text]}>{activityStats.maintenancePerformed}</Text>
-              <Text style={[styles.statLabel, dynamicStyles.secondaryText]}>Bakım Sayısı</Text>
-            </View>
-      </View>
+          </View>
 
           <View style={[styles.infoContainer, dynamicStyles.card]}>
             <Text style={[styles.sectionTitle, dynamicStyles.text]}>Kişisel Bilgiler</Text>
             
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="mail-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>{user.email}</Text>
+              <Text style={[styles.infoText, dynamicStyles.text]}>{user?.email}</Text>
             </View>
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="call-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>{user.phone}</Text>
+              <Text style={[styles.infoText, dynamicStyles.text]}>{user?.telefon}</Text>
             </View>
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="location-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>{user.location}</Text>
+              <Text style={[styles.infoText, dynamicStyles.text]}>{user?.konum}</Text>
             </View>
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="business-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>{user.department}</Text>
-        </View>
-            <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
-              <Ionicons name="calendar-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>Katılma: {user.joinDate}</Text>
-        </View>
+              <Text style={[styles.infoText, dynamicStyles.text]}>{user?.departman}</Text>
+            </View>
             <View style={[styles.infoItem, { borderBottomWidth: 0 }]}>
               <Ionicons name="time-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>Son Aktivite: {user.lastActivity}</Text>
-        </View>
-      </View>
+              <Text style={[styles.infoText, dynamicStyles.text]}>Son Aktivite: {user?.last_activity || '-'}</Text>
+            </View>
+          </View>
 
           <View style={[styles.optionsContainer, dynamicStyles.card]}>
             <TouchableOpacity style={[styles.optionItem, { borderBottomColor: theme.border }]} onPress={openSettings}>
@@ -630,29 +618,17 @@ const ProfileScreen = ({ navigation }) => {
               <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
             </TouchableOpacity>
             
-            <TouchableOpacity style={[styles.optionItem, { borderBottomColor: theme.border }]} onPress={openSecuritySettings}>
-              <Ionicons name="shield-checkmark-outline" size={22} color={theme.primary} />
-              <Text style={[styles.optionText, dynamicStyles.text]}>Gizlilik ve Güvenlik</Text>
-              <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
-        </TouchableOpacity>
-        
-            <TouchableOpacity style={[styles.optionItem, { borderBottomColor: theme.border }]} onPress={openHelpSupport}>
-              <Ionicons name="help-circle-outline" size={22} color={theme.primary} />
-              <Text style={[styles.optionText, dynamicStyles.text]}>Yardım ve Destek</Text>
-              <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
-        </TouchableOpacity>
-        
             <TouchableOpacity style={[styles.optionItem, { borderBottomWidth: 0 }]} onPress={openAbout}>
               <Ionicons name="information-circle-outline" size={22} color={theme.primary} />
               <Text style={[styles.optionText, dynamicStyles.text]}>Hakkında</Text>
               <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
-        </TouchableOpacity>
-      </View>
+            </TouchableOpacity>
+          </View>
 
           <TouchableOpacity style={[styles.logoutButton, { backgroundColor: isDarkMode ? '#dc2626' : theme.primary }]} onPress={handleLogout}>
-        <Ionicons name="log-out-outline" size={22} color="#fff" />
-        <Text style={styles.logoutText}>Çıkış Yap</Text>
-      </TouchableOpacity>
+            <Ionicons name="log-out-outline" size={22} color="#fff" />
+            <Text style={styles.logoutText}>Çıkış Yap</Text>
+          </TouchableOpacity>
           
           <View style={styles.versionInfo}>
             <Text style={[styles.versionText, dynamicStyles.secondaryText]}>BIAT Kontrol Uygulaması v1.2.5</Text>
@@ -663,7 +639,7 @@ const ProfileScreen = ({ navigation }) => {
         {showHelpModal && renderHelpModal()}
         {showSecurityModal && renderSecurityModal()}
         {showAboutModal && renderAboutModal()}
-    </SafeAreaView>
+      </SafeAreaView>
     </ThemeContext.Provider>
   );
 };
@@ -754,11 +730,6 @@ const styles = StyleSheet.create({
     color: '#64748b',
     marginTop: 4,
     textAlign: 'center',
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#e2e8f0',
   },
   infoContainer: {
     backgroundColor: '#fff',
