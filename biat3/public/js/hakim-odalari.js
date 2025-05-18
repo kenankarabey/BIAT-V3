@@ -1,4 +1,4 @@
-;
+const supabase = window.supabaseClient;
 
 // DOM elementleri
 const chambersContainer = document.getElementById('chambersContainer')

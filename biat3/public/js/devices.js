@@ -1,4 +1,5 @@
 // Sample device data
+const supabase = window.supabaseClient;
 let devices = [];
 
 // DOM Elements
@@ -1553,30 +1554,30 @@ function getFormFieldsByType(deviceType) {
     // Unvan alanını sadece Duruşma Salonu değilse ekle
     if (!isDurusmaSalonu) {
         let unvanField = {
-            id: 'unvan',
-            label: 'Unvan',
-            required: true,
-            type: 'select',
+        id: 'unvan', 
+        label: 'Unvan', 
+        required: true,
+        type: 'select',
             options: isHakimOdasi ? ['Hakim', 'Savcı'] : [
-                'Zabıt Katibi',
-                'Mübaşir',
-                'İcra Katibi',
-                'İcra Memuru',
-                'İcra Müdür Yardımcısı',
-                'İcra Müdürü',
-                'Yazı İşleri Müdürü',
-                'Hakim',
-                'Savcı',
-                'Veznedar',
-                'Hizmetli',
-                'Tarama Memuru',
-                'Memur',
-                'Teknisyen',
-                'Tekniker',
-                'Bilgi İşlem Müdürü',
-                'Uzman'
-            ]
-        };
+            'Zabıt Katibi',
+            'Mübaşir',
+            'İcra Katibi',
+            'İcra Memuru',
+            'İcra Müdür Yardımcısı',
+            'İcra Müdürü',
+            'Yazı İşleri Müdürü',
+            'Hakim',
+            'Savcı',
+            'Veznedar',
+            'Hizmetli',
+            'Tarama Memuru',
+            'Memur',
+            'Teknisyen',
+            'Tekniker',
+            'Bilgi İşlem Müdürü',
+            'Uzman'
+        ]
+    };
         fields.push(unvanField);
 
         // Kişisel bilgi alanlarını ekle (Duruşma Salonu değilse)

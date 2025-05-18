@@ -12,10 +12,30 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
+
+const DEVICE_TABS = [
+  { key: 'kasa', label: 'Kasa', icon: 'desktop-tower' },
+  { key: 'monitor', label: 'Monitör', icon: 'monitor' },
+  { key: 'yazici', label: 'Yazıcı', icon: 'printer' },
+  { key: 'edurusma', label: 'E-Duruşma', icon: 'laptop' },
+  { key: 'segbis', label: 'SEGBİS', icon: 'video' },
+  { key: 'mikrofon', label: 'Mikrofon', icon: 'microphone' },
+  { key: 'tv', label: 'TV', icon: 'television' },
+  { key: 'kamera', label: 'Kamera', icon: 'cctv' },
+];
 
 const CourtroomDetail = ({ route, theme, themedStyles }) => {
   const { courtroom } = route.params;
   const navigation = useNavigation();
+  const [selectedTab, setSelectedTab] = useState('kasa');
+  const [computers, setComputers] = useState([]);
+  const [monitors, setMonitors] = useState([]);
+  const [edurusma, setEDurusma] = useState([]);
+  const [segbis, setSegbis] = useState([]);
+  const [microphones, setMicrophones] = useState([]);
+  const [tvs, setTVs] = useState([]);
+  const [cameras, setCameras] = useState([]);
   
   // Get status color
   const getStatusColor = (status) => {
@@ -86,6 +106,105 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
     );
   };
   
+  useEffect(() => {
+    // Kasa (computers)
+    const fetchComputers = async () => {
+      console.log('Kasa sorgusu:', {
+        oda_tipi: 'Duruşma Salonu',
+        birim: courtroom.court,
+        mahkeme_no: courtroom.mahkeme_no
+      });
+      const { data, error } = await supabase
+        .from('computers')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      console.log('Kasa sonucu:', data, error);
+      if (data && data.length > 0) {
+        console.log('İlk kasa:', data[0]);
+      }
+      setComputers(data || []);
+    };
+    // Monitör (screens)
+    const fetchMonitors = async () => {
+      console.log('Monitör sorgusu:', {
+        oda_tipi: 'Duruşma Salonu',
+        birim: courtroom.court,
+        mahkeme_no: courtroom.mahkeme_no
+      });
+      const { data, error } = await supabase
+        .from('screens')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      console.log('Monitör sonucu:', data, error);
+      if (data && data.length > 0) {
+        console.log('İlk monitör:', data[0]);
+      }
+      setMonitors(data || []);
+    };
+    fetchComputers();
+    fetchMonitors();
+    // E-Duruşma
+    const fetchEDurusma = async () => {
+      const { data, error } = await supabase
+        .from('e_durusma')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      console.log('E-Duruşma sonucu:', data, error, 'birim:', courtroom.court, 'mahkeme_no:', courtroom.mahkeme_no);
+      setEDurusma(data || []);
+    };
+    // SEGBİS
+    const fetchSegbis = async () => {
+      const { data, error } = await supabase
+        .from('segbis')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      setSegbis(data || []);
+    };
+    // Mikrofon
+    const fetchMicrophones = async () => {
+      const { data, error } = await supabase
+        .from('microphones')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      setMicrophones(data || []);
+    };
+    // TV
+    const fetchTVs = async () => {
+      const { data, error } = await supabase
+        .from('tvs')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      setTVs(data || []);
+    };
+    // Kamera
+    const fetchCameras = async () => {
+      const { data, error } = await supabase
+        .from('cameras')
+        .select('*')
+        .eq('oda_tipi', 'Duruşma Salonu')
+        .eq('birim', courtroom.court)
+        .eq('mahkeme_no', courtroom.mahkeme_no);
+      setCameras(data || []);
+    };
+    fetchEDurusma();
+    fetchSegbis();
+    fetchMicrophones();
+    fetchTVs();
+    fetchCameras();
+  }, [courtroom.court, courtroom.mahkeme_no]);
+  
   return (
     <SafeAreaView style={[styles.safeAreaView, { backgroundColor: theme.background }]}>
       <StatusBar 
@@ -103,7 +222,9 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
             <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
           </TouchableOpacity>
           
-          <Text style={[styles.headerTitle, { color: theme.text }]}>{courtroom.name}</Text>
+          <View style={{ flex: 1, alignItems: 'center' }}>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>{courtroom.name} {courtroom.court}</Text>
+          </View>
           
           <View style={styles.headerActions}>
             <TouchableOpacity 
@@ -150,74 +271,199 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                 <Text style={[styles.statusText, { color: getStatusColor(courtroom.status) }]}>{courtroom.status}</Text>
               </View>
             </View>
-            
-            <View style={styles.infoRow}>
-              <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>Son Kontrol</Text>
-              <Text style={[styles.infoValue, { color: theme.text }]}>{formatDate(courtroom.lastCheck)}</Text>
-            </View>
           </View>
           
-          {/* Devices */}
-          <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="devices" size={22} color={theme.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cihazlar ({getTotalDeviceCount(courtroom.devices)})</Text>
+          {/* Cihazlar ana kartı */}
+          <View style={[styles.section, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}> 
+            <View style={styles.sectionHeader}> 
+              <MaterialCommunityIcons name="devices" size={22} color={theme.primary} /> 
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cihazlar</Text> 
             </View>
-            
-            <View style={styles.deviceList}>
-              {courtroom.devices && Object.entries(courtroom.devices).map(([key, count]) => {
-                if (count <= 0) return null; // Sadece sayısı 0'dan büyük olanları göster
-                
-                let iconName = 'help-circle-outline';
-                let deviceLabel = 'Bilinmeyen';
-                
-                switch(key) {
-                  case 'kasa':
-                    iconName = 'desktop-tower';
-                    deviceLabel = 'Kasa';
-                    break;
-                  case 'monitor':
-                    iconName = 'monitor';
-                    deviceLabel = 'Monitör';
-                    break;
-                  case 'segbis':
-                    iconName = 'video';
-                    deviceLabel = 'SEGBİS';
-                    break;
-                  case 'kamera':
-                    iconName = 'cctv';
-                    deviceLabel = 'Kamera';
-                    break;
-                  case 'tv':
-                    iconName = 'television';
-                    deviceLabel = 'TV';
-                    break;
-                  case 'mikrofon':
-                    iconName = 'microphone';
-                    deviceLabel = 'Mikrofon';
-                    break;
-                }
-                
-                return (
-                  <View key={key} style={[styles.deviceItem, { borderBottomColor: theme.border }]}>
-                    <View style={styles.deviceInfo}>
-                      <View style={[styles.deviceIconContainer, { backgroundColor: theme.primary + '20' }]}>
-                        <MaterialCommunityIcons name={iconName} size={20} color={theme.primary} />
-                      </View>
-                      <Text style={[styles.deviceName, { color: theme.text }]}>{deviceLabel}</Text>
-                    </View>
-                    <View style={[styles.deviceCountBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                      <Text style={[styles.deviceCount, { color: theme.text }]}>{count}</Text>
-                    </View>
-                  </View>
-                );
-              })}
-              
-              {(!courtroom.devices || getTotalDeviceCount(courtroom.devices) === 0) && (
-                <View style={styles.emptyDevices}>
-                  <MaterialCommunityIcons name="alert-circle-outline" size={32} color={theme.textSecondary} />
-                  <Text style={[styles.emptyDevicesText, { color: theme.textSecondary }]}>Bu salonda kayıtlı cihaz bulunmamaktadır</Text>
-                </View>
+
+            {/* Kasa */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Kasa</Text>
+              {computers.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>Kasa bulunamadı</Text>
+              ) : (
+                computers.map(comp => (
+                  <TouchableOpacity
+                    key={comp.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...comp, type: 'pc' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{comp.kasa_marka} {comp.kasa_model}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{comp.kasa_seri_no}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+
+            {/* Monitör */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Monitör</Text>
+              {monitors.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>Monitör bulunamadı</Text>
+              ) : (
+                monitors.map(mon => (
+                  <TouchableOpacity
+                    key={mon.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...mon, type: 'monitor' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{mon.ekran_marka} {mon.ekran_model}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{mon.ekran_seri_no}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+
+            {/* E-Duruşma */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>E-Duruşma</Text>
+              {edurusma.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>E-Duruşma cihazı bulunamadı</Text>
+              ) : (
+                edurusma.map(item => {
+                  const marka = item.e_durusma_marka || item.edurusma_marka || item.marka || '';
+                  const model = item.e_durusma_model || item.edurusma_model || item.model || '';
+                  const seriNo = item.e_durusma_seri_no || item.edurusma_seri_no || item.seri_no || '';
+                  return (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={{
+                        backgroundColor: theme.background,
+                        borderRadius: 10,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                        padding: 12,
+                        marginBottom: 8,
+                      }}
+                      onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'hearing' } })}
+                    >
+                      <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{marka} {model}</Text>
+                      <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{seriNo}</Text>
+                    </TouchableOpacity>
+                  );
+                })
+              )}
+            </View>
+
+            {/* SEGBİS */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>SEGBİS</Text>
+              {segbis.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>SEGBİS cihazı bulunamadı</Text>
+              ) : (
+                segbis.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'segbis' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.segbis_marka || item.marka || ''} {item.segbis_model || item.model || ''}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.segbis_seri_no || item.seri_no || ''}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+
+            {/* Mikrofon */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Mikrofon</Text>
+              {microphones.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>Mikrofon bulunamadı</Text>
+              ) : (
+                microphones.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'microphone' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.mikrofon_marka || item.marka || ''} {item.mikrofon_model || item.model || ''}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.mikrofon_seri_no || item.seri_no || ''}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+
+            {/* TV */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>TV</Text>
+              {tvs.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>TV bulunamadı</Text>
+              ) : (
+                tvs.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'tv' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.tv_marka || item.marka || ''} {item.tv_model || item.model || ''}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.tv_seri_no || item.seri_no || ''}</Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+
+            {/* Kamera */}
+            <View style={{ marginBottom: 16 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16, marginBottom: 8 }}>Kamera</Text>
+              {cameras.length === 0 ? (
+                <Text style={{ color: theme.textSecondary, fontStyle: 'italic' }}>Kamera bulunamadı</Text>
+              ) : (
+                cameras.map(item => (
+                  <TouchableOpacity
+                    key={item.id}
+                    style={{
+                      backgroundColor: theme.background,
+                      borderRadius: 10,
+                      borderWidth: 1,
+                      borderColor: theme.border,
+                      padding: 12,
+                      marginBottom: 8,
+                    }}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'kamera' } })}
+                  >
+                    <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.kamera_marka || item.marka || ''} {item.kamera_model || item.model || ''}</Text>
+                    <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.kamera_seri_no || item.seri_no || ''}</Text>
+                  </TouchableOpacity>
+                ))
               )}
             </View>
           </View>

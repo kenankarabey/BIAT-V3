@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teknik Destek Chatbot</title>
+    <link rel="icon" type="image/png" href="img/BIAT-logo.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/chatbot.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Toggle Theme -->
+    <button class="toggle-theme">
+        <i class="fas fa-moon"></i>
+    </button>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <button class="toggle-sidebar">
+                <i class="fas fa-bars"></i>
+                <span>Menü Küçült</span>
+            </button>
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="index.html">
+                            <i class="fas fa-home"></i>
+                            <span>Ana Sayfa</span>
+                        </a>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-laptop"></i>
+                            <span>Cihazlar</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="tum-cihazlar.html">
+                                    <i class="fas fa-list"></i>
+                                    <span>Tüm Cihazlar</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="mahkeme-kalemleri.html">
+                                    <i class="fas fa-building"></i>
+                                    <span>Mahkeme Kalemleri</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="durusma-salonlari.html">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Duruşma Salonları</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="hakim-odalari.html">
+                                    <i class="fas fa-user-tie"></i>
+                                    <span>Hakim Odaları</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="has-submenu">
+                        <a href="#">
+                            <i class="fas fa-tools"></i>
+                            <span>Arıza Takip</span>
+                            <i class="fas fa-chevron-down submenu-icon"></i>
+                        </a>
+                        <ul class="submenu">
+                            <li>
+                                <a href="ariza-bildir.html">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Arıza Bildir</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="ariza-listesi.html">
+                                    <i class="fas fa-list"></i>
+                                    <span>Arıza Listesi</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="chatbot.html" class="active">
+                            <i class="fas fa-robot"></i>
+                            <span>Teknik Destek Chatbot</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="profil.html">
+                            <i class="fas fa-user"></i>
+                            <span>Profil</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <img src="img/user.jpg" alt="User Avatar">
+                <div class="user-info">
+                    <h3>Hoş Geldiniz</h3>
+                    <p>Kenan Bey</p>
+                </div>
+                <a href="#" onclick="logout()" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </div>
+        <!-- Main Content -->
+        <main class="main-content" style="padding:0;">
+            <div class="chat-layout">
+                <!-- Chatbot Container -->
+                <div class="chatbot-container">
+                    <div class="chat-header">
+                        <div class="chat-title">
+                            <h2>Teknik Destek Asistanı</h2>
+                            <p>Bilgisayar ve teknik konularda size yardımcı olabilirim.</p>
+                        </div>
+                        <div class="chat-actions">
+                            <button class="new-chat-btn" title="Yeni Sohbet">
+                                <i class="fas fa-plus"></i>
+                                <span>Yeni Sohbet</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chat-messages" id="chatMessages">
+                        <!-- Mesajlar buraya gelecek -->
+                    </div>
+                    <div class="chat-input-container">
+                        <input type="text" id="userInput" placeholder="Sorunuzu yazın...">
+                        <button id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat History Panel -->
+                <div class="chat-history-panel">
+                    <div class="history-header">
+                        <h3>Sohbet Geçmişi</h3>
+                    </div>
+                    <div class="history-list" id="chatHistoryList">
+                        <!-- Geçmiş sohbetler buraya dinamik olarak eklenecek -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="sidebar-overlay"></div>
+
+    <!-- Önce Supabase'i yükle -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/main.js"></script>
+    <script src="js/chatbot.js"></script>
+  
+</body>
+</html> 

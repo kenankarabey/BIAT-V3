@@ -14,6 +14,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import withThemedScreen from '../components/withThemedScreen';
+import { supabase } from '../supabaseClient';
+import ModalSelector from 'react-native-modal-selector';
 
 const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
   // Eğer düzenleme modundaysa office parametresi olacak
@@ -22,94 +24,141 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
   
   // Tüm mahkeme türleri
   const courtTypes = [
-    'Asliye Hukuk', 'Sulh Hukuk', 'Asliye Ceza', 'Ağır Ceza', 
-    'İcra', 'İş', 'Ticaret', 'Aile', 'Diğer'
+    'Sulh Hukuk Mahkemesi',
+    'Hukuk Ön Büro',
+    'Hukuk Vezne',
+    'Asliye Hukuk Mahkemesi',
+    'Tüketici Mahkemesi',
+    'Kadastro Mahkemesi',
+    'İş Mahkemesi',
+    'Aile Mahkemesi',
+    'Ağır Ceza Mahkemesi',
+    'Adalet Komisyonu Başkanlığı',
+    'Sulh Ceza Hakimliği',
+    'İnfaz Hakimliği',
+    'Çocuk Mahkemesi',
+    'Savcılık İnfaz Bürosu',
+    'Asliye Ceza Mahkemesi',
+    'Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları',
+    'Ceza Ön Büro',
+    'Ceza Vezne',
+    'Soruşturma Bürosu',
+    'İdari İşler Müdürlüğü',
+    'Müracaat Bürosu',
+    'Muhabere Bürosu',
+    'Talimat Bürosu',
+    'Emanet Bürosu',
+    'Nöbetçi Sulh Ceza Hakimliği',
+    'Cumhuriyet Başsavcılığı',
+    'Bakanlık Muhabere Bürosu',
+    'CMK',
+    'Maaş',
+    'İcra Müdürlüğü',
+    'Adli Sicil Şefliği',
+    'İcra Hukuk Mahkemesi',
+    'İcra Ceza Mahkemesi'
   ];
+  
+  const bloklar = ['A Blok', 'B Blok', 'C Blok', 'D Blok'];
+  const katlar = ['1. Kat', '2. Kat', '3. Kat', '4. Kat', '5. Kat', '6. Kat', '7. Kat', '8. Kat', '9. Kat'];
   
   // Form durumu
   const [formData, setFormData] = useState({
-    name: '',
-    type: 'Asliye Hukuk',
-    location: '',
-    status: 'Aktif',
-    deviceCount: {
-      pc: 0,
-      printer: 0,
-      other: 0
-    },
-    lastCheck: new Date().toLocaleDateString('tr-TR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    })
+    id: '',
+    mahkeme_turu: '',
+    mahkeme_no: '',
+    blok: '',
+    kat: '',
+    mahkeme_hakimi: ''
   });
+  
+  const [errors, setErrors] = useState({});
+  const [showCourtType, setShowCourtType] = useState(false);
+  const [showBlok, setShowBlok] = useState(false);
+  const [showKat, setShowKat] = useState(false);
   
   // Eğer düzenleme modundaysa, verileri form ile doldur
   useEffect(() => {
     if (isEditMode && office) {
-      setFormData({
-        name: office.name || '',
-        type: office.type || 'Asliye Hukuk',
-        location: office.location || '',
-        status: office.status || 'Aktif',
-        deviceCount: {
-          pc: office.deviceCount?.pc || 0,
-          printer: office.deviceCount?.printer || 0,
-          other: office.deviceCount?.other || 0
-        },
-        lastCheck: office.lastCheck || new Date().toLocaleDateString('tr-TR', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        })
-      });
+      setFormData({ ...office });
     }
   }, [isEditMode, office]);
   
   // Form alanı değişikliklerini işle
-  const handleInputChange = (field, value) => {
-    if (field.includes('.')) {
-      // Nested field (deviceCount.pc gibi)
-      const [parent, child] = field.split('.');
-      setFormData({
-        ...formData,
-        [parent]: {
-          ...formData[parent],
-          [child]: value
-        }
-      });
-    } else {
-      // Normal field
-      setFormData({
-        ...formData,
-        [field]: value
-      });
-    }
+  const handleChange = (field, value) => {
+    setFormData({ ...formData, [field]: value });
+    if (errors[field]) setErrors({ ...errors, [field]: '' });
+  };
+  
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.mahkeme_turu) newErrors.mahkeme_turu = 'Mahkeme türü gerekli';
+    if (!formData.mahkeme_no) newErrors.mahkeme_no = 'Mahkeme no gerekli';
+    if (!formData.blok) newErrors.blok = 'Blok gerekli';
+    if (!formData.kat) newErrors.kat = 'Kat gerekli';
+    if (!formData.mahkeme_hakimi) newErrors.mahkeme_hakimi = 'Mahkeme hakimi gerekli';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
   
   // Formu gönderme
-  const handleSubmit = () => {
-    // Zorunlu alanları kontrol et
-    if (!formData.name || !formData.type || !formData.location) {
-      Alert.alert(
-        "Eksik Bilgi",
-        "Lütfen tüm zorunlu alanları doldurun",
-        [{ text: "Tamam" }]
-      );
-      return;
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+    if (isEditMode) {
+      // Güncelle
+      const { error } = await supabase
+        .from('mahkeme_kalemleri')
+        .update(formData)
+        .eq('id', formData.id);
+      if (!error) navigation.goBack();
+      else Alert.alert('Hata', 'Güncelleme başarısız');
+    } else {
+      // Ekle
+      const { error } = await supabase
+        .from('mahkeme_kalemleri')
+        .insert([{ ...formData }]);
+      if (!error) navigation.goBack();
+      else Alert.alert('Hata', 'Ekleme başarısız');
     }
-    
-    // Formun başarıyla gönderildiğini bildir
-    Alert.alert(
-      "Başarılı",
-      isEditMode ? "Mahkeme kalemi güncellendi" : "Mahkeme kalemi eklendi",
-      [
-        { 
-          text: "Tamam", 
-          onPress: () => navigation.navigate('CourtOffices')
-        }
-      ]
-    );
+  };
+  
+  // Mahkeme Türü için ModalSelector kullanımı
+  const courtTypeData = courtTypes.map((type, idx) => ({ key: idx, label: type }));
+  
+  const isDark = theme?.isDark;
+  const boxStyle = {
+    borderRadius: 12,
+    marginBottom: 20,
+    backgroundColor: isDark ? '#161a4a' : '#fff',
+    paddingHorizontal: 12,
+    paddingVertical: 0,
+    minHeight: 48,
+    justifyContent: 'center',
+    borderWidth: 0,
+    borderColor: 'transparent',
+  };
+  const inputCustom = {
+    color: isDark ? '#fff' : '#222',
+    fontSize: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 0,
+  };
+  const modalOptionContainer = {
+    backgroundColor: isDark ? '#161a4a' : '#fff',
+    borderRadius: 12,
+  };
+  const modalOptionText = {
+    color: isDark ? '#fff' : '#222',
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  };
+  const modalCancelText = {
+    color: isDark ? '#fff' : '#222',
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 12,
   };
   
   return (
@@ -133,97 +182,95 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             <Text style={[styles.sectionTitle, themedStyles.text]}>Mahkeme Bilgileri</Text>
             
             <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Adı *</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
-                value={formData.name}
-                onChangeText={(text) => handleInputChange('name', text)}
-                placeholder="Mahkeme adını girin"
-                placeholderTextColor={theme.textSecondary}
-              />
-            </View>
-            
-            <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Türü *</Text>
-              <View style={[styles.pickerContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
-                <Picker
-                  selectedValue={formData.type}
-                  onValueChange={(value) => handleInputChange('type', value)}
-                  style={[styles.picker, { color: theme.text }]}
-                  dropdownIconColor={theme.text}
-                >
-                  {courtTypes.map(type => (
-                    <Picker.Item key={type} label={type} value={type} color={theme.text} />
-                  ))}
-                </Picker>
-              </View>
-            </View>
-            
-            <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Konum *</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
-                value={formData.location}
-                onChangeText={(text) => handleInputChange('location', text)}
-                placeholder="Mahkemenin konumunu girin"
-                placeholderTextColor={theme.textSecondary}
+              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_turu ? '#ef4444' : theme.border }]} onPress={() => setShowCourtType(true)}>
+                <Text style={{ color: formData.mahkeme_turu ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.mahkeme_turu || 'Mahkeme Türü Seçin'}</Text>
+              </TouchableOpacity>
+              <ModalSelector
+                data={courtTypeData}
+                visible={showCourtType}
+                onChange={option => { setShowCourtType(false); handleChange('mahkeme_turu', option.label); }}
+                onModalClose={() => setShowCourtType(false)}
+                optionContainerStyle={modalOptionContainer}
+                optionTextStyle={modalOptionText}
+                cancelTextStyle={modalCancelText}
+                cancelText="Vazgeç"
+                selectedKey={courtTypes.indexOf(formData.mahkeme_turu)}
+                value={formData.mahkeme_turu}
+                style={{ borderWidth: 0, borderColor: 'transparent' }}
+                customSelector={<View />}
               />
+              {errors.mahkeme_turu && <Text style={styles.errorText}>{errors.mahkeme_turu}</Text>}
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Durum</Text>
-              <View style={[styles.pickerContainer, { backgroundColor: theme.inputBg, borderColor: theme.border }]}>
-                <Picker
-                  selectedValue={formData.status}
-                  onValueChange={(value) => handleInputChange('status', value)}
-                  style={[styles.picker, { color: theme.text }]}
-                  dropdownIconColor={theme.text}
-                >
-                  <Picker.Item label="Aktif" value="Aktif" color={theme.text} />
-                  <Picker.Item label="Bakım" value="Bakım" color={theme.text} />
-                  <Picker.Item label="Arıza" value="Arıza" color={theme.text} />
-                </Picker>
-              </View>
-            </View>
-          </View>
-          
-          <View style={[styles.formSection, themedStyles.card, themedStyles.shadow]}>
-            <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Sayıları</Text>
-            
-            <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Bilgisayar Sayısı</Text>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme No *</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
-                value={String(formData.deviceCount.pc)}
-                onChangeText={(text) => handleInputChange('deviceCount.pc', parseInt(text) || 0)}
-                placeholder="PC sayısını girin"
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_no ? '#ef4444' : theme.border, color: theme.text }]}
+                value={formData.mahkeme_no}
+                onChangeText={text => handleChange('mahkeme_no', text)}
+                placeholder="Mahkeme No"
                 placeholderTextColor={theme.textSecondary}
-                keyboardType="numeric"
+                keyboardType="default"
               />
+              {errors.mahkeme_no && <Text style={styles.errorText}>{errors.mahkeme_no}</Text>}
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Yazıcı Sayısı</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
-                value={String(formData.deviceCount.printer)}
-                onChangeText={(text) => handleInputChange('deviceCount.printer', parseInt(text) || 0)}
-                placeholder="Yazıcı sayısını girin"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="numeric"
+              <Text style={[styles.label, themedStyles.textSecondary]}>Blok *</Text>
+              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.blok ? '#ef4444' : theme.border }]} onPress={() => setShowBlok(true)}>
+                <Text style={{ color: formData.blok ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.blok || 'Blok Seçin'}</Text>
+              </TouchableOpacity>
+              <ModalSelector
+                data={bloklar.map((b, idx) => ({ key: idx, label: b }))}
+                visible={showBlok}
+                onChange={option => { setShowBlok(false); handleChange('blok', option.label); }}
+                onModalClose={() => setShowBlok(false)}
+                optionContainerStyle={modalOptionContainer}
+                optionTextStyle={modalOptionText}
+                cancelTextStyle={modalCancelText}
+                cancelText="Vazgeç"
+                selectedKey={bloklar.indexOf(formData.blok)}
+                value={formData.blok}
+                style={{ borderWidth: 0, borderColor: 'transparent' }}
+                customSelector={<View />}
               />
+              {errors.blok && <Text style={styles.errorText}>{errors.blok}</Text>}
             </View>
             
             <View style={styles.formGroup}>
-              <Text style={[styles.label, themedStyles.textSecondary]}>Diğer Cihaz Sayısı</Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: theme.border, color: theme.text }]}
-                value={String(formData.deviceCount.other)}
-                onChangeText={(text) => handleInputChange('deviceCount.other', parseInt(text) || 0)}
-                placeholder="Diğer cihaz sayısını girin"
-                placeholderTextColor={theme.textSecondary}
-                keyboardType="numeric"
+              <Text style={[styles.label, themedStyles.textSecondary]}>Kat *</Text>
+              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.kat ? '#ef4444' : theme.border }]} onPress={() => setShowKat(true)}>
+                <Text style={{ color: formData.kat ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.kat || 'Kat Seçin'}</Text>
+              </TouchableOpacity>
+              <ModalSelector
+                data={katlar.map((k, idx) => ({ key: idx, label: k }))}
+                visible={showKat}
+                onChange={option => { setShowKat(false); handleChange('kat', option.label); }}
+                onModalClose={() => setShowKat(false)}
+                optionContainerStyle={modalOptionContainer}
+                optionTextStyle={modalOptionText}
+                cancelTextStyle={modalCancelText}
+                cancelText="Vazgeç"
+                selectedKey={katlar.indexOf(formData.kat)}
+                value={formData.kat}
+                style={{ borderWidth: 0, borderColor: 'transparent' }}
+                customSelector={<View />}
               />
+              {errors.kat && <Text style={styles.errorText}>{errors.kat}</Text>}
+            </View>
+            
+            <View style={styles.formGroup}>
+              <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Hakimi *</Text>
+              <TextInput
+                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_hakimi ? '#ef4444' : theme.border, color: theme.text }]}
+                value={formData.mahkeme_hakimi}
+                onChangeText={text => handleChange('mahkeme_hakimi', text)}
+                placeholder="Mahkeme Hakimi"
+                placeholderTextColor={theme.textSecondary}
+                keyboardType="default"
+              />
+              {errors.mahkeme_hakimi && <Text style={styles.errorText}>{errors.mahkeme_hakimi}</Text>}
             </View>
           </View>
           
@@ -285,12 +332,10 @@ const styles = StyleSheet.create({
     padding: 12,
     fontSize: 14,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderRadius: 8,
-  },
-  picker: {
-    height: 50,
+  errorText: {
+    color: '#ef4444',
+    fontSize: 12,
+    marginTop: 4,
   },
   submitButton: {
     backgroundColor: '#1e3a8a',

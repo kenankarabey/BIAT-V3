@@ -19,95 +19,41 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Swipeable } from 'react-native-gesture-handler';
 import withThemedScreen from '../../components/withThemedScreen';
+import { LinearGradient } from 'expo-linear-gradient';
+import { supabase } from '../../supabaseClient';
 
-// Mock data for courtrooms
-const MOCK_COURTROOMS = [
-  { 
-    id: '1', 
-    name: '2. İş', 
-    court: 'İş Mahkemesi', 
-    location: 'Zemin Kat', 
-    devices: {
-      kasa: 1,
-      monitor: 1,
-      segbis: 1,
-      kamera: 1,
-      tv: 0,
-      mikrofon: 1
-    },
-    status: 'Aktif', 
-    lastCheck: '10.06.2023', 
-    notes: 'Tüm cihazlar çalışır durumda.' 
-  },
-  { 
-    id: '2', 
-    name: '1. Tüketici', 
-    court: 'Tüketici Mahkemesi', 
-    location: 'Zemin Kat', 
-    devices: {
-      kasa: 1,
-      monitor: 1,
-      segbis: 1,
-      kamera: 1,
-      tv: 1,
-      mikrofon: 1
-    },
-    status: 'Aktif', 
-    lastCheck: '12.06.2023', 
-    notes: 'Kameralar yeni değiştirildi.' 
-  },
-  { 
-    id: '3', 
-    name: '3. Asliye Hukuk', 
-    court: 'Asliye Hukuk Mahkemesi', 
-    location: 'Zemin Kat', 
-    devices: {
-      kasa: 1,
-      monitor: 1,
-      segbis: 1,
-      kamera: 0,
-      tv: 1,
-      mikrofon: 1
-    },
-    status: 'Aktif', 
-    lastCheck: '15.06.2023', 
-    notes: '' 
-  },
-  { 
-    id: '4', 
-    name: '4. Asliye Ceza', 
-    court: 'Asliye Ceza Mahkemesi', 
-    location: '1. Kat', 
-    devices: {
-      kasa: 0,
-      monitor: 1,
-      segbis: 1,
-      kamera: 1,
-      tv: 1,
-      mikrofon: 0
-    },
-    status: 'Arıza', 
-    lastCheck: '05.06.2023', 
-    notes: 'Bilgisayar arızalı, onarım bekleniyor.' 
-  },
-  { 
-    id: '5', 
-    name: '2. Sulh Hukuk', 
-    court: 'Sulh Hukuk Mahkemesi', 
-    location: '1. Kat', 
-    devices: {
-      kasa: 1,
-      monitor: 1,
-      segbis: 0,
-      kamera: 1,
-      tv: 0,
-      mikrofon: 0
-    },
-    status: 'Arıza', 
-    lastCheck: '01.06.2023', 
-    notes: 'Ses sistemi çalışmıyor.' 
-  },
-];
+
+const fetchComputers = async () => {
+  console.log('Kasa sorgusu:', {
+    oda_tipi: 'Duruşma Salonu',
+    birim: courtroom.court,
+    salon_no: courtroom.name
+  });
+  const { data, error } = await supabase
+    .from('computers')
+    .select('*')
+    .eq('oda_tipi', 'Duruşma Salonu')
+    .eq('birim', courtroom.court)
+    .eq('salon_no', courtroom.name);
+  setComputers(data || []);
+};
+// Monitör (screens)
+const fetchMonitors = async () => {
+  console.log('Monitör sorgusu:', {
+    oda_tipi: 'Duruşma Salonu',
+    birim: courtroom.court,
+    salon_no: courtroom.name
+  });
+  const { data, error } = await supabase
+    .from('screens')
+    .select('*')
+    .eq('oda_tipi', 'Duruşma Salonu')
+    .eq('birim', courtroom.court)
+    .eq('salon_no', courtroom.name);
+  setMonitors(data || []);
+};
+
+
 
 // SwipeableRow component for swipe actions
 const SwipeableRow = ({ item, onEdit, onDelete, children }) => {
@@ -157,11 +103,46 @@ const SwipeableRow = ({ item, onEdit, onDelete, children }) => {
 const CourtroomsScreen = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const [courtrooms, setCourtrooms] = useState(MOCK_COURTROOMS);
-  const [filteredCourtrooms, setFilteredCourtrooms] = useState(MOCK_COURTROOMS);
+  const [courtrooms, setCourtrooms] = useState([]);
+  const [filteredCourtrooms, setFilteredCourtrooms] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Tümü');
   const [loading, setLoading] = useState(false);
+  const isDark = theme.background === '#1e293b';
+ 
+    // ...diğer kodlar...
+    console.log('theme:', theme);
+    console.log('isDark:', theme?.isDark, theme?.dark, theme?.mode);
+    // ...devamı...
+  
+
+  // Supabase'dan salonları çek
+  const fetchCourtrooms = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('durusma_salonlari')
+      .select('*')
+      .order('id', { ascending: true });
+    if (!error && data) {
+      // Mapping: Supabase alanlarını ekranda beklenen alanlara dönüştür
+      const mapped = (data || []).map(item => ({
+        id: item.id,
+        name: item.salon_no ? String(item.salon_no) : '',
+        court: item.mahkeme_turu || '',
+        location: [item.blok, item.kat].filter(Boolean).join(' - '),
+        status: item.durum || '',
+        lastCheck: item.lastCheck || item.son_kontrol || '',
+        devices: item.devices || {},
+        notes: item.notes || '',
+        mahkeme_no: item.salon_no || ''
+      }));
+      setCourtrooms(mapped);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchCourtrooms();
+  }, []);
 
   // Process courtroom updates when screen is focused
   useFocusEffect(
@@ -170,27 +151,21 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
       if (route?.params) {
         // Handle new courtroom added
         if (route.params.action === 'add' && route.params.courtroom) {
-          setCourtrooms(prev => [route.params.courtroom, ...prev]);
+          fetchCourtrooms();
         }
-        
         // Handle courtroom updated
         else if (route.params.action === 'update' && route.params.courtroom) {
-          setCourtrooms(prev => 
-            prev.map(item => 
-              item.id === route.params.courtroom.id 
-                ? route.params.courtroom 
-                : item
-            )
-          );
+          fetchCourtrooms();
         }
-        
         // Handle courtroom deleted
         else if (route.params.action === 'delete' && route.params.courtroomId) {
-          setCourtrooms(prev => 
-            prev.filter(item => item.id !== route.params.courtroomId)
-          );
+          fetchCourtrooms();
         }
-        
+        // Refresh parametresi ile otomatik yenileme
+        if (route.params.refresh) {
+          fetchCourtrooms();
+          navigation.setParams({ ...route.params, refresh: false });
+        }
         // Clear route params after processing
         if (route.params.action) {
           navigation.setParams({ action: null, courtroom: null, courtroomId: null });
@@ -199,28 +174,26 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
     }, [route?.params, navigation])
   );
 
-  // Filter courtrooms based on search query and status filter
+  // Filter courtrooms based on search query
   useEffect(() => {
     let result = courtrooms;
-    
     // Apply search filter
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       result = result.filter(
         item => 
-          item.name.toLowerCase().includes(lowerCaseQuery) ||
-          item.court.toLowerCase().includes(lowerCaseQuery) ||
-          item.location.toLowerCase().includes(lowerCaseQuery)
+          (item.name || '').toLowerCase().includes(lowerCaseQuery) ||
+          (item.court || '').toLowerCase().includes(lowerCaseQuery) ||
+          (item.location || '').toLowerCase().includes(lowerCaseQuery)
       );
     }
-    
-    // Apply status filter
-    if (statusFilter !== 'Tümü') {
-      result = result.filter(item => item.status === statusFilter);
-    }
-    
     setFilteredCourtrooms(result);
-  }, [courtrooms, searchQuery, statusFilter]);
+  }, [courtrooms, searchQuery]);
+
+  // Hızlı istatistikler
+  const activeCount = courtrooms.filter(s => s.status === 'Aktif' || s.status === 'active').length;
+  const issueCount = courtrooms.filter(s => s.status === 'Arıza' || s.status === 'issue').length;
+  const maintenanceCount = courtrooms.filter(s => s.status === 'Bakımda' || s.status === 'maintenance').length;
 
   // Function to determine status color
   const getStatusColor = (status) => {
@@ -235,6 +208,88 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
         return '#64748b'; // slate
       default:
         return '#64748b'; // slate
+    }
+  };
+
+  // Kart arka planı ve badge rengi için fonksiyonlar
+  const getCardBgColor = (status) => {
+    switch (status) {
+      case 'Arızalı':
+      case 'Arıza':
+      case 'issue':
+        return '#ffeaea'; // açık kırmızı
+      case 'Aktif':
+      case 'active':
+        return '#e6f9ed'; // açık yeşil
+      case 'Bakımda':
+      case 'maintenance':
+        return '#fffbe6'; // açık sarı
+      default:
+        return '#f3f4f6'; // açık gri
+    }
+  };
+  const getBadgeBgColor = (status) => {
+    switch (status) {
+      case 'Aktif':
+      case 'active':
+        return '#b6f2d6';
+      case 'Bakımda':
+      case 'maintenance':
+        return '#fff3b6';
+      case 'Arıza':
+      case 'issue':
+        return '#ffd6d6';
+      default:
+        return '#e5e7eb';
+    }
+  };
+  const getBadgeTextColor = (status) => {
+    switch (status) {
+      case 'Aktif':
+      case 'active':
+        return '#10b981';
+      case 'Bakımda':
+      case 'maintenance':
+        return '#f59e0b';
+      case 'Arıza':
+      case 'issue':
+        return '#ef4444';
+      default:
+        return '#64748b';
+    }
+  };
+
+  const getCardGradientColors = (status) => {
+    if (isDark) {
+      switch (status) {
+        case 'Aktif':
+        case 'active':
+          return ['#22c55e', '#16a34a']; // canlı yeşil
+        case 'Bakımda':
+        case 'maintenance':
+          return ['#fde047', '#fbbf24'];
+        case 'Arıza':
+        case 'Arızalı':
+        case 'issue':
+          return ['#f87171', '#ef4444'];
+        default:
+          return ['#334155', '#1e293b'];
+      }
+    } else {
+      switch (status) {
+        case 'Aktif':
+        case 'active':
+          return ['#bbf7d0', '#22c55e']; // açık yeşil
+        case 'Bakımda':
+        case 'maintenance':
+          return ['#fef08a', '#facc15'];
+        case 'Arıza':
+        case 'Arızalı':
+        case 'issue':
+          return ['#fca5a5', '#f87171'];
+        default:
+          return ['#f1f5f9', '#fff'];
+      }
     }
   };
 
@@ -274,7 +329,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
     <View style={styles.emptyContainer}>
       <MaterialCommunityIcons name="alert-circle-outline" size={48} color={theme.textSecondary} />
       <Text style={[styles.emptyText, { color: theme.textSecondary }]}>
-        {searchQuery || statusFilter !== 'Tümü'
+        {searchQuery
           ? 'Aramanızla eşleşen duruşma salonu bulunamadı.'
           : 'Henüz duruşma salonu eklenmemiş.'}
       </Text>
@@ -291,107 +346,53 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
   // Render courtroom card
   const renderCourtroomCard = ({ item }) => {
     const statusColor = getStatusColor(item.status);
-    
+    const badgeBgColor = getBadgeBgColor(item.status);
+    const badgeTextColor = getBadgeTextColor(item.status);
+    const gradientColors = getCardGradientColors(item.status);
     // Calculate total device count
     const totalDevices = Object.values(item.devices || {}).reduce((sum, count) => sum + count, 0);
-    
     const card = (
-      <TouchableOpacity 
-        style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
-        onPress={() => navigation.navigate('CourtroomDetail', { courtroom: item })}
+      <LinearGradient
+        colors={gradientColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.card}
       >
         <View style={styles.cardHeader}>
-          <View>
-            <Text style={[styles.cardTitle, { color: theme.text }]}>{item.name}</Text>
-            <Text style={[styles.cardSubtitle, { color: theme.textSecondary }]}>{item.court}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.cardTitle, { color: isDark ? '#fff' : '#1e293b', fontSize: 20, fontWeight: 'bold' }]}>{item.name} {item.court}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
-        </View>
-        
-        <View style={styles.cardInfoRow}>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="map-marker" size={18} color={theme.textSecondary} />
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{item.location}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="devices" size={18} color={theme.textSecondary} />
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>{totalDevices} Cihaz</Text>
+          <View style={[
+            styles.statusBadge,
+            {
+              backgroundColor: badgeBgColor,
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 6,
+              alignSelf: 'flex-start',
+            }
+          ]}>
+            <Text style={{ color: badgeTextColor, fontWeight: 'bold', fontSize: 15 }}>{item.status}</Text>
           </View>
         </View>
-        
-        {totalDevices > 0 && (
-          <View style={[styles.deviceGrid, { borderTopColor: theme.border }]}>
-            {item.devices && Object.entries(item.devices).map(([key, count]) => {
-              if (count <= 0) return null; // Sadece sayısı 0'dan büyük olanları göster
-              
-              let iconName = 'help-circle-outline';
-              let deviceLabel = 'Bilinmeyen';
-              
-              switch(key) {
-                case 'kasa':
-                  iconName = 'desktop-tower';
-                  deviceLabel = 'Kasa';
-                  break;
-                case 'monitor':
-                  iconName = 'monitor';
-                  deviceLabel = 'Monitör';
-                  break;
-                case 'segbis':
-                  iconName = 'video';
-                  deviceLabel = 'SEGBİS';
-                  break;
-                case 'kamera':
-                  iconName = 'cctv';
-                  deviceLabel = 'Kamera';
-                  break;
-                case 'tv':
-                  iconName = 'television';
-                  deviceLabel = 'TV';
-                  break;
-                case 'mikrofon':
-                  iconName = 'microphone';
-                  deviceLabel = 'Mikrofon';
-                  break;
-              }
-              
-              return (
-                <View key={key} style={styles.deviceItem}>
-                  <MaterialCommunityIcons 
-                    name={iconName} 
-                    size={16} 
-                    color={theme.primary} 
-                  />
-                  <Text style={[styles.deviceText, { color: theme.text }]}>
-                    {deviceLabel}
-                  </Text>
-                  <View style={[styles.deviceCountBadge, { backgroundColor: theme.backgroundSecondary }]}>
-                    <Text style={[styles.deviceCountText, { color: theme.text }]}>{count}</Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-        
-        <View style={styles.cardInfoRow}>
-          <View style={styles.infoItem}>
-            <MaterialCommunityIcons name="clock-outline" size={18} color={theme.textSecondary} />
-            <Text style={[styles.infoText, { color: theme.textSecondary }]}>Son Kontrol: {item.lastCheck}</Text>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialCommunityIcons name="map-marker" size={18} color={isDark ? '#cbd5e1' : '#64748b'} />
+            <Text style={{ color: isDark ? '#cbd5e1' : '#64748b', fontSize: 15, marginLeft: 4 }}>{item.location}</Text>
           </View>
         </View>
-      </TouchableOpacity>
+      </LinearGradient>
     );
-    
     return (
-      <SwipeableRow 
-        item={item} 
-        onEdit={handleEdit} 
-        onDelete={handleDelete}
-      >
-        {card}
-      </SwipeableRow>
+      <TouchableOpacity onPress={() => navigation.navigate('CourtroomDetail', { courtroom: item })} activeOpacity={0.85}>
+        <SwipeableRow 
+          item={item} 
+          onEdit={handleEdit} 
+          onDelete={handleDelete}
+        >
+          {card}
+        </SwipeableRow>
+      </TouchableOpacity>
     );
   };
 
@@ -401,6 +402,69 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Duruşma Salonları</Text>
+        </View>
+        
+        {/* Hızlı İstatistikler */}
+        <View style={{ flexDirection: 'row', marginTop: 10, marginBottom: 10, paddingHorizontal: 10 }}>
+          {/* Aktif Salonlar */}
+          <View style={{
+            backgroundColor: theme.cardBackground,
+            borderRadius: 16,
+            padding: 10,
+            flex: 1,
+            marginRight: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: theme.border,
+          }}>
+            <View style={{ backgroundColor: isDark ? '#134e3a' : '#b6f2d6', borderRadius: 10, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+              <MaterialCommunityIcons name="check-circle" size={20} color="#10b981" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Aktif</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{activeCount}</Text>
+            </View>
+          </View>
+          {/* Arızalı Salonlar */}
+          <View style={{
+            backgroundColor: theme.cardBackground,
+            borderRadius: 16,
+            padding: 10,
+            flex: 1,
+            marginRight: 8,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: theme.border,
+          }}>
+            <View style={{ backgroundColor: isDark ? '#7f1d1d' : '#ffd6d6', borderRadius: 10, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+              <MaterialCommunityIcons name="alert-circle" size={20} color="#ef4444" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Arızalı</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{issueCount}</Text>
+            </View>
+          </View>
+          {/* Bakımdaki Salonlar */}
+          <View style={{
+            backgroundColor: theme.cardBackground,
+            borderRadius: 16,
+            padding: 10,
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            borderWidth: 1,
+            borderColor: theme.border,
+          }}>
+            <View style={{ backgroundColor: isDark ? '#78350f' : '#fff3b6', borderRadius: 10, width: 32, height: 32, alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+              <MaterialCommunityIcons name="wrench" size={20} color="#f59e0b" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Bakımda</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{maintenanceCount}</Text>
+            </View>
+          </View>
         </View>
         
         <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
@@ -419,41 +483,6 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
               </TouchableOpacity>
             ) : null}
           </View>
-          
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false} 
-            contentContainerStyle={styles.filterScrollContainer}
-          >
-            {['Tümü', 'Aktif', 'Arıza', 'Bakım', 'Pasif'].map(status => (
-              <TouchableOpacity
-                key={status}
-                style={[
-                  styles.filterButton,
-                  { borderColor: theme.border },
-                  statusFilter === status && { 
-                    backgroundColor: status === 'Tümü' 
-                      ? theme.primary 
-                      : getStatusColor(status),
-                    borderColor: status === 'Tümü' 
-                      ? theme.primary 
-                      : getStatusColor(status),
-                  }
-                ]}
-                onPress={() => setStatusFilter(status)}
-              >
-                <Text 
-                  style={[
-                    styles.filterText,
-                    { color: theme.textSecondary },
-                    statusFilter === status && { color: '#fff' }
-                  ]}
-                >
-                  {status}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
         </View>
         
         {loading ? (
@@ -544,10 +573,17 @@ const styles = StyleSheet.create({
     padding: 15,
   },
   card: {
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-    borderWidth: 1,
+    borderRadius: 18,
+    padding: 20,
+    marginBottom: 18,
+    flex: 1,
+    flexDirection: 'column',
+    minHeight: 100,
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -564,14 +600,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 15,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#fff',
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardInfoRow: {
     flexDirection: 'row',
@@ -676,6 +707,21 @@ const styles = StyleSheet.create({
   deviceCountText: {
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  cardActions: {
+    flexDirection: 'row',
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    gap: 8,
+  },
+  actionButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
   },
 });
 

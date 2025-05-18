@@ -14,7 +14,7 @@ const DEVICE_TABLES = [
   { table: 'microphones', prefix: 'mikrofon', type: 'Mikrofon', icon: 'mic', color: '#ec4899' },
   { table: 'cameras', prefix: 'kamera', type: 'Kamera', icon: 'camera', color: '#f472b6' },
   { table: 'tvs', prefix: 'tv', type: 'TV', icon: 'tv', color: '#14b8a6' },
-  { table: 'e_durusmas', prefix: 'e_durusma', type: 'E-Duruşma', icon: 'people', color: '#8b5cf6' },
+  { table: 'e_durusma', prefix: 'e_durusma', type: 'E-Duruşma', icon: 'people', color: '#8b5cf6' },
 ];
 
 function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }) {
@@ -91,24 +91,26 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
   };
 
   const renderRightActions = (device, closeRow) => (
-    <View style={styles.rightActionsContainer}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', height: '100%' }}>
       <TouchableOpacity 
-        style={[styles.actionButton, { backgroundColor: theme.primary }]} 
+        style={{ justifyContent: 'center', alignItems: 'center', width: 80, height: '100%', backgroundColor: theme.primary }}
         onPress={() => {
           closeRow();
           handleEdit(device);
         }}
       >
-        <Ionicons name="create-outline" size={24} color="#FFFFFF" />
+        <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4 }}>Düzenle</Text>
       </TouchableOpacity>
       <TouchableOpacity 
-        style={[styles.actionButton, { backgroundColor: '#ef4444' }]} 
+        style={{ justifyContent: 'center', alignItems: 'center', width: 80, height: '100%', backgroundColor: '#ef4444' }}
         onPress={() => {
           closeRow();
           handleDelete(device);
         }}
       >
-        <Ionicons name="trash-outline" size={24} color="#FFFFFF" />
+        <Ionicons name="trash-outline" size={20} color="#FFFFFF" />
+        <Text style={{ color: '#FFFFFF', fontSize: 12, marginTop: 4 }}>Sil</Text>
       </TouchableOpacity>
     </View>
   );

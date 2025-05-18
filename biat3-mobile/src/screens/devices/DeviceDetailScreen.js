@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Share, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import BarcodeDisplay, { QRCodeDisplay, BarcodeOnlyDisplay } from '../../components/BarcodeDisplay';
@@ -130,17 +130,36 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
   // Cihaz türüne göre ikon belirleme
   const getDeviceTypeIcon = () => {
     const typeIcons = {
-      pc: 'desktop',
-      monitor: 'tv',
-      printer: 'print',
-      scanner: 'scan',
-      segbis: 'videocam',
-      hearing: 'people',
-      microphone: 'mic',
-      tv: 'tv'
+      pc: 'desktop-outline',
+      laptop: 'laptop-outline',
+      monitor: 'tv-outline',
+      printer: 'print-outline',
+      scanner: 'scan-outline',
+      segbis: 'videocam-outline',
+      hearing: 'people-outline',
+      microphone: 'mic-outline',
+      tv: 'tv-outline',
+      kamera: 'videocam-outline',
+      e_durusma: 'people-outline',
     };
+    return typeIcons[device.type] || typeIcons[device.tip] || 'hardware-outline';
+  };
 
-    return typeIcons[device.type] || 'hardware-chip';
+  const getDeviceColor = () => {
+    const typeColors = {
+      pc: '#4f46e5',
+      laptop: '#6366f1',
+      monitor: '#0ea5e9',
+      printer: '#f59e42',
+      scanner: '#10b981',
+      segbis: '#a21caf',
+      hearing: '#f43f5e',
+      microphone: '#f59e42',
+      tv: '#0ea5e9',
+      kamera: '#a21caf',
+      e_durusma: '#f43f5e',
+    };
+    return device.color || typeColors[device.type] || typeColors[device.tip] || '#4f46e5';
   };
 
   const status = getStatusInfo();
@@ -154,21 +173,39 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
 
   // Cihaz tipi prefix haritası
   const prefixMap = {
-    Kasa: 'kasa',
-    Monitör: 'ekran',
-    Yazıcı: 'yazici',
-    Tarayıcı: 'tarayici',
-    SEGBİS: 'segbis',
-    Mikrofon: 'mikrofon',
-    Kamera: 'kamera',
-    TV: 'tv',
-    'E-Duruşma': 'e_durusma'
+    pc: 'kasa',
+    monitor: 'ekran',
+    printer: 'yazici',
+    scanner: 'tarayici',
+    segbis: 'segbis',
+    microphone: 'mikrofon',
+    tv: 'tv',
+    kamera: 'kamera',
+    hearing: 'e_durusma',
+    e_durusma: 'e_durusma',
   };
-  const prefix = prefixMap[device.tip] || '';
+  const prefix = prefixMap[device.type] || prefixMap[device.tip] || '';
 
-  const displayMarka = device[`${prefix}_marka`] || device.kasa_marka || device.marka || '-';
-  const displayModel = device[`${prefix}_model`] || device.kasa_model || device.model || '-';
-  const displaySeriNo = device[`${prefix}_seri_no`] || device.kasa_seri_no || device.seri_no || '-';
+  let displayMarka = '-';
+  let displayModel = '-';
+  let displaySeriNo = '-';
+  if (device.type === 'laptop') {
+    displayMarka = device.laptop_marka || device.marka || '-';
+    displayModel = device.laptop_model || device.model || '-';
+    displaySeriNo = device.laptop_seri_no || device.seri_no || '-';
+  } else if (device.type === 'monitor') {
+    displayMarka = device.ekran_marka || device.marka || '-';
+    displayModel = device.ekran_model || device.model || '-';
+    displaySeriNo = device.ekran_seri_no || device.seri_no || '-';
+  } else if (device.type === 'printer') {
+    displayMarka = device.yazici_marka || device.marka || '-';
+    displayModel = device.yazici_model || device.model || '-';
+    displaySeriNo = device.yazici_seri_no || device.seri_no || '-';
+  } else {
+    displayMarka = device.marka || '-';
+    displayModel = device.model || '-';
+    displaySeriNo = device.seri_no || '-';
+  }
 
   return (
     <>
@@ -187,10 +224,19 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
           <Swipeable renderRightActions={renderRightActions}>
             <View style={[styles.deviceCard, themedStyles.card, themedStyles.shadow]}>
               <View style={styles.deviceHeader}>
-                <View style={[styles.iconContainer, { backgroundColor: device.color || '#4f46e5' }]}>
+                {/* Görsel veya ikon gösterimi */}
+                {device.image_url ? (
+                  <Image
+                    source={{ uri: device.image_url }}
+                    style={{ width: 80, height: 80, borderRadius: 12, marginRight: 16, backgroundColor: '#f3f4f6' }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                <View style={[styles.iconContainer, { backgroundColor: getDeviceColor() }]}>
                   <Ionicons name={device.icon || getDeviceTypeIcon()} size={32} color="#FFFFFF" />
                 </View>
-                <View style={styles.titleContainer}>
+                )}
+                <View className="titleContainer" style={styles.titleContainer}>
                   <Text style={[styles.deviceName, themedStyles.text]}>{displayMarka + ' ' + displayModel}</Text>
                 </View>
               </View>
@@ -212,7 +258,11 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
                   </View>
 
                   {/* Kasa, Laptop, Monitör için Unvan, Sicil No, İsim Soyisim */}
-                  {(['Kasa', 'Laptop', 'Monitör'].includes(device.tip) && device.oda_tipi !== 'Duruşma Salonu') && (
+                  {(
+                    (['Kasa', 'Monitör'].includes(device.tip) ||
+                     ['computers', 'screens'].includes(device.sourceTable)
+                    ) && device.oda_tipi !== 'Duruşma Salonu'
+                  ) && (
                     <>
                       <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                         <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
@@ -270,7 +320,7 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
                   </View>
 
                   {/* Sadece Kasa için temizlik tarihleri */}
-                  {device.tip === 'Kasa' && (
+                  {(device.ilk_temizlik_tarihi || device.son_temizlik_tarihi) && (
                     <>
                       <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                         <Text style={[styles.infoLabel, themedStyles.textSecondary]}>İlk Temizlik Tarihi</Text>

@@ -1,5 +1,5 @@
 // mahkeme-detay.js
-
+const supabase = window.supabaseClient;
 document.addEventListener('DOMContentLoaded', async function() {
     const params = new URLSearchParams(window.location.search);
     const id = params.get('id');

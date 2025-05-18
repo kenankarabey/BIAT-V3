@@ -41,10 +41,10 @@ const LoginScreen = ({ navigation }) => {
       return;
     }
     await AsyncStorage.setItem('user_email', email);
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'MainApp' }],
-    });
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainApp' }],
+      });
   };
 
   return (

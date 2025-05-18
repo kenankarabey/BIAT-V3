@@ -14,55 +14,86 @@ import {
   Platform,
   Modal,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import withThemedScreen from '../../components/withThemedScreen';
+import ModalSelector from 'react-native-modal-selector';
+import { supabase } from '../../supabaseClient';
+
+const blockOptions = [
+  { label: 'A Blok', value: 'A Blok' },
+  { label: 'B Blok', value: 'B Blok' },
+  { label: 'C Blok', value: 'C Blok' },
+  { label: 'D Blok', value: 'D Blok' },
+];
+
+const floorOptions = [
+  { label: 'Zemin Kat', value: 'Zemin Kat' },
+  { label: '1. Kat', value: '1. Kat' },
+  { label: '2. Kat', value: '2. Kat' },
+  { label: '3. Kat', value: '3. Kat' },
+  { label: '4. Kat', value: '4. Kat' },
+  { label: '5. Kat', value: '5. Kat' },
+  { label: '6. Kat', value: '6. Kat' },
+  { label: '7. Kat', value: '7. Kat' },
+  { label: '8. Kat', value: '8. Kat' },
+  { label: '9. Kat', value: '9. Kat' },
+  { label: '10. Kat', value: '10. Kat' },
+];
+
+const courtOptions = [
+  { label: 'Sulh Hukuk Mahkemesi', value: 'Sulh Hukuk Mahkemesi' },
+  { label: 'Asliye Hukuk Mahkemesi', value: 'Asliye Hukuk Mahkemesi' },
+  { label: 'Tüketici Mahkemesi', value: 'Tüketici Mahkemesi' },
+  { label: 'Kadastro Mahkemesi', value: 'Kadastro Mahkemesi' },
+  { label: 'İş Mahkemesi', value: 'İş Mahkemesi' },
+  { label: 'Aile Mahkemesi', value: 'Aile Mahkemesi' },
+  { label: 'Ağır Ceza Mahkemesi', value: 'Ağır Ceza Mahkemesi' },
+  { label: 'Adalet Komisyonu Başkanlığı', value: 'Adalet Komisyonu Başkanlığı' },
+  { label: 'Sulh Ceza Hakimliği', value: 'Sulh Ceza Hakimliği' },
+  { label: 'İnfaz Hakimliği', value: 'İnfaz Hakimliği' },
+  { label: 'Çocuk Mahkemesi', value: 'Çocuk Mahkemesi' },
+  { label: 'Asliye Ceza Mahkemesi', value: 'Asliye Ceza Mahkemesi' },
+  { label: 'İcra Hukuk Mahkemesi', value: 'İcra Hukuk Mahkemesi' },
+  { label: 'İcra Ceza Mahkemesi', value: 'İcra Ceza Mahkemesi' },
+  { label: 'Nöbetçi Sulh Ceza Hakimliği', value: 'Nöbetçi Sulh Ceza Hakimliği' },
+  { label: 'Cumhuriyet Başsavcılığı', value: 'Cumhuriyet Başsavcılığı' },
+];
 
 const JudgeRoomForm = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
   const { judgeRoom } = route?.params || {};
   const isEditMode = !!judgeRoom;
+  const [loading, setLoading] = useState(false);
 
   // Form state
-  const [roomNumber, setRoomNumber] = useState(judgeRoom?.roomNumber || '');
-  const [court, setCourt] = useState(judgeRoom?.court || '');
-  const [location, setLocation] = useState(judgeRoom?.location || '');
-  const [notes, setNotes] = useState(judgeRoom?.notes || '');
-  const [status, setStatus] = useState(judgeRoom?.status || 'Aktif');
+  const [roomNumber, setRoomNumber] = useState(judgeRoom?.oda_numarasi || '');
+  const [blok, setBlok] = useState(judgeRoom?.blok || '');
+  const [kat, setKat] = useState(judgeRoom?.kat || '');
+  const [errors, setErrors] = useState({});
   
-  // Hakimler state'i
-  const [judges, setJudges] = useState(judgeRoom?.judges || []);
-  
-  // Hakim ekleme modal state'i
-  const [showJudgeModal, setShowJudgeModal] = useState(false);
-  const [currentJudge, setCurrentJudge] = useState(null);
-  const [judgeName, setJudgeName] = useState('');
-  const [judgeId, setJudgeId] = useState('');
-  const [judgeTitle, setJudgeTitle] = useState('');
-  const [judgeModalMode, setJudgeModalMode] = useState('add'); // 'add' veya 'edit'
-  
-  // Cihaz sayıları
-  const [devices, setDevices] = useState({
-    laptop: judgeRoom?.devices?.laptop || 0,
-    monitor: judgeRoom?.devices?.monitor || 0,
-    printer: judgeRoom?.devices?.printer || 0,
-  });
+  // Hakimler state'i - her hakim için ayrı state
+  const [judges, setJudges] = useState([
+    { 
+      name: judgeRoom?.hakim1_adisoyadi || '', 
+      court: judgeRoom?.hakim1_birimi || '',
+      courtNo: judgeRoom?.hakim1_mahkemeno !== undefined && judgeRoom?.hakim1_mahkemeno !== null ? String(judgeRoom?.hakim1_mahkemeno) : ''
+    },
+    judgeRoom?.hakim2_adisoyadi ? {
+      name: judgeRoom?.hakim2_adisoyadi || '',
+      court: judgeRoom?.hakim2_birimi || '',
+      courtNo: judgeRoom?.hakim2_mahkemeno !== undefined && judgeRoom?.hakim2_mahkemeno !== null ? String(judgeRoom?.hakim2_mahkemeno) : ''
+    } : null,
+    judgeRoom?.hakim3_adisoyadi ? {
+      name: judgeRoom?.hakim3_adisoyadi || '',
+      court: judgeRoom?.hakim3_birimi || '',
+      courtNo: judgeRoom?.hakim3_mahkemeno !== undefined && judgeRoom?.hakim3_mahkemeno !== null ? String(judgeRoom?.hakim3_mahkemeno) : ''
+    } : null,
+  ].filter(Boolean));
 
   // Form validasyonu
-  const [errors, setErrors] = useState({});
-  const [judgeErrors, setJudgeErrors] = useState({});
-
-  // Cihaz sayısını değiştir
-  const changeDeviceCount = (deviceType, increment) => {
-    setDevices(prev => {
-      const currentCount = prev[deviceType] || 0;
-      const newCount = increment ? currentCount + 1 : Math.max(0, currentCount - 1);
-      return { ...prev, [deviceType]: newCount };
-    });
-  };
-
-  // Form validasyonu yap
   const validateForm = () => {
     const newErrors = {};
 
@@ -70,142 +101,89 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
       newErrors.roomNumber = 'Oda numarası gereklidir.';
     }
 
-    if (!court.trim()) {
-      newErrors.court = 'Mahkeme adı gereklidir.';
+    if (!blok.trim()) {
+      newErrors.blok = 'Blok bilgisi gereklidir.';
     }
-    
-    if (judges.length === 0) {
-      newErrors.judges = 'En az bir hakim eklemelisiniz.';
+
+    // En az bir hakimin adı girilmiş olmalı
+    if (!judges[0]?.name.trim()) {
+      newErrors.judges = 'En az bir hakim adı girilmelidir.';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
-  // Hakim form validasyonu
-  const validateJudgeForm = () => {
-    const newErrors = {};
-    
-    if (!judgeName.trim()) {
-      newErrors.judgeName = 'Hakim adı gereklidir.';
-    }
-    
-    setJudgeErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Durum değiştir
-  const toggleStatus = (newStatus) => {
-    setStatus(newStatus);
-  };
-  
-  // Hakim ekleme modalını aç
-  const openAddJudgeModal = () => {
-    setJudgeName('');
-    setJudgeId('');
-    setJudgeTitle('');
-    setJudgeErrors({});
-    setJudgeModalMode('add');
-    setCurrentJudge(null);
-    setShowJudgeModal(true);
-  };
-  
-  // Hakim düzenleme modalını aç
-  const openEditJudgeModal = (judge) => {
-    setJudgeName(judge.name || '');
-    setJudgeId(judge.id || '');
-    setJudgeTitle(judge.title || '');
-    setJudgeErrors({});
-    setJudgeModalMode('edit');
-    setCurrentJudge(judge);
-    setShowJudgeModal(true);
-  };
-  
-  // Hakim ekle veya düzenle
-  const handleSaveJudge = () => {
-    if (!validateJudgeForm()) return;
-    
-    const judgeData = {
-      id: judgeModalMode === 'add' ? Date.now().toString() : currentJudge.id,
-      name: judgeName,
-      regId: judgeId,
-      title: judgeTitle,
-    };
-    
-    if (judgeModalMode === 'add') {
-      setJudges([...judges, judgeData]);
-    } else {
-      setJudges(judges.map(j => j.id === currentJudge.id ? judgeData : j));
-    }
-    
-    setShowJudgeModal(false);
-  };
-  
-  // Hakim sil
-  const handleDeleteJudge = (judgeId) => {
-    Alert.alert(
-      'Hakim Sil',
-      'Bu hakimi silmek istediğinizden emin misiniz?',
-      [
-        {
-          text: 'İptal',
-          style: 'cancel'
-        },
-        {
-          text: 'Sil',
-          style: 'destructive',
-          onPress: () => {
-            setJudges(judges.filter(j => j.id !== judgeId));
-          }
-        }
-      ]
-    );
-  };
 
   // Kaydet
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!validateForm()) {
       Alert.alert('Hata', 'Lütfen zorunlu alanları doldurun.');
       return;
     }
 
-    // Ana hakim adını belirle (ilk hakim)
-    const primaryJudge = judges[0] || { name: '', regId: '' };
+    setLoading(true);
+    try {
+      const judgeRoomData = {
+        oda_numarasi: roomNumber,
+        blok,
+        kat,
+        hakim1_adisoyadi: judges[0]?.name || '',
+        hakim1_birimi: judges[0]?.court || '',
+        hakim1_mahkemeno: judges[0]?.courtNo ? parseInt(judges[0].courtNo, 10) : null,
+        hakim2_adisoyadi: judges[1]?.name || '',
+        hakim2_birimi: judges[1]?.court || '',
+        hakim2_mahkemeno: judges[1]?.courtNo ? parseInt(judges[1].courtNo, 10) : null,
+        hakim3_adisoyadi: judges[2]?.name || '',
+        hakim3_birimi: judges[2]?.court || '',
+        hakim3_mahkemeno: judges[2]?.courtNo ? parseInt(judges[2].courtNo, 10) : null,
+      };
 
-    const updatedJudgeRoom = {
-      id: judgeRoom?.id || Date.now().toString(),
-      roomNumber,
-      // Geriye dönük uyumluluk için ilk hakimin bilgilerini ana alanlara da koyuyoruz
-      judgeName: primaryJudge.name,
-      judgeId: primaryJudge.regId,
-      judges, // Tüm hakimler listesi
-      court,
-      location,
-      notes,
-      status,
-      devices,
-    };
+      if (isEditMode) {
+        const { error } = await supabase
+          .from('hakim_odalari')
+          .update(judgeRoomData)
+          .eq('id', judgeRoom.id);
 
-    if (isEditMode) {
-      navigation.navigate('JudgeRooms', { updatedJudgeRoom });
-    } else {
-      navigation.navigate('JudgeRooms', { newJudgeRoom: updatedJudgeRoom });
+        if (error) throw error;
+        Alert.alert('Başarılı', 'Hakim odası başarıyla güncellendi.');
+      } else {
+        const { error } = await supabase
+          .from('hakim_odalari')
+          .insert(judgeRoomData);
+
+        if (error) throw error;
+        Alert.alert('Başarılı', 'Hakim odası başarıyla eklendi.');
+      }
+
+      navigation.goBack();
+    } catch (error) {
+      console.error('Hakim odası kaydedilirken hata:', error.message);
+      Alert.alert('Hata', 'Hakim odası kaydedilirken bir hata oluştu.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Durum arka plan rengini belirle
-  const getStatusBackgroundColor = (statusValue) => {
-    switch (statusValue) {
-      case 'Aktif':
-        return theme.isDark ? '#064e3b50' : '#dcfce7';
-      case 'Arıza':
-        return theme.isDark ? '#7f1d1d50' : '#fee2e2';
-      case 'Bakım':
-        return theme.isDark ? '#78350f50' : '#fef3c7';
-      case 'Pasif':
-        return theme.isDark ? '#33415550' : '#f1f5f9';
-      default:
-        return theme.isDark ? '#33415550' : '#f1f5f9';
+  // Hakim bilgilerini güncelle
+  const updateJudge = (index, field, value) => {
+    const updatedJudges = [...judges];
+    if (!updatedJudges[index]) {
+      updatedJudges[index] = { name: '', court: '', courtNo: '' };
+    }
+    updatedJudges[index] = { ...updatedJudges[index], [field]: value };
+    setJudges(updatedJudges);
+  };
+
+  // Hakim sil
+  const handleRemoveJudge = (index) => {
+    const updatedJudges = judges.filter((_, i) => i !== index);
+    setJudges(updatedJudges);
+  };
+
+  // Hakim ekle
+  const handleAddJudge = () => {
+    if (judges.length < 3) {
+      setJudges([...judges, { name: '', court: '', courtNo: '' }]);
     }
   };
 
@@ -256,176 +234,159 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Mahkeme *</Text>
-              <TextInput
-                style={[
-                  styles.input, 
-                  errors.court && styles.inputError,
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Blok *</Text>
+              <ModalSelector
+                data={blockOptions.map((item, idx) => ({ key: idx, label: item.label, value: item.value }))}
+                initValue="Blok Seçin"
+                onChange={option => setBlok(option.value)}
+                style={styles.dropdown}
+                cancelText="Vazgeç"
+                selectedKey={blok}
+                value={blok}
+              >
+                <View style={[
+                  styles.input,
+                  errors.blok && styles.inputError,
                   { 
                     backgroundColor: theme.inputBg, 
-                    borderColor: errors.court ? "#ef4444" : theme.border,
-                    color: theme.text 
+                    borderColor: errors.blok ? "#ef4444" : theme.border,
+                    color: theme.text,
+                    justifyContent: 'center'
                   }
-                ]}
-                value={court}
-                onChangeText={setCourt}
-                placeholder="Mahkeme adını girin"
-                placeholderTextColor={theme.textSecondary}
-              />
-              {errors.court && (
-                <Text style={styles.errorText}>{errors.court}</Text>
+                ]}>
+                  <Text style={[styles.selectText, !blok && styles.selectTextPlaceholder, { color: theme.text }]}>
+                    {blok || 'Blok Seçin'}
+                  </Text>
+                </View>
+              </ModalSelector>
+              {errors.blok && (
+                <Text style={styles.errorText}>{errors.blok}</Text>
               )}
             </View>
 
             <View style={styles.formGroup}>
-              <Text style={[styles.label, { color: theme.textSecondary }]}>Konum</Text>
-              <TextInput
-                style={[
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Kat</Text>
+              <ModalSelector
+                data={floorOptions.map((item, idx) => ({ key: idx, label: item.label, value: item.value }))}
+                initValue="Kat Seçin"
+                onChange={option => setKat(option.value)}
+                style={styles.dropdown}
+                cancelText="Vazgeç"
+                selectedKey={kat}
+                value={kat}
+              >
+                <View style={[
                   styles.input,
                   { 
                     backgroundColor: theme.inputBg, 
                     borderColor: theme.border,
-                    color: theme.text 
+                    color: theme.text,
+                    justifyContent: 'center'
                   }
-                ]}
-                value={location}
-                onChangeText={setLocation}
-                placeholder="Kat bilgisi veya konum girin"
-                placeholderTextColor={theme.textSecondary}
-              />
+                ]}>
+                  <Text style={[styles.selectText, !kat && styles.selectTextPlaceholder, { color: theme.text }]}>
+                    {kat || 'Kat Seçin'}
+                  </Text>
+                </View>
+              </ModalSelector>
             </View>
             
             <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>Hakimler *</Text>
             
             <View style={styles.judgesContainer}>
-              {judges.length > 0 ? (
-                judges.map((judge, index) => (
-                  <View key={judge.id} style={[styles.judgeItem, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                    <View style={styles.judgeInfo}>
-                      <Text style={[styles.judgeName, { color: theme.text }]}>{judge.name}</Text>
-                      {judge.regId ? (
-                        <Text style={[styles.judgeId, { color: theme.textSecondary }]}>Sicil: {judge.regId}</Text>
-                      ) : null}
-                      {judge.title ? (
-                        <Text style={[styles.judgeTitle, { color: theme.textSecondary }]}>{judge.title}</Text>
-                      ) : null}
-                    </View>
-                    <View style={styles.judgeActions}>
+              {judges.map((judge, index) => (
+                <View key={index} style={[styles.judgeFields, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
+                  <View style={styles.judgeHeader}>
+                    <Text style={[styles.judgeTitle, { color: theme.text }]}>{index + 1}. Hakim</Text>
+                    {index > 0 && (
                       <TouchableOpacity 
-                        style={styles.judgeActionButton}
-                        onPress={() => openEditJudgeModal(judge)}
+                        style={styles.removeJudgeButton}
+                        onPress={() => handleRemoveJudge(index)}
                       >
-                        <MaterialCommunityIcons name="pencil" size={18} color={theme.primary} />
+                        <MaterialCommunityIcons name="close" size={20} color={theme.danger} />
                       </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={styles.judgeActionButton}
-                        onPress={() => handleDeleteJudge(judge.id)}
-                      >
-                        <MaterialCommunityIcons name="delete" size={18} color={theme.danger} />
-                      </TouchableOpacity>
-                    </View>
+                    )}
                   </View>
-                ))
-              ) : (
-                <View style={[styles.emptyJudges, { backgroundColor: theme.backgroundSecondary, borderColor: theme.border }]}>
-                  <Text style={[styles.emptyJudgesText, { color: theme.textSecondary }]}>Henüz hakim eklenmemiş</Text>
+                  
+                  <View style={styles.formGroup}>
+                    <Text style={[styles.label, { color: theme.textSecondary }]}>Hakim Adı Soyadı *</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        { 
+                          backgroundColor: theme.inputBg, 
+                          borderColor: theme.border,
+                          color: theme.text 
+                        }
+                      ]}
+                      value={judge.name}
+                      onChangeText={(value) => updateJudge(index, 'name', value)}
+                      placeholder="Hakim adı soyadı girin"
+                      placeholderTextColor={theme.textSecondary}
+                    />
+                  </View>
+
+                  <View style={styles.formGroup}>
+                    <Text style={[styles.label, { color: theme.textSecondary }]}>Birim</Text>
+                    <ModalSelector
+                      data={courtOptions.map((item, idx) => ({ key: idx, label: item.label, value: item.value }))}
+                      initValue="Birim Seçin"
+                      onChange={option => updateJudge(index, 'court', option.value)}
+                      style={styles.dropdown}
+                      cancelText="Vazgeç"
+                      selectedKey={judge.court}
+                      value={judge.court}
+                    >
+                      <View style={[
+                        styles.input,
+                        { 
+                          backgroundColor: theme.inputBg, 
+                          borderColor: theme.border,
+                          color: theme.text,
+                          justifyContent: 'center'
+                        }
+                      ]}>
+                        <Text style={[styles.selectText, !judge.court && styles.selectTextPlaceholder, { color: theme.text }]}> 
+                          {judge.court || 'Birim Seçin'}
+                        </Text>
+                      </View>
+                    </ModalSelector>
+                  </View>
+
+                  <View style={styles.formGroup}>
+                    <Text style={[styles.label, { color: theme.textSecondary }]}>Mahkeme No</Text>
+                    <TextInput
+                      style={[
+                        styles.input,
+                        { 
+                          backgroundColor: theme.inputBg, 
+                          borderColor: theme.border,
+                          color: theme.text 
+                        }
+                      ]}
+                      value={judge.courtNo}
+                      onChangeText={(value) => updateJudge(index, 'courtNo', value)}
+                      placeholder="Mahkeme no girin"
+                      placeholderTextColor={theme.textSecondary}
+                      keyboardType="numeric"
+                    />
+                  </View>
                 </View>
-              )}
-              
+              ))}
+
               {errors.judges && (
                 <Text style={styles.errorText}>{errors.judges}</Text>
               )}
               
-              <TouchableOpacity 
-                style={[styles.addJudgeButton, { backgroundColor: theme.primary }]}
-                onPress={openAddJudgeModal}
-              >
-                <MaterialCommunityIcons name="plus" size={18} color="#ffffff" />
-                <Text style={styles.addJudgeButtonText}>Hakim Ekle</Text>
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>Durum</Text>
-
-            <View style={styles.statusContainer}>
-              {['Aktif', 'Bakım', 'Arıza', 'Pasif'].map((statusOption) => (
-                <TouchableOpacity
-                  key={statusOption}
-                  style={[
-                    styles.statusOption,
-                    { backgroundColor: theme.backgroundSecondary, borderColor: theme.border },
-                    status === statusOption && styles.statusOptionSelected,
-                    status === statusOption && 
-                    { backgroundColor: getStatusBackgroundColor(statusOption), borderColor: getStatusColor(statusOption) },
-                  ]}
-                  onPress={() => toggleStatus(statusOption)}
+              {judges.length < 3 && (
+                <TouchableOpacity 
+                  style={[styles.addJudgeButton, { backgroundColor: theme.primary }]}
+                  onPress={handleAddJudge}
                 >
-                  <Text
-                    style={[
-                      styles.statusText,
-                      { color: theme.textSecondary },
-                      status === statusOption && { color: theme.text, fontWeight: 'bold' },
-                    ]}
-                  >
-                    {statusOption}
-                  </Text>
+                  <MaterialCommunityIcons name="plus" size={18} color="#ffffff" />
+                  <Text style={styles.addJudgeButtonText}>Hakim Ekle</Text>
                 </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>Cihazlar</Text>
-
-            <View style={styles.devicesContainer}>
-              {Object.entries({
-                laptop: { icon: 'laptop', label: 'Dizüstü Bilgisayar' },
-                monitor: { icon: 'monitor', label: 'Monitör' },
-                printer: { icon: 'printer', label: 'Yazıcı' },
-              }).map(([key, { icon, label }]) => (
-                <View key={key} style={[styles.deviceCounterRow, { borderBottomColor: theme.border }]}>
-                  <View style={styles.deviceInfo}>
-                    <MaterialCommunityIcons name={icon} size={22} color={theme.primary} />
-                    <Text style={[styles.deviceLabel, { color: theme.text }]}>{label}</Text>
-                  </View>
-                  <View style={styles.counterContainer}>
-                    <TouchableOpacity
-                      style={[styles.counterButton, { backgroundColor: theme.backgroundSecondary }]}
-                      onPress={() => changeDeviceCount(key, false)}
-                    >
-                      <MaterialCommunityIcons name="minus" size={18} color={theme.primary} />
-                    </TouchableOpacity>
-                    <Text style={[styles.counterValue, { color: theme.text }]}>{devices[key]}</Text>
-                    <TouchableOpacity
-                      style={[styles.counterButton, { backgroundColor: theme.backgroundSecondary }]}
-                      onPress={() => changeDeviceCount(key, true)}
-                    >
-                      <MaterialCommunityIcons name="plus" size={18} color={theme.primary} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ))}
-            </View>
-
-            <Text style={[styles.sectionTitle, { marginTop: 20, color: theme.text }]}>Notlar</Text>
-
-            <View style={styles.formGroup}>
-              <TextInput
-                style={[
-                  styles.input, 
-                  styles.textArea,
-                  { 
-                    backgroundColor: theme.inputBg, 
-                    borderColor: theme.border,
-                    color: theme.text 
-                  }
-                ]}
-                value={notes}
-                onChangeText={setNotes}
-                placeholder="Notlar..."
-                placeholderTextColor={theme.textSecondary}
-                multiline
-                textAlignVertical="top"
-                numberOfLines={4}
-              />
+              )}
             </View>
           </View>
         </ScrollView>
@@ -440,126 +401,21 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
           <TouchableOpacity 
             style={[styles.saveButton, { backgroundColor: theme.primary }]} 
             onPress={handleSave}
+            disabled={loading}
           >
-            <MaterialCommunityIcons name="content-save" size={18} color="#fff" />
-            <Text style={styles.saveButtonText}>Kaydet</Text>
+            {loading ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <>
+                <MaterialCommunityIcons name="content-save" size={18} color="#fff" />
+                <Text style={styles.saveButtonText}>Kaydet</Text>
+              </>
+            )}
           </TouchableOpacity>
         </View>
-        
-        {/* Hakim Ekleme/Düzenleme Modal */}
-        <Modal
-          visible={showJudgeModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowJudgeModal(false)}
-        >
-          <View style={[styles.modalOverlay, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]}>
-            <View style={[styles.modalContainer, { backgroundColor: theme.cardBackground }]}>
-              <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
-                <Text style={[styles.modalTitle, { color: theme.text }]}>
-                  {judgeModalMode === 'add' ? 'Hakim Ekle' : 'Hakim Düzenle'}
-                </Text>
-                <TouchableOpacity onPress={() => setShowJudgeModal(false)}>
-                  <MaterialCommunityIcons name="close" size={24} color={theme.textSecondary} />
-                </TouchableOpacity>
-              </View>
-              
-              <View style={styles.modalContent}>
-                <View style={styles.formGroup}>
-                  <Text style={[styles.label, { color: theme.textSecondary }]}>Hakim Adı *</Text>
-                  <TextInput
-                    style={[
-                      styles.input, 
-                      judgeErrors.judgeName && styles.inputError,
-                      { 
-                        backgroundColor: theme.inputBg, 
-                        borderColor: judgeErrors.judgeName ? "#ef4444" : theme.border,
-                        color: theme.text 
-                      }
-                    ]}
-                    value={judgeName}
-                    onChangeText={setJudgeName}
-                    placeholder="Hakim adını girin"
-                    placeholderTextColor={theme.textSecondary}
-                  />
-                  {judgeErrors.judgeName && (
-                    <Text style={styles.errorText}>{judgeErrors.judgeName}</Text>
-                  )}
-                </View>
-                
-                <View style={styles.formGroup}>
-                  <Text style={[styles.label, { color: theme.textSecondary }]}>Sicil No</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      { 
-                        backgroundColor: theme.inputBg, 
-                        borderColor: theme.border,
-                        color: theme.text 
-                      }
-                    ]}
-                    value={judgeId}
-                    onChangeText={setJudgeId}
-                    placeholder="Sicil numarasını girin"
-                    placeholderTextColor={theme.textSecondary}
-                  />
-                </View>
-                
-                <View style={styles.formGroup}>
-                  <Text style={[styles.label, { color: theme.textSecondary }]}>Unvan</Text>
-                  <TextInput
-                    style={[
-                      styles.input,
-                      { 
-                        backgroundColor: theme.inputBg, 
-                        borderColor: theme.border,
-                        color: theme.text 
-                      }
-                    ]}
-                    value={judgeTitle}
-                    onChangeText={setJudgeTitle}
-                    placeholder="Unvan (isteğe bağlı)"
-                    placeholderTextColor={theme.textSecondary}
-                  />
-                </View>
-              </View>
-              
-              <View style={[styles.modalFooter, { borderTopColor: theme.border }]}>
-                <TouchableOpacity
-                  style={[styles.modalCancelButton, { borderColor: theme.border, backgroundColor: theme.backgroundSecondary }]}
-                  onPress={() => setShowJudgeModal(false)}
-                >
-                  <Text style={[styles.modalCancelButtonText, { color: theme.textSecondary }]}>İptal</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalSaveButton, { backgroundColor: theme.primary }]}
-                  onPress={handleSaveJudge}
-                >
-                  <Text style={styles.modalSaveButtonText}>Kaydet</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
-
-// Durum rengini belirle
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'Aktif':
-      return '#10b981';
-    case 'Arıza':
-      return '#ef4444';
-    case 'Bakım':
-      return '#f59e0b';
-    case 'Pasif':
-      return '#64748b';
-    default:
-      return '#64748b';
-  }
 };
 
 const styles = StyleSheet.create({
@@ -612,10 +468,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     fontSize: 16,
   },
-  textArea: {
-    minHeight: 100,
-    paddingTop: 12,
-  },
   inputError: {
     borderColor: '#ef4444',
   },
@@ -627,114 +479,24 @@ const styles = StyleSheet.create({
   judgesContainer: {
     marginBottom: 16,
   },
-  judgeItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
+  judgeFields: {
     borderWidth: 1,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 16,
   },
-  judgeInfo: {
-    flex: 1,
-  },
-  judgeName: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  judgeId: {
-    fontSize: 14,
-    marginTop: 2,
+  judgeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   judgeTitle: {
-    fontSize: 14,
-    marginTop: 2,
-    fontStyle: 'italic',
-  },
-  judgeActions: {
-    flexDirection: 'row',
-  },
-  judgeActionButton: {
-    padding: 8,
-    marginLeft: 4,
-  },
-  emptyJudges: {
-    alignItems: 'center',
-    paddingVertical: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    marginBottom: 8,
-  },
-  emptyJudgesText: {
-    fontSize: 14,
-  },
-  addJudgeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 8,
-    paddingVertical: 10,
-    marginTop: 8,
-  },
-  addJudgeButtonText: {
-    color: '#ffffff',
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  statusContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  statusOption: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-    marginHorizontal: 4,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: 'center',
-  },
-  statusText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  devicesContainer: {
-    marginBottom: 16,
-  },
-  deviceCounterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  deviceInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deviceLabel: {
-    marginLeft: 8,
-    fontSize: 16,
-  },
-  counterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  counterButton: {
-    borderRadius: 6,
-    width: 32,
-    height: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  counterValue: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginHorizontal: 16,
-    minWidth: 24,
-    textAlign: 'center',
+  },
+  removeJudgeButton: {
+    padding: 4,
   },
   footer: {
     flexDirection: 'row',
@@ -821,6 +583,29 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '500',
   },
+  addJudgeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  addJudgeButtonText: {
+    color: '#ffffff',
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  dropdown: {
+    marginBottom: 16,
+  },
+  selectText: {
+    fontSize: 16,
+    padding: 2,
+  },
+  selectTextPlaceholder: {
+    color: '#9ca3af',
+  }
 });
 
 export default withThemedScreen(JudgeRoomForm); 

@@ -1,8 +1,9 @@
+// Supabase yapılandırması
 const supabaseUrl = 'https://vpqcqsiglylfjauzzvuv.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZwcWNxc2lnbHlsZmphdXp6dnV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYyNjc5MTUsImV4cCI6MjA2MTg0MzkxNX0.D-o_zWB5GoOfJLBtJ9ueeBCnp5fbr03wqTwrTC09Rmc';
-window.supabase = window.supabase || window.supabase; // kütüphane zaten window.supabase olarak geliyor
-window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+// Supabase client'ı oluştur
+window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
 // Örnek Veri
 const state = {
@@ -33,16 +34,47 @@ const state = {
 };
 
 // Sayfa yüklendiğinde çalışacak ana fonksiyon
-document.addEventListener('DOMContentLoaded', function() {
+function initializePage() {
+    // Tema ayarını yükle
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Tema butonunu güncelle
+    const toggleThemeButton = document.querySelector('.toggle-theme');
+    if (toggleThemeButton) {
+        const themeIcon = toggleThemeButton.querySelector('i');
+        if (themeIcon) {
+            themeIcon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+        }
+    }
+
+    // Sidebar durumunu yükle
+    const sidebar = document.querySelector('.sidebar');
+    const toggleSidebarButton = document.querySelector('.toggle-sidebar');
+    if (sidebar && toggleSidebarButton) {
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState === 'collapsed') {
+            sidebar.classList.add('collapsed');
+            if (toggleSidebarButton.querySelector('span')) {
+                toggleSidebarButton.querySelector('span').textContent = 'Menü Aç';
+            }
+        }
+    }
+
+    // Diğer başlatma fonksiyonlarını çağır
     setupSidebar();
     setupContent();
     checkUserAuthStatus();
     setupThemeToggle();
     updateSidebarUser();
-    
-    // Tema değişimini test et
-    console.log('Mevcut tema:', document.documentElement.getAttribute('data-theme'));
-});
+}
+
+// Sayfa yüklendiğinde başlat
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    initializePage();
+} else {
+    document.addEventListener('DOMContentLoaded', initializePage);
+}
 
 // Kullanıcı oturum durumunu kontrol et
 function checkUserAuthStatus() {
@@ -51,32 +83,34 @@ function checkUserAuthStatus() {
     if (!user) {
         // Kullanıcı oturumu yoksa ve login sayfasında değilse, login sayfasına yönlendir
         if (!window.location.pathname.includes('login.html')) {
-        window.location.href = 'login.html';
-    }
+            window.location.href = 'login.html';
+        }
         return;
-}
+    }
 
     // Kullanıcı oturumu varsa, kullanıcı bilgilerini güncelle
-    updateUserInfo(JSON.parse(user));
+    updateSidebarUser();
 }
 
-// Kullanıcı bilgilerini güncelle
-function updateUserInfo(userData) {
-    // Sidebar'daki kullanıcı bilgilerini güncelle
-    const userAvatar = document.querySelector('.user-profile img');
-    const userName = document.querySelector('.user-info h3');
-    const userRole = document.querySelector('.user-info p');
-    
-    if (userAvatar && userData.avatar_url) {
-        userAvatar.src = userData.avatar_url;
+// Sidebar'daki kullanıcı bilgilerini güncelleyen fonksiyon (tek ve doğru versiyon)
+function updateSidebarUser() {
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) return;
+    // Fotoğraf
+    const sidebarImg = document.querySelector('.user-profile img');
+    if (sidebarImg && (user.foto_url || user.avatar_url)) {
+        sidebarImg.src = user.foto_url || user.avatar_url;
+        sidebarImg.alt = user.ad_soyad || 'Kullanıcı Avatarı';
     }
-    
-    if (userName) {
-        userName.textContent = 'Hoş Geldiniz';
+    // Hoş Geldiniz başlığı
+    const sidebarWelcome = document.querySelector('.user-info h3');
+    if (sidebarWelcome) {
+        sidebarWelcome.textContent = 'Hoş Geldiniz';
     }
-    
-    if (userRole && userData.ad_soyad) {
-        userRole.textContent = userData.ad_soyad;
+    // Ad Soyad
+    const sidebarName = document.querySelector('.user-info p');
+    if (sidebarName) {
+        sidebarName.textContent = user.ad_soyad || 'Kullanıcı';
     }
 }
 
@@ -585,22 +619,6 @@ function setupThemeToggle() {
     }
 }
 
-function updateSidebarUser() {
-    const user = JSON.parse(localStorage.getItem('user'));
-    if (!user) return;
-    // Fotoğraf
-    const sidebarImg = document.querySelector('.user-profile img');
-    if (sidebarImg && (user.foto_url || user.avatar_url)) {
-        sidebarImg.src = user.foto_url || user.avatar_url;
-        sidebarImg.alt = user.ad_soyad || 'Kullanıcı Avatarı';
-    }
-    // Ad Soyad
-    const sidebarName = document.querySelector('.user-info p');
-    if (sidebarName) {
-        sidebarName.textContent = user.ad_soyad || 'Kullanıcı';
-    }
-}
-
 // Modern notification fonksiyonları
 function showNotification(message, type = 'info', duration = 4000) {
     // Önceki bildirimi kaldır
@@ -652,3 +670,12 @@ function hideNotification(notification) {
     }, 300); // Animasyon süresiyle uyumlu olmalı
 } 
 
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setupThemeToggle();
+    setupSidebar();
+} else {
+    document.addEventListener('DOMContentLoaded', function() {
+        setupThemeToggle();
+        setupSidebar();
+    });
+}

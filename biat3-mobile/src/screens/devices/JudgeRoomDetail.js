@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -10,18 +10,25 @@ import {
   Alert,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
 
 const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
-  const { judgeRoom = {} } = route?.params || {};
+  const { oda_numarasi } = route?.params || {};
+  const [judgeRoom, setJudgeRoom] = useState(null);
+  const [hakimDevices, setHakimDevices] = useState([
+    { laptop: null, monitor: null, printer: null },
+    { laptop: null, monitor: null, printer: null },
+    { laptop: null, monitor: null, printer: null },
+  ]);
   
   // Cihaz icon ve etiketleri
   const deviceMap = {
     laptop: { icon: 'laptop', label: 'Dizüstü Bilgisayar' },
-    monitor: { icon: 'monitor', label: 'Monitör' },
-    printer: { icon: 'printer', label: 'Yazıcı' },
+    monitor: { icon: 'monitor-dashboard', label: 'Monitör' },
+    printer: { icon: 'printer-pos', label: 'Yazıcı' },
   };
 
   // Durum rengini belirle
@@ -45,6 +52,79 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
   // Toplam cihaz sayısı
   const totalDevices = Object.values(judgeRoom?.devices || {}).reduce((sum, count) => sum + count, 0);
 
+  useEffect(() => {
+    if (!oda_numarasi) return;
+    const fetchJudgeRoom = async () => {
+      const { data, error } = await supabase
+        .from('hakim_odalari')
+        .select('*')
+        .eq('oda_numarasi', oda_numarasi)
+        .single();
+      setJudgeRoom(data);
+    };
+    fetchJudgeRoom();
+  }, [oda_numarasi]);
+
+  // Ekrana odaklanınca veriyi tekrar çek
+  useFocusEffect(
+    React.useCallback(() => {
+      if (!oda_numarasi) return;
+      const fetchJudgeRoom = async () => {
+        const { data, error } = await supabase
+          .from('hakim_odalari')
+          .select('*')
+          .eq('oda_numarasi', oda_numarasi)
+          .single();
+        setJudgeRoom(data);
+      };
+      fetchJudgeRoom();
+    }, [oda_numarasi])
+  );
+
+  useEffect(() => {
+    if (!judgeRoom) return;
+
+    const fetchDevices = async () => {
+      const newDevices = await Promise.all([1, 2, 3].map(async (i) => {
+        const hakimAdSoyad = judgeRoom[`hakim${i}_adisoyadi`];
+        const hakimBirim = judgeRoom[`hakim${i}_birimi`];
+        const hakimMahkemeNo = judgeRoom[`hakim${i}_mahkemeno`];
+
+        const [laptop, monitor, printer] = await Promise.all([
+          hakimAdSoyad && hakimBirim && hakimMahkemeNo
+            ? supabase.from('laptops').select('*')
+                .eq('adi_soyadi', hakimAdSoyad)
+                .eq('birim', hakimBirim)
+                .eq('mahkeme_no', hakimMahkemeNo)
+                .single()
+            : { data: null },
+          hakimAdSoyad && hakimBirim && hakimMahkemeNo
+            ? supabase.from('screens').select('*')
+                .eq('adi_soyadi', hakimAdSoyad)
+                .eq('birim', hakimBirim)
+                .eq('mahkeme_no', hakimMahkemeNo)
+                .single()
+            : { data: null },
+          hakimAdSoyad && hakimBirim && hakimMahkemeNo
+            ? supabase.from('printers').select('*')
+                .eq('adi_soyadi', hakimAdSoyad)
+                .eq('birim', hakimBirim)
+                .eq('mahkeme_no', hakimMahkemeNo)
+                .single()
+            : { data: null },
+        ]);
+        return {
+          laptop: laptop.data,
+          monitor: monitor.data,
+          printer: printer.data,
+        };
+      }));
+      setHakimDevices(newDevices);
+    };
+
+    fetchDevices();
+  }, [judgeRoom]);
+
   // Düzenleme ekranına git
   const handleEdit = () => {
     try {
@@ -62,7 +142,7 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
     try {
       Alert.alert(
         'Oda Sil',
-        `"${judgeRoom?.judgeName || 'Bu odayı'}" silmek istediğinize emin misiniz?`,
+        `${judgeRoom?.oda_numarasi || 'Bu odayı'} silmek istediğinize emin misiniz?`,
         [
           {
             text: 'İptal',
@@ -71,11 +151,18 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
           {
             text: 'Sil',
             style: 'destructive',
-            onPress: () => {
+            onPress: async () => {
               try {
-                setTimeout(() => {
-                  navigation.navigate('JudgeRooms', { deletedJudgeRoom: judgeRoom });
-                }, 0);
+                const { error } = await supabase
+                  .from('hakim_odalari')
+                  .delete()
+                  .eq('id', judgeRoom.id);
+                if (error) {
+                  Alert.alert('Hata', 'Silme işlemi sırasında bir hata oluştu.');
+                } else {
+                  Alert.alert('Başarılı', 'Oda başarıyla silindi.');
+                  navigation.goBack();
+                }
               } catch (navError) {
                 console.error('Silme işlemi navigasyon hatası: ', navError);
                 alert('Silme işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.');
@@ -119,8 +206,36 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
     }
   };
 
+  // Hakim bilgilerini diziye çevir
+  const hakimler = [
+    {
+      adisoyadi: judgeRoom?.hakim1_adisoyadi,
+      birimi: judgeRoom?.hakim1_birimi,
+      mahkemeno: judgeRoom?.hakim1_mahkemeno,
+      laptop: judgeRoom?.hakim1_laptop,
+      monitor: judgeRoom?.hakim1_monitor,
+      yazici: judgeRoom?.hakim1_yazici,
+    },
+    {
+      adisoyadi: judgeRoom?.hakim2_adisoyadi,
+      birimi: judgeRoom?.hakim2_birimi,
+      mahkemeno: judgeRoom?.hakim2_mahkemeno,
+      laptop: judgeRoom?.hakim2_laptop,
+      monitor: judgeRoom?.hakim2_monitor,
+      yazici: judgeRoom?.hakim2_yazici,
+    },
+    {
+      adisoyadi: judgeRoom?.hakim3_adisoyadi,
+      birimi: judgeRoom?.hakim3_birimi,
+      mahkemeno: judgeRoom?.hakim3_mahkemeno,
+      laptop: judgeRoom?.hakim3_laptop,
+      monitor: judgeRoom?.hakim3_monitor,
+      yazici: judgeRoom?.hakim3_yazici,
+    },
+  ];
+
   // If judgeRoom is undefined or null, show an error state
-  if (!judgeRoom || Object.keys(judgeRoom).length === 0) {
+  if (!judgeRoom) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
         <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
@@ -161,138 +276,118 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
           >
             <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Hakim Odası Detayları</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}> {judgeRoom?.oda_numarasi ? `${judgeRoom.oda_numarasi} Nolu Oda` : 'Hakim Odası Detayları'} </Text>
           <View style={{ width: 32 }} />
         </View>
 
         <ScrollView style={styles.content}>
-          <View style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}>
-            <View style={styles.titleRow}>
-              <Text style={[styles.title, { color: theme.text }]}>Oda {String(judgeRoom?.roomNumber || 'Belirtilmemiş')}</Text>
-              <View style={[styles.statusBadge, { backgroundColor: getStatusColor(judgeRoom?.status) }]}>
-                <Text style={styles.statusText}>{String(judgeRoom?.status || 'Belirsiz')}</Text>
-              </View>
-            </View>
-
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="account" size={20} color={theme.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Hakim Bilgileri</Text>
-            </View>
-
-            {/* Eğer judges dizisi varsa onları göster, yoksa eski yöntemi kullan */}
-            {judgeRoom?.judges && judgeRoom.judges.length > 0 ? (
-              judgeRoom.judges.map((judge, index) => (
-                <View key={judge.id || index} style={[
-                  styles.judgeCard, 
-                  index > 0 && [styles.judgeCardSeparator, { borderTopColor: theme.border }]
-                ]}>
-                  <View style={styles.infoRow}>
-                    <MaterialCommunityIcons name="account-tie" size={20} color={theme.textSecondary} />
-                    <Text style={[styles.infoText, { color: theme.text }]}>{String(judge.name || 'Belirtilmemiş')}</Text>
-                  </View>
-
-                  {judge.regId ? (
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="card-account-details" size={20} color={theme.textSecondary} />
-                      <Text style={[styles.infoText, { color: theme.text }]}>Sicil No: {String(judge.regId)}</Text>
-                    </View>
-                  ) : null}
-
-                  {judge.title ? (
-                    <View style={styles.infoRow}>
-                      <MaterialCommunityIcons name="badge-account" size={20} color={theme.textSecondary} />
-                      <Text style={[styles.infoText, { color: theme.text }]}>{String(judge.title)}</Text>
-                    </View>
-                  ) : null}
-                </View>
-              ))
-            ) : (
-              <>
+          {hakimler.filter(h => h.adisoyadi).map((hakim, idx) => {
+            // Debug log
+            console.log(`Hakim ${idx+1}:`, hakim.adisoyadi, 'Laptop:', hakimDevices[idx]?.laptop, 'Monitor:', hakimDevices[idx]?.monitor, 'Printer:', hakimDevices[idx]?.printer);
+            return (
+              <View key={idx} style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}> 
                 <View style={styles.infoRow}>
                   <MaterialCommunityIcons name="account-tie" size={20} color={theme.textSecondary} />
-                  <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.judgeName || 'Belirtilmemiş')}</Text>
+                  <Text style={[styles.infoText, { color: theme.text }]}>{hakim.adisoyadi || 'Belirtilmemiş'}</Text>
                 </View>
-
                 <View style={styles.infoRow}>
-                  <MaterialCommunityIcons name="card-account-details" size={20} color={theme.textSecondary} />
-                  <Text style={[styles.infoText, { color: theme.text }]}>Sicil No: {String(judgeRoom?.judgeId || 'Belirtilmemiş')}</Text>
+                  <MaterialCommunityIcons name="gavel" size={20} color={theme.textSecondary} />
+                  <Text style={[styles.infoText, { color: theme.text }]}>
+                    {hakim.mahkemeno ? `${hakim.mahkemeno} ` : ''}{hakim.birimi || 'Belirtilmemiş'}
+                  </Text>
                 </View>
-              </>
-            )}
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="gavel" size={20} color={theme.textSecondary} />
-              <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.court || 'Belirtilmemiş')}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <MaterialCommunityIcons name="map-marker" size={20} color={theme.textSecondary} />
-              <Text style={[styles.infoText, { color: theme.text }]}>{String(judgeRoom?.roomNumber || 'Belirtilmemiş')} Nolu Oda, {String(judgeRoom?.location || 'Adliye')}</Text>
-            </View>
-
-            <View style={[styles.divider, { backgroundColor: theme.border }]} />
-
-            <View style={styles.sectionHeader}>
-              <MaterialCommunityIcons name="devices" size={20} color={theme.primary} />
-              <Text style={[styles.sectionTitle, { color: theme.text }]}>Cihazlar ({totalDevices})</Text>
-            </View>
-            
-            <View style={styles.deviceGrid}>
-              {Object.entries(deviceMap || {}).map(([key, { icon, label }]) => {
-                // deviceMap içindeki değer kontrolü
-                if (!key || !icon || !label) return null;
-                
-                return (
-                  <TouchableOpacity 
-                    key={key} 
-                    style={styles.deviceItem}
-                    onPress={() => handleDeviceDetail(key)}
-                    disabled={!judgeRoom?.devices || !judgeRoom.devices[key] || judgeRoom.devices[key] <= 0}
+                <View style={styles.deviceRow}>
+                  <TouchableOpacity
+                    style={styles.deviceCard}
+                    onPress={() => {
+                      if (hakimDevices[idx]?.laptop) {
+                        navigation.navigate('DeviceDetail', {
+                          device: {
+                            ...hakimDevices[idx].laptop,
+                            type: 'laptop',
+                            adi_soyadi: hakim.adisoyadi,
+                            birim: hakim.birimi,
+                            mahkeme_no: hakim.mahkemeno,
+                            unvan: judgeRoom?.unvan || '',
+                            sicil_no: judgeRoom?.sicil_no || judgeRoom?.sicilno || ''
+                          }
+                        });
+                      }
+                    }}
+                    disabled={!hakimDevices[idx]?.laptop}
                   >
-                    <View style={[
-                      styles.deviceIconContainer,
-                      { backgroundColor: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
-                          theme.primary + '20' : theme.backgroundSecondary }
-                    ]}>
-                      <MaterialCommunityIcons 
-                        name={icon} 
-                        size={24} 
-                        color={judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
-                          theme.primary : theme.textSecondary} 
-                      />
-                    </View>
-                    <Text style={[
-                      styles.deviceItemText,
-                      { color: judgeRoom?.devices && judgeRoom.devices[key] > 0 ? 
-                          theme.text : theme.textSecondary }
-                    ]}>
-                      {label}
-                    </Text>
-                    {judgeRoom?.devices && judgeRoom.devices[key] > 0 ? (
-                      <View style={[styles.deviceCountTag, { backgroundColor: theme.primary }]}>
-                        <Text style={styles.deviceCountText}>{judgeRoom.devices[key]}</Text>
-                      </View>
+                    <MaterialCommunityIcons name="laptop" size={20} color={theme.textSecondary} />
+                    {hakimDevices[idx]?.laptop ? (
+                      <>
+                        <Text style={[styles.deviceCardText, { color: theme.text }]}> {hakimDevices[idx].laptop.laptop_marka || '-'} {hakimDevices[idx].laptop.laptop_model || '-'} </Text>
+                        <Text style={[styles.deviceCardText, { color: theme.textSecondary }]}>{hakimDevices[idx].laptop.laptop_seri_no || '-'}</Text>
+                      </>
                     ) : (
-                      <View style={[styles.deviceMissingTag, { backgroundColor: theme.backgroundSecondary }]}>
-                        <Text style={[styles.deviceMissingText, { color: theme.textSecondary }]}>0</Text>
-                      </View>
+                      <Text style={[styles.deviceCardText, { color: theme.text }]}>Laptop bulunamadı</Text>
                     )}
                   </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {judgeRoom?.notes && (
-              <>
-                <View style={[styles.divider, { backgroundColor: theme.border }]} />
-                <View style={styles.sectionHeader}>
-                  <MaterialCommunityIcons name="note-text" size={20} color={theme.primary} />
-                  <Text style={[styles.sectionTitle, { color: theme.text }]}>Notlar</Text>
+                  <TouchableOpacity
+                    style={styles.deviceCard}
+                    onPress={() => {
+                      if (hakimDevices[idx]?.monitor) {
+                        navigation.navigate('DeviceDetail', {
+                          device: {
+                            ...hakimDevices[idx].monitor,
+                            type: 'monitor',
+                            adi_soyadi: hakim.adisoyadi,
+                            birim: hakim.birimi,
+                            mahkeme_no: hakim.mahkemeno,
+                            unvan: judgeRoom?.unvan || '',
+                            sicil_no: judgeRoom?.sicil_no || judgeRoom?.sicilno || ''
+                          }
+                        });
+                      }
+                    }}
+                    disabled={!hakimDevices[idx]?.monitor}
+                  >
+                    <MaterialCommunityIcons name="monitor-dashboard" size={20} color={theme.textSecondary} />
+                    {hakimDevices[idx]?.monitor ? (
+                      <>
+                        <Text style={[styles.deviceCardText, { color: theme.text }]}>{hakimDevices[idx].monitor.ekran_marka || '-'} {hakimDevices[idx].monitor.ekran_model || '-'}</Text>
+                        <Text style={[styles.deviceCardText, { color: theme.textSecondary }]}>{hakimDevices[idx].monitor.ekran_seri_no || '-'}</Text>
+                      </>
+                    ) : (
+                      <Text style={[styles.deviceCardText, { color: theme.text }]}>Monitör bulunamadı</Text>
+                    )}
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.deviceCard}
+                    onPress={() => {
+                      if (hakimDevices[idx]?.printer) {
+                        navigation.navigate('DeviceDetail', {
+                          device: {
+                            ...hakimDevices[idx].printer,
+                            type: 'printer',
+                            adi_soyadi: hakim.adisoyadi,
+                            birim: hakim.birimi,
+                            mahkeme_no: hakim.mahkemeno,
+                            unvan: judgeRoom?.unvan || '',
+                            sicil_no: judgeRoom?.sicil_no || judgeRoom?.sicilno || ''
+                          }
+                        });
+                      }
+                    }}
+                    disabled={!hakimDevices[idx]?.printer}
+                  >
+                    <MaterialCommunityIcons name="printer-pos" size={20} color={theme.textSecondary} />
+                    {hakimDevices[idx]?.printer ? (
+                      <>
+                        <Text style={[styles.deviceCardText, { color: theme.text }]}>{hakimDevices[idx].printer.yazici_marka || '-'} {hakimDevices[idx].printer.yazici_model || '-'}</Text>
+                        <Text style={[styles.deviceCardText, { color: theme.textSecondary }]}>{hakimDevices[idx].printer.yazici_seri_no || '-'}</Text>
+                      </>
+                    ) : (
+                      <Text style={[styles.deviceCardText, { color: theme.text }]}>Yazıcı bulunamadı</Text>
+                    )}
+                  </TouchableOpacity>
                 </View>
-                <Text style={[styles.notesText, { color: theme.textSecondary }]}>{judgeRoom.notes}</Text>
-              </>
-            )}
-          </View>
+              </View>
+            );
+          })}
         </ScrollView>
 
         <View style={[styles.footer, { backgroundColor: theme.cardBackground, borderTopColor: theme.border }]}>
@@ -370,42 +465,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  statusText: {
-    color: '#ffffff',
-    fontWeight: '500',
-    fontSize: 12,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
   },
   infoRow: {
     flexDirection: 'row',
@@ -416,66 +477,6 @@ const styles = StyleSheet.create({
   infoText: {
     fontSize: 16,
     marginLeft: 8,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 16,
-  },
-  deviceGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -6,
-  },
-  deviceItem: {
-    width: '33.333%',
-    padding: 6,
-    marginBottom: 12,
-    position: 'relative',
-  },
-  deviceIconContainer: {
-    height: 56,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  deviceItemText: {
-    fontSize: 14,
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  deviceCountTag: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deviceCountText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  deviceMissingTag: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  deviceMissingText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  notesText: {
-    fontSize: 16,
-    lineHeight: 24,
   },
   footer: {
     flexDirection: 'row',
@@ -510,13 +511,23 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginLeft: 8,
   },
-  judgeCard: {
-    paddingVertical: 8,
+  deviceRow: {
+    marginTop: 12,
   },
-  judgeCardSeparator: {
-    borderTopWidth: 1,
-    marginTop: 8,
-    paddingTop: 12,
+  deviceCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: 'transparent',
+  },
+  deviceCardText: {
+    fontSize: 14,
+    marginLeft: 10,
+    textAlign: 'left',
   },
 });
 

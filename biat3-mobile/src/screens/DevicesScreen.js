@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import withThemedScreen from '../components/withThemedScreen';
+import { supabase } from '../supabaseClient';
 
 // Ana kategori ekranı
 const DevicesScreen = ({ navigation, theme, themedStyles }) => {
@@ -54,6 +55,36 @@ const DevicesScreen = ({ navigation, theme, themedStyles }) => {
     },
   ];
 
+  const [deviceCounts, setDeviceCounts] = useState({
+    toplamCihaz: 0,
+    mahkemeKalemi: 0,
+    durusmaSalonu: 0,
+    hakimOdasi: 0,
+  });
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      setIsLoading(true);
+      // Toplam cihaz
+      const { count: toplamCihaz } = await supabase.from('devices').select('*', { count: 'exact', head: true });
+      // Mahkeme kalemi
+      const { count: mahkemeKalemi } = await supabase.from('devices').select('*', { count: 'exact', head: true }).eq('oda_tipi', 'Mahkeme Kalemleri');
+      // Duruşma salonu
+      const { count: durusmaSalonu } = await supabase.from('devices').select('*', { count: 'exact', head: true }).eq('oda_tipi', 'Duruşma Salonu');
+      // Hakim odası
+      const { count: hakimOdasi } = await supabase.from('devices').select('*', { count: 'exact', head: true }).eq('oda_tipi', 'Hakim Odaları');
+      setDeviceCounts({
+        toplamCihaz: toplamCihaz || 0,
+        mahkemeKalemi: mahkemeKalemi || 0,
+        durusmaSalonu: durusmaSalonu || 0,
+        hakimOdasi: hakimOdasi || 0,
+      });
+      setIsLoading(false);
+    };
+    fetchCounts();
+  }, []);
+
   // Kategori kartı bileşeni
   const CategoryCard = ({ item }) => (
     <TouchableOpacity 
@@ -92,20 +123,22 @@ const DevicesScreen = ({ navigation, theme, themedStyles }) => {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <View style={[styles.statsContainer, themedStyles.card, themedStyles.shadow]}>
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, themedStyles.text]}>3,724</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Toplam Cihaz</Text>
+        <View style={[styles.statsContainer, themedStyles.card, themedStyles.shadow, { flexWrap: 'wrap', flexDirection: 'row', justifyContent: 'space-between' }]}>
+          <View style={[styles.statItem, { width: '48%' }]}>
+            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.toplamCihaz}</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Cihaz</Text>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, themedStyles.text]}>3,605</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Aktif</Text>
+          <View style={[styles.statItem, { width: '48%' }]}>
+            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.mahkemeKalemi}</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Mahkeme Kalemi</Text>
           </View>
-          <View style={[styles.statDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, themedStyles.text]}>119</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Arıza/Bakım</Text>
+          <View style={[styles.statItem, { width: '48%' }]}>
+            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.durusmaSalonu}</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Duruşma Salonu</Text>
+          </View>
+          <View style={[styles.statItem, { width: '48%' }]}>
+            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.hakimOdasi}</Text>
+            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Hakim Odası</Text>
           </View>
         </View>
 

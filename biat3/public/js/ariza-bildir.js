@@ -1,4 +1,5 @@
-
+// Supabase client'ı al
+window.supabase = window.supabaseClient;
 
 document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('issueForm').addEventListener('submit', async function(e) {
@@ -59,8 +60,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // --- GÖREVLİ PERSONELİ BUL ---
+        // 1. Adminleri çek
+        const { data: adminler, error: adminError } = await supabase
+            .from('users')
+            .select('ad_soyad')
+            .eq('yetki', 'admin');
+        if (adminError || !adminler || adminler.length === 0) {
+            alert('Görevli personel atanamadı (admin bulunamadı).');
+            return;
+        }
+        // 2. Mevcut arıza sayısını çek
+        const { count: arizaCount, error: countError } = await supabase
+            .from('ariza_bildirimleri')
+            .select('id', { count: 'exact', head: true });
+        if (countError) {
+            alert('Görevli personel atanamadı (arıza sayısı alınamadı).');
+            return;
+        }
+        // 3. Sıradaki admini bul
+        const adminIndex = arizaCount % adminler.length;
+        const gorevli_personel = adminler[adminIndex].ad_soyad;
+
         // Şimdi tabloya kaydet
-        console.log('Tabloya kaydediliyor:', { sicil_no, aciklama, telefon, foto_url });
+        console.log('Tabloya kaydediliyor:', { sicil_no, aciklama, telefon, foto_url, gorevli_personel });
         const today = new Date().toISOString(); // UTC ISO formatı
         const ariza_no = generateArizaNo();
         const { error: insertError } = await supabase
@@ -71,7 +94,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 ariza_aciklamasi: aciklama,
                 telefon: telefon,
                 foto_url: foto_url,
-                tarih: today
+                tarih: today,
+                gorevli_personel: gorevli_personel
             }]);
         
         if (insertError) {

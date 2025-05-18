@@ -12,94 +12,31 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
+import { Swipeable } from 'react-native-gesture-handler';
 
 const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
   const navigation = useNavigation();
   
-  // Örnek hakim odaları listesi
-  const initialJudgeRooms = [
-    { 
-      id: '1', 
-      roomNumber: '103', 
-      judgeName: 'Hakim Ali Yılmaz', 
-      judgeId: 'HC12345',
-      court: 'Asliye Ceza Mahkemesi', 
-      location: '1. Kat',
-      devices: {
-        laptop: 1,
-        monitor: 1,
-        printer: 1,
-      },
-      status: 'Aktif',
-      notes: 'Yazıcı toner değişimi gerekiyor.'
-    },
-    { 
-      id: '2', 
-      roomNumber: '105', 
-      judgeName: 'Hakim Ayşe Demir', 
-      judgeId: 'HH67890',
-      court: 'Asliye Hukuk Mahkemesi', 
-      location: '1. Kat',
-      devices: {
-        laptop: 1,
-        monitor: 1,
-        printer: 1,
-      },
-      status: 'Aktif',
-      notes: ''
-    },
-    { 
-      id: '3', 
-      roomNumber: '201', 
-      judgeName: 'Hakim Mehmet Öz', 
-      judgeId: 'HS54321',
-      court: 'Sulh Ceza Hakimliği', 
-      location: '2. Kat',
-      devices: {
-        laptop: 1,
-        monitor: 2,
-        printer: 1,
-      },
-      status: 'Bakım',
-      notes: 'Laptop yenisiyle değiştirilecek.'
-    },
-    { 
-      id: '4', 
-      roomNumber: '204', 
-      judgeName: 'Hakim Zeynep Kaya', 
-      judgeId: 'HI98765',
-      court: 'İş Mahkemesi', 
-      location: '2. Kat',
-      devices: {
-        laptop: 1,
-        monitor: 1,
-        printer: 0,
-      },
-      status: 'Arıza',
-      notes: 'Monitör arızalı, yenisi talep edildi.'
-    },
-    { 
-      id: '5', 
-      roomNumber: '301', 
-      judgeName: 'Hakim Ahmet Şahin', 
-      judgeId: 'HA24680',
-      court: 'Ağır Ceza Mahkemesi', 
-      location: '3. Kat',
-      devices: {
-        laptop: 1,
-        monitor: 2,
-        printer: 1,
-      },
-      status: 'Aktif',
-      notes: ''
-    },
-  ];
-
-  // State tanımları
-  const [judgeRooms, setJudgeRooms] = useState(initialJudgeRooms);
-  const [filteredRooms, setFilteredRooms] = useState(initialJudgeRooms);
+  const [judgeRooms, setJudgeRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // Supabase'dan hakim odalarını çek
+  useEffect(() => {
+    const fetchJudgeRooms = async () => {
+      const { data, error } = await supabase
+        .from('hakim_odalari')
+        .select('*')
+        .order('id', { ascending: true });
+      if (!error && data) {
+        setJudgeRooms(data);
+        setFilteredRooms(data);
+      }
+    };
+    fetchJudgeRooms();
+  }, []);
+
   // Process room updates when screen is focused
   useFocusEffect(
     useCallback(() => {
@@ -139,28 +76,15 @@ const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
       const lowerCaseQuery = searchQuery.toLowerCase();
       const filtered = judgeRooms.filter(
         item => 
-          item.roomNumber.toLowerCase().includes(lowerCaseQuery) ||
-          item.judgeName.toLowerCase().includes(lowerCaseQuery) ||
-          item.court.toLowerCase().includes(lowerCaseQuery)
+          (item.oda_numarasi || '').toString().toLowerCase().includes(lowerCaseQuery) ||
+          (item.hakim1_adisoyadi || '').toLowerCase().includes(lowerCaseQuery) ||
+          (item.hakim2_adisoyadi || '').toLowerCase().includes(lowerCaseQuery) ||
+          (item.hakim3_adisoyadi || '').toLowerCase().includes(lowerCaseQuery)
       );
       setFilteredRooms(filtered);
     }
   }, [judgeRooms, searchQuery]);
   
-  // Durum rengini belirleme
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'Aktif':
-        return '#10b981';
-      case 'Arıza':
-        return '#ef4444';
-      case 'Bakım':
-        return '#f59e0b';
-      default:
-        return '#64748b';
-    }
-  };
-
   // Yeni oda ekleme
   const handleAddRoom = () => {
     try {
@@ -176,27 +100,8 @@ const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
   // Hakim odası detayına git
   const handleRoomDetail = (room) => {
     try {
-      // Odanın tüm gerekli alanlarının mevcut olduğunu kontrol et
-      const safeRoom = {
-        id: room?.id || '',
-        roomNumber: room?.roomNumber || '',
-        judgeName: room?.judgeName || '',
-        judgeId: room?.judgeId || '',
-        court: room?.court || '',
-        location: room?.location || '',
-        devices: room?.devices || {
-          laptop: 0,
-          monitor: 0,
-          printer: 0,
-        },
-        status: room?.status || 'Belirsiz',
-        notes: room?.notes || ''
-      };
-      
-      // Navigasyon işlemini bir setTimeout içinde gerçekleştir
-      // Bu, JavaScript event loop'un diğer işleri bitirmesine izin verir
       setTimeout(() => {
-        navigation.navigate('JudgeRoomDetail', { judgeRoom: safeRoom });
+        navigation.navigate('JudgeRoomDetail', { oda_numarasi: room.oda_numarasi });
       }, 0);
     } catch (error) {
       console.error('Navigasyon hatası: ', error);
@@ -204,65 +109,68 @@ const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
     }
   };
 
+  // Hakim odası sil
+  const handleDeleteRoom = async (room) => {
+    try {
+      const { error } = await supabase
+        .from('hakim_odalari')
+        .delete()
+        .eq('id', room.id);
+      if (!error) {
+        setJudgeRooms(prev => prev.filter(item => item.id !== room.id));
+        setFilteredRooms(prev => prev.filter(item => item.id !== room.id));
+      }
+    } catch (err) {
+      alert('Silme işlemi sırasında hata oluştu.');
+    }
+  };
+
+  // Hakim odası düzenle
+  const handleEditRoom = (room) => {
+    navigation.navigate('JudgeRoomForm', { judgeRoom: room });
+  };
+
+  // Swipeable actions
+  const renderRightActions = (room) => (
+    <View style={{ flexDirection: 'row', height: '100%' }}>
+      <TouchableOpacity
+        style={[styles.swipeAction, { backgroundColor: '#1e40af' }]}
+        onPress={() => handleEditRoom(room)}
+      >
+        <MaterialCommunityIcons name="pencil" size={24} color="#fff" />
+        <Text style={styles.swipeActionText}>Düzenle</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.swipeAction, { backgroundColor: '#ef4444' }]}
+        onPress={() => handleDeleteRoom(room)}
+      >
+        <MaterialCommunityIcons name="delete" size={24} color="#fff" />
+        <Text style={styles.swipeActionText}>Sil</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   // Hakim odası kartı bileşeni
   const renderRoomItem = ({ item }) => {
-    // Toplam cihaz sayısını hesapla
-    const totalDevices = item.devices ? 
-      Object.values(item.devices).reduce((sum, count) => sum + count, 0) : 0;
-    
-    // Hakim isimlerini göster
-    const displayJudges = () => {
-      if (item.judges && item.judges.length > 0) {
-        // Birden fazla hakim varsa hakim sayısını göster
-        if (item.judges.length > 1) {
-          return (
-            <View style={styles.judgesInfo}>
-              <Text style={[styles.judgeName, { color: theme.text }]}>{item.judges[0].name}</Text>
-              <Text style={[styles.judgeCount, { color: theme.textSecondary }]}>+{item.judges.length - 1} hakim daha</Text>
-            </View>
-          );
-        } else {
-          // Tek hakim varsa sadece ismini göster
-          return <Text style={[styles.judgeName, { color: theme.text }]}>{item.judges[0].name}</Text>;
-        }
-      } else {
-        // Eski formatta veya hakim bilgisi yoksa
-        return <Text style={[styles.judgeName, { color: theme.text }]}>{item.judgeName || "Belirtilmemiş"}</Text>;
-      }
-    };
-      
+    // Konum: blok + kat
+    const location = [item.blok, item.kat].filter(Boolean).join(' - ');
     return (
-      <TouchableOpacity 
-        style={[styles.roomCard, { backgroundColor: theme.cardBackground, shadowColor: theme.isDark ? 'transparent' : '#000' }]}
-        onPress={() => handleRoomDetail(item)}
-      >
-        <View style={styles.roomInfo}>
-          <View style={styles.roomHeader}>
-            <Text style={[styles.roomNumber, { color: theme.text }]}>Oda {item.roomNumber}</Text>
-            <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-              <Text style={styles.statusText}>{item.status}</Text>
+      <Swipeable renderRightActions={() => renderRightActions(item)}>
+        <TouchableOpacity 
+          style={[styles.roomCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+          onPress={() => handleRoomDetail(item)}
+        >
+          <View style={styles.roomInfo}>
+            <View style={styles.roomHeader}>
+              <Text style={[styles.roomNumber, { color: theme.text }]}>Oda {item.oda_numarasi}</Text>
             </View>
+            <Text style={[styles.judgeName, { color: theme.text }]}>{item.hakim1_adisoyadi}</Text>
+            <Text style={[styles.judgeName, { color: theme.text }]}>{item.hakim2_adisoyadi}</Text>
+            <Text style={[styles.judgeName, { color: theme.text }]}>{item.hakim3_adisoyadi}</Text>
+            <Text style={[styles.courtName, { color: theme.textSecondary }]}>{location}</Text>
           </View>
-          {displayJudges()}
-          <Text style={[styles.courtName, { color: theme.textSecondary }]}>{item.court}</Text>
-        </View>
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
-        <View style={styles.deviceInfoContainer}>
-          <View style={[styles.deviceIconContainer, { backgroundColor: theme.backgroundSecondary }]}>
-            <MaterialCommunityIcons name="devices" size={16} color={theme.primary} />
-          </View>
-          <View style={styles.deviceInfo}>
-            <Text style={[styles.deviceCount, { color: theme.textSecondary }]}>{totalDevices} Cihaz</Text>
-            <TouchableOpacity 
-              style={styles.detailsButton}
-              onPress={() => handleRoomDetail(item)}
-            >
-              <Text style={[styles.detailsText, { color: theme.primary }]}>Detaylar</Text>
-              <MaterialCommunityIcons name="chevron-right" size={16} color={theme.primary} />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </Swipeable>
     );
   };
 
@@ -278,9 +186,6 @@ const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
             <MaterialCommunityIcons name="arrow-left" size={24} color={theme.primary} />
           </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Hakim Odaları</Text>
-          <TouchableOpacity style={styles.filterButton}>
-            <MaterialCommunityIcons name="filter" size={24} color={theme.primary} />
-          </TouchableOpacity>
         </View>
 
         <View style={[styles.searchContainer, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
@@ -357,9 +262,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  filterButton: {
-    padding: 8,
+    flex: 1,
+    textAlign: 'center',
   },
   searchContainer: {
     padding: 16,
@@ -386,10 +290,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderWidth: 1,
   },
   roomInfo: {
     marginBottom: 12,
@@ -404,64 +305,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#ffffff',
-  },
   judgeName: {
     fontSize: 15,
     fontWeight: '500',
     marginBottom: 4,
   },
-  judgesInfo: {
-    marginBottom: 4,
-  },
-  judgeCount: {
-    fontSize: 13,
-    fontStyle: 'italic',
-  },
   courtName: {
     fontSize: 14,
-  },
-  divider: {
-    height: 1,
-    marginBottom: 12,
-  },
-  deviceInfoContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  deviceIconContainer: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 10,
-  },
-  deviceInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  deviceCount: {
-    fontSize: 14,
-  },
-  detailsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  detailsText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginRight: 4,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -501,6 +351,18 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 3,
+  },
+  swipeAction: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    height: '100%',
+    flexDirection: 'column',
+  },
+  swipeActionText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginTop: 4,
   },
 });
 

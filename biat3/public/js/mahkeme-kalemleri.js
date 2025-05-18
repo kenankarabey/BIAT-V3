@@ -1,3 +1,5 @@
+
+const supabase = window.supabaseClient;
 // Mahkeme Kalemleri verilerini tutacak dizi
 let mahkemeKalemleri = [];
 

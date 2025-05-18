@@ -1,4 +1,4 @@
-;
+const supabase = window.supabaseClient;
 
 // URL'den oda numarasını al
 function getOdaNumarasi() {

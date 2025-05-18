@@ -1,21 +1,25 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, FlatList, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
+import { useIsFocused } from '@react-navigation/native';
 
 const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
-  // Örnek mahkeme kalemleri listesi
-  const [courtOffices, setCourtOffices] = useState([
-    { id: '1', name: '1. Asliye Hukuk Mahkemesi', deviceCount: { pc: 1, printer: 0, other: 0 }, type: 'Asliye Hukuk', location: 'B Blok, 9. Kat', status: 'Aktif', lastCheck: '07.04.2025' },
-    { id: '2', name: '2. Sulh Hukuk Mahkemesi', deviceCount: { pc: 0, printer: 0, other: 0 }, type: 'Sulh Hukuk', location: '9. Kat', status: 'Aktif', lastCheck: '07.04.2025' },
-    { id: '3', name: '1. Asliye Ceza Mahkemesi', deviceCount: { pc: 0, printer: 0, other: 0 }, type: 'Asliye Ceza', location: 'D Blok, 4. Kat', status: 'Aktif', lastCheck: '21.04.2025' },
-    { id: '4', name: 'İcra Dairesi', deviceCount: { pc: 2, printer: 1, other: 1 }, type: 'İcra', location: 'A Blok, 2. Kat', status: 'Bakım', lastCheck: '05.04.2025' },
-    { id: '5', name: 'Ağır Ceza Mahkemesi', deviceCount: { pc: 3, printer: 2, other: 0 }, type: 'Ağır Ceza', location: 'C Blok, 5. Kat', status: 'Aktif', lastCheck: '10.04.2025' },
-    { id: '6', name: 'İş Mahkemesi', deviceCount: { pc: 2, printer: 1, other: 0 }, type: 'İş', location: 'B Blok, 3. Kat', status: 'Aktif', lastCheck: '12.04.2025' },
-    { id: '7', name: 'Ticaret Mahkemesi', deviceCount: { pc: 2, printer: 1, other: 1 }, type: 'Ticaret', location: 'A Blok, 6. Kat', status: 'Bakım', lastCheck: '09.04.2025' },
-    { id: '8', name: 'Aile Mahkemesi', deviceCount: { pc: 1, printer: 1, other: 0 }, type: 'Aile', location: 'D Blok, 2. Kat', status: 'Arıza', lastCheck: '14.04.2025' },
-  ]);
+  // Mahkeme kalemleri
+  const [courtOffices, setCourtOffices] = useState([]);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    const fetchCourtOffices = async () => {
+      const { data, error } = await supabase.from('mahkeme_kalemleri').select('*');
+      if (!error && data) {
+        setCourtOffices(data);
+      }
+    };
+    if (isFocused) fetchCourtOffices();
+  }, [isFocused]);
 
   // Durum filtreleri
   const [selectedType, setSelectedType] = useState('Tümü');
@@ -31,14 +35,17 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
   const [showTypeFilter, setShowTypeFilter] = useState(false);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   
-  // Filtrelenmiş mahkeme kalemleri
+  // Arama kutusu
+  const [search, setSearch] = useState('');
+  
+  // Filtrelenmiş mahkeme kalemleri (arama)
   const filteredCourtOffices = courtOffices.filter(office => {
-    // Tür filtresi
-    const typeMatch = selectedType === 'Tümü' || office.type === selectedType;
-    // Durum filtresi
-    const statusMatch = selectedStatus === 'Tümü' || office.status === selectedStatus;
-    
-    return typeMatch && statusMatch;
+    const query = search.toLowerCase();
+    return (
+      (office.mahkeme_no + '. ' + office.mahkeme_turu + ' Mahkemesi').toLowerCase().includes(query) ||
+      (office.mahkeme_turu || '').toLowerCase().includes(query) ||
+      (office.mahkeme_hakimi || '').toLowerCase().includes(query)
+    );
   });
 
   // Durum rengini belirleme
@@ -62,6 +69,7 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
   };
   
   // Mahkeme kalemini silme işlevi
+  const [deletingId, setDeletingId] = useState(null);
   const handleDelete = (id) => {
     Alert.alert(
       "Mahkeme Kalemini Sil",
@@ -70,9 +78,19 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
         { text: "İptal", style: "cancel" },
         { 
           text: "Sil", 
-          onPress: () => {
+          onPress: async () => {
+            setDeletingId(id);
+            const { error } = await supabase
+              .from('mahkeme_kalemleri')
+              .delete()
+              .eq('id', id);
+            setDeletingId(null);
+            if (!error) {
             setCourtOffices(courtOffices.filter(office => office.id !== id));
             Alert.alert("Başarılı", "Mahkeme kalemi başarıyla silindi");
+            } else {
+              Alert.alert("Hata", error.message || "Silme işlemi başarısız oldu");
+            }
           },
           style: "destructive"
         }
@@ -109,70 +127,24 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
 
   // Mahkeme kartı bileşeni
   const CourtOfficeCard = ({ item }) => (
-    <Swipeable renderRightActions={() => renderRightActions(item)}>
       <TouchableOpacity
         style={[styles.courtCard, themedStyles.card, themedStyles.shadow]}
         onPress={() => navigation.navigate('CourtOfficeDetail', { office: item })}
       >
-        <View style={styles.cardHeader}>
-          <Text style={[styles.courtName, themedStyles.text]}>{item.name}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
-            <Text style={styles.statusText}>{item.status}</Text>
-          </View>
-        </View>
-        
+      <Text style={[styles.courtName, themedStyles.text]}>{item.mahkeme_no}. {item.mahkeme_turu}</Text>
         <View style={styles.courtTypeRow}>
           <Ionicons name="briefcase-outline" size={16} color={theme.textSecondary} />
-          <Text style={[styles.courtTypeText, themedStyles.textSecondary]}>{item.type}</Text>
+        <Text style={[styles.courtTypeText, themedStyles.textSecondary]}>{item.mahkeme_turu}</Text>
         </View>
-        
         <View style={styles.courtLocationRow}>
           <Ionicons name="location-outline" size={16} color={theme.textSecondary} />
-          <Text style={[styles.courtLocationText, themedStyles.textSecondary]}>{item.location}</Text>
+        <Text style={[styles.courtLocationText, themedStyles.textSecondary]}>{item.blok}, {item.kat}</Text>
         </View>
-        
-        <View style={[styles.divider, { backgroundColor: theme.border }]} />
-        
-        <View style={styles.deviceInfoRow}>
-          <View style={styles.deviceCol}>
-            <Ionicons name="desktop-outline" size={18} color={theme.primary} />
-            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.pc}</Text>
-          </View>
-          
-          <View style={styles.deviceCol}>
-            <Ionicons name="print-outline" size={18} color={theme.primary} />
-            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.printer}</Text>
-          </View>
-          
-          <View style={styles.deviceCol}>
-            <Ionicons name="hardware-chip-outline" size={18} color={theme.primary} />
-            <Text style={[styles.deviceCount, themedStyles.text]}>{item.deviceCount.other}</Text>
-          </View>
-        </View>
-
-        <View style={styles.cardFooter}>
-          <View style={styles.dateContainer}>
-            <Ionicons name="calendar-outline" size={14} color={theme.textSecondary} />
-            <Text style={[styles.dateText, themedStyles.textSecondary]}>{item.lastCheck}</Text>
-          </View>
-          
-          <View style={styles.actionButtons}>
-            <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: theme.inputBg }]}
-              onPress={() => handleEdit(item)}
-            >
-              <Ionicons name="pencil-outline" size={18} color={theme.text} style={styles.actionIcon} />
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.actionButton, { backgroundColor: theme.inputBg }]}
-              onPress={() => handleDelete(item.id)}
-            >
-              <Ionicons name="trash-outline" size={18} color="#ef4444" style={styles.actionIcon} />
-            </TouchableOpacity>
-          </View>
+      <View style={styles.courtJudgeRow}>
+        <Ionicons name="person-outline" size={16} color={theme.textSecondary} />
+        <Text style={[styles.courtJudgeText, themedStyles.textSecondary]}>Mahkeme Hakimi: {item.mahkeme_hakimi}</Text>
         </View>
       </TouchableOpacity>
-    </Swipeable>
   );
 
   return (
@@ -200,91 +172,24 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
         </View>
 
         <View style={[styles.filterContainer, themedStyles.card, { borderBottomColor: theme.border }]}>
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterLabel, themedStyles.textSecondary]}>MAHKEME TÜRÜ</Text>
-            <TouchableOpacity 
-              style={[styles.filterBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
-              onPress={() => setShowTypeFilter(!showTypeFilter)}
-            >
-              <Text style={[styles.filterValue, themedStyles.text]}>{selectedType}</Text>
-              <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
-            </TouchableOpacity>
-            
-            {showTypeFilter && (
-              <View style={[styles.filterDropdown, themedStyles.card, { borderColor: theme.border }]}>
-                {courtTypes.map((type) => (
-                  <TouchableOpacity 
-                    key={type} 
-                    style={[
-                      styles.filterOption,
-                      { borderBottomColor: theme.border },
-                      selectedType === type && { backgroundColor: theme.inputBg }
-                    ]}
-                    onPress={() => {
-                      setSelectedType(type);
-                      setShowTypeFilter(false);
-                    }}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      themedStyles.text,
-                      selectedType === type && { color: theme.primary, fontWeight: '600' }
-                    ]}>{type}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          <View style={styles.filterSection}>
-            <Text style={[styles.filterLabel, themedStyles.textSecondary]}>DURUM</Text>
-            <TouchableOpacity 
-              style={[styles.filterBox, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
-              onPress={() => setShowStatusFilter(!showStatusFilter)}
-            >
-              <Text style={[styles.filterValue, themedStyles.text]}>{selectedStatus}</Text>
-              <Ionicons name="chevron-down" size={16} color={theme.textSecondary} />
-            </TouchableOpacity>
-            
-            {showStatusFilter && (
-              <View style={[styles.filterDropdown, themedStyles.card, { borderColor: theme.border }]}>
-                {statusTypes.map((status) => (
-                  <TouchableOpacity 
-                    key={status} 
-                    style={[
-                      styles.filterOption,
-                      { borderBottomColor: theme.border },
-                      selectedStatus === status && { backgroundColor: theme.inputBg }
-                    ]}
-                    onPress={() => {
-                      setSelectedStatus(status);
-                      setShowStatusFilter(false);
-                    }}
-                  >
-                    <Text style={[
-                      styles.filterOptionText,
-                      themedStyles.text,
-                      selectedStatus === status && { color: theme.primary, fontWeight: '600' }
-                    ]}>{status}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </View>
-
-          <TouchableOpacity 
-            style={styles.resetFilterButton}
-            onPress={resetFilters}
-          >
-            <Ionicons name="refresh" size={16} color={theme.primary} />
-            <Text style={[styles.resetFilterText, { color: theme.primary }]}>Sıfırla</Text>
-          </TouchableOpacity>
+          <Ionicons name="search-outline" size={18} color={theme.textSecondary} style={{ marginRight: 8 }} />
+          <TextInput
+            style={{ flex: 1, fontSize: 15, color: theme.text, backgroundColor: 'transparent' }}
+            placeholder="Mahkeme, tür veya hakim ara..."
+            placeholderTextColor={theme.textSecondary}
+            value={search}
+            onChangeText={setSearch}
+          />
         </View>
 
         <FlatList
           data={filteredCourtOffices}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <CourtOfficeCard item={item} />}
+          renderItem={({ item }) => (
+            <Swipeable renderRightActions={() => renderRightActions(item)}>
+              <CourtOfficeCard item={item} />
+            </Swipeable>
+          )}
           contentContainerStyle={styles.cardsContainer}
         />
       </View>
@@ -400,26 +305,10 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   courtName: {
     fontSize: 16,
     fontWeight: '600',
     flex: 1,
-  },
-  statusBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#ffffff',
   },
   courtTypeRow: {
     flexDirection: 'row',
@@ -439,49 +328,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 6,
   },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
-  deviceInfoRow: {
+  courtJudgeRow: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    alignItems: 'center',
     marginBottom: 12,
   },
-  deviceCol: {
-    alignItems: 'center',
-  },
-  deviceCount: {
+  courtJudgeText: {
     fontSize: 14,
-    fontWeight: '600',
-    marginTop: 4,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  dateText: {
-    fontSize: 12,
-    marginLeft: 4,
-  },
-  actionButtons: {
-    flexDirection: 'row',
-  },
-  actionButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
-  },
-  actionIcon: {
-    marginTop: 1,
+    marginLeft: 6,
   },
   swipeActions: {
     flexDirection: 'row',

@@ -561,22 +561,22 @@ const ProfileScreen = ({ navigation }) => {
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
         <ScrollView showsVerticalScrollIndicator={false}>
           {user && (
-            <View style={[styles.header, dynamicStyles.header]}>
-              <Image
+          <View style={[styles.header, dynamicStyles.header]}>
+        <Image
                 source={user.foto_url ? { uri: user.foto_url } : require('../../images/BIAT-logo.png')}
-                style={styles.profileImage}
+          style={styles.profileImage}
                 resizeMode="cover"
-              />
+        />
               <Text style={[styles.userName, dynamicStyles.userName]}>{user.ad_soyad}</Text>
-              <View style={styles.badgeContainer}>
-                <View style={styles.badge}>
+            <View style={styles.badgeContainer}>
+              <View style={styles.badge}>
                   <Text style={styles.badgeText}>{user.departman}</Text>
-                </View>
-                <View style={[styles.badge, styles.activeBadge]}>
-                  <Text style={styles.activeBadgeText}>Aktif</Text>
-                </View>
+              </View>
+              <View style={[styles.badge, styles.activeBadge]}>
+                <Text style={styles.activeBadgeText}>Aktif</Text>
               </View>
             </View>
+          </View>
           )}
 
           <View style={[styles.statsContainer, dynamicStyles.card]}>
@@ -584,7 +584,7 @@ const ProfileScreen = ({ navigation }) => {
               <Text style={[styles.statValue, dynamicStyles.text]}>{resolvedCount}</Text>
               <Text style={[styles.statLabel, dynamicStyles.secondaryText]}>Çözülen Arıza</Text>
             </View>
-          </View>
+      </View>
 
           <View style={[styles.infoContainer, dynamicStyles.card]}>
             <Text style={[styles.sectionTitle, dynamicStyles.text]}>Kişisel Bilgiler</Text>
@@ -604,31 +604,31 @@ const ProfileScreen = ({ navigation }) => {
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="business-outline" size={22} color={theme.primary} />
               <Text style={[styles.infoText, dynamicStyles.text]}>{user?.departman}</Text>
-            </View>
+        </View>
             <View style={[styles.infoItem, { borderBottomWidth: 0 }]}>
               <Ionicons name="time-outline" size={22} color={theme.primary} />
               <Text style={[styles.infoText, dynamicStyles.text]}>Son Aktivite: {user?.last_activity || '-'}</Text>
-            </View>
-          </View>
+        </View>
+      </View>
 
           <View style={[styles.optionsContainer, dynamicStyles.card]}>
             <TouchableOpacity style={[styles.optionItem, { borderBottomColor: theme.border }]} onPress={openSettings}>
               <Ionicons name="settings-outline" size={22} color={theme.primary} />
               <Text style={[styles.optionText, dynamicStyles.text]}>Ayarlar</Text>
               <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
-            </TouchableOpacity>
-            
+        </TouchableOpacity>
+        
             <TouchableOpacity style={[styles.optionItem, { borderBottomWidth: 0 }]} onPress={openAbout}>
               <Ionicons name="information-circle-outline" size={22} color={theme.primary} />
               <Text style={[styles.optionText, dynamicStyles.text]}>Hakkında</Text>
               <Ionicons name="chevron-forward" size={22} color={theme.textSecondary} />
-            </TouchableOpacity>
-          </View>
+        </TouchableOpacity>
+      </View>
 
           <TouchableOpacity style={[styles.logoutButton, { backgroundColor: isDarkMode ? '#dc2626' : theme.primary }]} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={22} color="#fff" />
-            <Text style={styles.logoutText}>Çıkış Yap</Text>
-          </TouchableOpacity>
+        <Ionicons name="log-out-outline" size={22} color="#fff" />
+        <Text style={styles.logoutText}>Çıkış Yap</Text>
+      </TouchableOpacity>
           
           <View style={styles.versionInfo}>
             <Text style={[styles.versionText, dynamicStyles.secondaryText]}>BIAT Kontrol Uygulaması v1.2.5</Text>
@@ -639,7 +639,7 @@ const ProfileScreen = ({ navigation }) => {
         {showHelpModal && renderHelpModal()}
         {showSecurityModal && renderSecurityModal()}
         {showAboutModal && renderAboutModal()}
-      </SafeAreaView>
+    </SafeAreaView>
     </ThemeContext.Provider>
   );
 };

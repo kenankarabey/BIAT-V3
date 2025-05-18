@@ -85,6 +85,12 @@
                         </ul>
                     </li>
                     <li>
+                        <a href="chatbot.html">
+                            <i class="fas fa-robot"></i>
+                            <span>Teknik Destek Chatbot</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="profil.html" class="active">
                             <i class="fas fa-user"></i>
                             <span>Profil</span>
@@ -249,5 +255,21 @@
     <script src="js/main.js"></script>
     <script src="js/profile.js"></script>
     <script src="js/login.js"></script>
+    <script>
+        // Sayfa yüklendiğinde başlatma işlemlerini çağır
+        document.addEventListener('DOMContentLoaded', function() {
+            // Ana sayfa başlatma fonksiyonlarını çağır
+            if (typeof initializePage === 'function') {
+                initializePage();
+            }
+            // Tema ve menü başlatma
+            if (typeof setupThemeToggle === 'function') {
+                setupThemeToggle();
+            }
+            if (typeof setupSidebar === 'function') {
+                setupSidebar();
+            }
+        });
+    </script>
 </body>
 </html> 
