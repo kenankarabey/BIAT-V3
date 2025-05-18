@@ -668,14 +668,4 @@ function hideNotification(notification) {
     setTimeout(() => {
         notification.remove();
     }, 300); // Animasyon süresiyle uyumlu olmalı
-} 
-
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setupThemeToggle();
-    setupSidebar();
-} else {
-    document.addEventListener('DOMContentLoaded', function() {
-        setupThemeToggle();
-        setupSidebar();
-    });
 }

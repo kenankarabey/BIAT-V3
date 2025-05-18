@@ -559,4 +559,9 @@
 
 .delete-chat-btn:hover {
     color: #dc3545;
+}
+
+[data-theme="dark"] .user-message {
+    background-color: #2e315c !important;
+    color: #fff;
 } 
