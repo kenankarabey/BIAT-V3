@@ -13,60 +13,65 @@ const resetFiltersBtn = document.getElementById('resetFilters')
 const applyFiltersBtn = document.getElementById('applyFilters')
 const addJudgeBtn = document.getElementById('addJudgeBtn')
 
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const locationFilter = document.getElementById('locationFilter');
+
+    function triggerFilter() {
+        filterChambers(
+            searchInput ? searchInput.value : '',
+            locationFilter ? locationFilter.value : ''
+        );
+    }
+
+    if (searchInput) searchInput.addEventListener('input', triggerFilter);
+    if (locationFilter) locationFilter.addEventListener('change', triggerFilter);
+});
+
+let allChambers = [];
+
 // Odaları yükle
 async function loadChambers() {
     try {
-        console.log('Odalar yükleniyor...')
         const { data: chambers, error } = await supabase
             .from('hakim_odalari')
             .select('*')
             .order('oda_numarasi', { ascending: true })
-
-        if (error) {
-            console.error('Supabase hatası:', error)
-            throw error
-        }
-
-        console.log('Yüklenen odalar:', chambers)
-        displayChambers(chambers)
+        if (error) throw error;
+        allChambers = chambers || [];
+        displayChambers(allChambers)
     } catch (error) {
-        console.error('Odalar yüklenirken hata:', error)
-        showNotification('Odalar yüklenirken bir hata oluştu!', 'error')
+        showNotification('Odalar yüklenirken bir hata oluştu!', 'error');
     }
 }
 
 // Odaları görüntüle
 function displayChambers(chambers) {
-    console.log('Odalar görüntüleniyor:', chambers)
-    chambersContainer.innerHTML = ''
-    
+    chambersContainer.innerHTML = '';
     if (!chambers || chambers.length === 0) {
-        console.log('Görüntülenecek oda yok')
-        chambersContainer.innerHTML = '<div class="no-data">Henüz oda eklenmemiş</div>'
-        return
+        chambersContainer.innerHTML = '<div class="no-data">Henüz oda eklenmemiş</div>';
+        return;
     }
-    
     chambers.forEach(chamber => {
-        console.log('Oda kartı oluşturuluyor:', chamber)
-        const chamberCard = createChamberCard(chamber)
-        chambersContainer.appendChild(chamberCard)
-    })
+        const chamberCard = createChamberCard(chamber);
+        chambersContainer.appendChild(chamberCard);
+    });
 }
 
 // Oda kartı oluştur
 function createChamberCard(chamber) {
-    console.log('Kart oluşturuluyor:', chamber)
+    const odaNumarasi = chamber.oda_numarasi ? chamber.oda_numarasi : '-';
+    const blok = chamber.blok ? chamber.blok : '-';
+    const kat = chamber.kat ? chamber.kat : '-';
     const card = document.createElement('div')
     card.className = 'oda-karti'
-    
-    // Kartın içeriğini oluştur
     const cardContent = `
         <div class="oda-karti-header">
             <div class="oda-baslik">
-                <h2>${chamber.oda_numarasi} Nolu Oda</h2>
+                <h2>${odaNumarasi} Nolu Oda</h2>
                 <div class="oda-konum">
                     <i class="fas fa-location-dot"></i>
-                    <span>${chamber.blok}, ${chamber.kat}</span>
+                    <span>${blok}, ${kat}</span>
                 </div>
             </div>
         </div>
@@ -86,33 +91,32 @@ function createChamberCard(chamber) {
             </button>
         </div>
     `
-
     card.innerHTML = cardContent
-
-    // Kartın tamamına tıklama olayı ekle
     card.style.cursor = 'pointer'
     card.onclick = () => {
-        window.location.href = `hakim-odasi-detay.html?oda=${chamber.oda_numarasi}`
+        window.location.href = `hakim-odasi-detay.html?oda=${odaNumarasi}`
     }
-    
     return card
 }
 
 // Hakim satırı oluştur
 function createJudgeRow(adSoyad, birim, mahkemeNo) {
-    if (!adSoyad) return '';
-    let birimText = '';
+    if (!adSoyad && !birim && !mahkemeNo) return '';
+    const ad = adSoyad ? adSoyad : '-';
+    let birimText = '-';
     if (mahkemeNo && birim) {
         birimText = `${mahkemeNo} ${birim} Mahkemesi`;
     } else if (birim) {
         birimText = `${birim} Mahkemesi`;
+    } else if (mahkemeNo) {
+        birimText = `${mahkemeNo} Mahkemesi`;
     }
     return `
         <div class="hakim-row">
             <div class="hakim-bilgi">
                 <div class="hakim-isim">
                     <i class="fas fa-user"></i>
-                    <span>${adSoyad}</span>
+                    <span>${ad}</span>
                 </div>
                 <div class="hakim-mahkeme">
                     <i class="fas fa-gavel"></i>
@@ -406,6 +410,21 @@ function resetFilters() {
     // Filtre işlemleri burada sıfırlanabilir
     console.log('Filtreler sıfırlandı')
     loadChambers()
+}
+
+function filterChambers(query, location) {
+    query = (query || '').toLowerCase();
+    location = (location || '').toLowerCase();
+    const filtered = allChambers.filter(chamber => {
+        const matchesQuery =
+            (chamber.oda_numarasi && chamber.oda_numarasi.toString().toLowerCase().includes(query)) ||
+            (chamber.hakim1_adisoyadi && chamber.hakim1_adisoyadi.toLowerCase().includes(query)) ||
+            (chamber.hakim2_adisoyadi && chamber.hakim2_adisoyadi.toLowerCase().includes(query)) ||
+            (chamber.hakim3_adisoyadi && chamber.hakim3_adisoyadi.toLowerCase().includes(query));
+        const matchesLocation = !location || (chamber.blok && chamber.blok.toLowerCase() === location);
+        return matchesQuery && matchesLocation;
+    });
+    displayChambers(filtered);
 }
 
 // Event listeners

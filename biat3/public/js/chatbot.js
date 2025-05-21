@@ -221,10 +221,10 @@ window.addEventListener('DOMContentLoaded', async () => {
 sendButton.addEventListener('click', sendMessage);
 userInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') {
+        e.preventDefault(); // Bunu ekleyin!
         sendMessage();
     }
 });
-
 // Genel sohbet ve selamlaşma kelimeleri
 const greetings = [
     'merhaba', 'selam', 'günaydın', 'iyi günler', 'iyi akşamlar', 'nasılsın', 'naber',
@@ -350,7 +350,8 @@ let conversationContext = {
     lastResponse: null,
     lastContext: null,
     deviceAdd: null,
-    waitingForSerialQuery: false
+    waitingForSerialQuery: false,
+    waitingForDeviceDeleteSerial: false
 };
 
 // Devam isteğini kontrol eden fonksiyon
@@ -465,7 +466,7 @@ const deviceTypes = {
 
             { key: 'unvan', label: 'Unvan' },
             { key: 'adi_soyadi', label: 'Adı Soyadı' },
-            { key: 'sicil_no', label: 'Sicil No' },
+            { key: 'sicilno', label: 'Sicil No' },
             { key: 'yazici_marka', label: 'Yazıcı Marka' },
             { key: 'yazici_model', label: 'Yazıcı Model' },
             { key: 'yazici_seri_no', label: 'Yazıcı Seri No' },
@@ -688,41 +689,359 @@ function isDeviceQueryIntent(message) {
     return deviceQueryKeywords.some(keyword => lower.includes(keyword));
 }
 
-// Tüm cihaz tablolarında seri no arama fonksiyonu
-async function queryDeviceBySerial(serialNo) {
-    // Tüm tablo ve alan kombinasyonları
+// Yaklaşan garanti ve temizlik sorgulama anahtar kelimeleri
+const warrantyQueryKeywords = [
+    'yaklaşan garanti',
+    'garantisi bitmek üzere',
+    'garanti takibi',
+    'garantisi dolacak',
+    'garanti süresi bitiyor',
+    'garanti bitiş',
+    'garanti bitiyor',
+    'garantisi yaklaşan',
+    'garantisi yaklaşan cihaz',
+    'garantisi yaklaşan cihazlar',
+    'garantisi yaklaşan var mı',
+    'garantisi yaklaşan cihaz var mı',
+    'garantisi yaklaşan cihazlar var mı'
+];
+const cleaningQueryKeywords = [
+    'yaklaşan temizlik',
+    'temizlik takibi',
+    'temizlik zamanı gelen',
+    'temizlik zamanı yaklaşan',
+    'temizlik bitiş',
+    'temizlik bitiyor',
+    'temizliği yaklaşan',
+    'temizliği yaklaşan cihaz',
+    'temizliği yaklaşan cihazlar',
+    'temizliği yaklaşan var mı',
+    'temizliği yaklaşan cihaz var mı',
+    'temizliği yaklaşan cihazlar var mı'
+];
+
+function isWarrantyQueryIntent(message) {
+    const lower = message.toLowerCase();
+    return warrantyQueryKeywords.some(keyword => lower.includes(keyword));
+}
+function isCleaningQueryIntent(message) {
+    const lower = message.toLowerCase();
+    return cleaningQueryKeywords.some(keyword => lower.includes(keyword));
+}
+
+const expiredWarrantyKeywords = [
+    'garantisi geçen',
+    'garantisi bitmiş',
+    'garantisi biten',
+    'garantisi dolmuş',
+    'garantisi sona eren',
+    'garantisi geçmiş',
+    'garantisi geçen cihaz',
+    'garantisi geçen cihazlar',
+    'garantisi bitmiş cihaz',
+    'garantisi bitmiş cihazlar',
+    'garantisi biten cihaz',
+    'garantisi biten cihazlar',
+    'garantisi dolmuş cihaz',
+    'garantisi dolmuş cihazlar',
+    'garantisi sona eren cihaz',
+    'garantisi sona eren cihazlar',
+    'garantisi geçmiş cihaz',
+    'garantisi geçmiş cihazlar'
+];
+function isExpiredWarrantyQueryIntent(message) {
+    const lower = message.toLowerCase();
+    return expiredWarrantyKeywords.some(keyword => lower.includes(keyword));
+}
+
+// Temizlik tarihi geçmiş/bitmiş cihazlar için anahtar kelimeler
+const expiredCleaningKeywords = [
+    'temizlik tarihi geçen',
+    'temizlik tarihi geçmiş',
+    'temizlik tarihi bitmiş',
+    'temizlik tarihi dolmuş',
+    'temizlik tarihi sona eren',
+    'temizlik tarihi biten',
+    'temizlik tarihi geçmiş cihaz',
+    'temizlik tarihi geçen cihaz',
+    'temizlik tarihi bitmiş cihaz',
+    'temizlik tarihi dolmuş cihaz',
+    'temizlik tarihi sona eren cihaz',
+    'temizlik tarihi biten cihaz',
+    'temizlik tarihi geçmiş cihazlar',
+    'temizlik tarihi geçen cihazlar',
+    'temizlik tarihi bitmiş cihazlar',
+    'temizlik tarihi dolmuş cihazlar',
+    'temizlik tarihi sona eren cihazlar',
+    'temizlik tarihi biten cihazlar',
+    'temizliği geçmiş',
+    'temizliği geçen',
+    'temizliği bitmiş',
+    'temizliği dolmuş',
+    'temizliği sona eren',
+    'temizliği biten',
+    'temizliği geçmiş cihaz',
+    'temizliği geçen cihaz',
+    'temizliği bitmiş cihaz',
+    'temizliği dolmuş cihaz',
+    'temizliği sona eren cihaz',
+    'temizliği biten cihaz',
+    'temizliği geçmiş cihazlar',
+    'temizliği geçen cihazlar',
+    'temizliği bitmiş cihazlar',
+    'temizliği dolmuş cihazlar',
+    'temizliği sona eren cihazlar',
+    'temizliği biten cihazlar'
+];
+
+// Tüm cihaz tablolarında yaklaşan garanti/temizlik tarihli cihazları bul
+async function queryDevicesWithUpcomingDate(dateKey, days = 30) {
     const tables = [
-        { table: 'computers', key: 'kasa_seri_no' },
-        { table: 'laptops', key: 'laptop_seri_no' },
-        { table: 'screens', key: 'ekran_seri_no' },
-        { table: 'printers', key: 'yazici_seri_no' },
-        { table: 'scanners', key: 'tarayici_seri_no' },
-        { table: 'segbis', key: 'segbis_seri_no' },
-        { table: 'tvs', key: 'tv_seri_no' },
-        { table: 'microphones', key: 'mikrofon_seri_no' },
-        { table: 'cameras', key: 'kamera_seri_no' },
-        { table: 'e_durusma', key: 'edurusma_seri_no' }
+        { table: 'computers', label: 'Bilgisayar' },
+        { table: 'laptops', label: 'Laptop' },
+        { table: 'screens', label: 'Monitör' },
+        { table: 'printers', label: 'Yazıcı' },
+        { table: 'scanners', label: 'Tarayıcı' },
+        { table: 'segbis', label: 'SEGBİS' },
+        { table: 'tvs', label: 'TV' },
+        { table: 'microphones', label: 'Mikrofon' },
+        { table: 'cameras', label: 'Kamera' },
+        { table: 'e_durusma', label: 'E-Duruşma' }
     ];
-    let found = null;
+    const now = new Date();
+    const soon = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+    let results = [];
     for (const t of tables) {
         const { data, error } = await supabase
             .from(t.table)
             .select('*')
-            .eq(t.key, serialNo)
+            .not(dateKey, 'is', null);
+        if (!error && data && data.length > 0) {
+            for (const row of data) {
+                const dt = new Date(row[dateKey]);
+                if (!isNaN(dt) && dt >= now && dt <= soon) {
+                    results.push({
+                        ...row,
+                        table: t.table,
+                        typeLabel: t.label,
+                        date: row[dateKey]
+                    });
+                }
+            }
+        }
+    }
+    // Tarihe göre sırala
+    results.sort((a, b) => new Date(a.date) - new Date(b.date));
+    return results;
+}
+
+// Yeni fonksiyon: Son 1 yıl içinde garantisi biten cihazları bul
+async function queryDevicesWithExpiredWarranty(dateKey, startDate, endDate) {
+    const tables = [
+        { table: 'computers', label: 'Bilgisayar' },
+        { table: 'laptops', label: 'Laptop' },
+        { table: 'screens', label: 'Monitör' },
+        { table: 'printers', label: 'Yazıcı' },
+        { table: 'scanners', label: 'Tarayıcı' },
+        { table: 'segbis', label: 'SEGBİS' },
+        { table: 'tvs', label: 'TV' },
+        { table: 'microphones', label: 'Mikrofon' },
+        { table: 'cameras', label: 'Kamera' },
+        { table: 'e_durusma', label: 'E-Duruşma' }
+    ];
+    let results = [];
+    for (const t of tables) {
+        const { data, error } = await supabase
+            .from(t.table)
+            .select('*')
+            .not(dateKey, 'is', null);
+        if (!error && data && data.length > 0) {
+            for (const row of data) {
+                const dt = new Date(row[dateKey]);
+                if (!isNaN(dt) && dt < endDate && dt >= startDate) {
+                    results.push({
+                        ...row,
+                        table: t.table,
+                        typeLabel: t.label,
+                        date: row[dateKey]
+                    });
+                }
+            }
+        }
+    }
+    // Tarihe göre sırala (en yeni biten en üstte)
+    results.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return results;
+}
+
+// Cihaz silme anahtar kelimeleri
+const deviceDeleteKeywords = [
+    'cihaz sil',
+    'cihazı sil',
+    'bir cihaz silmek istiyorum',
+    'seri numarası ile cihaz sil',
+    'seri no ile cihaz sil',
+    'seri no ile sil',
+    'serino ile sil',
+    'serino ile cihaz sil',
+    'silmek istiyorum',
+    'cihazı kaldır',
+    'kayıt sil',
+    'kayıt kaldır',
+    'cihaz kaydını sil',
+    'cihaz kaydını kaldır'
+];
+function isDeviceDeleteIntent(message) {
+    const lower = message.toLowerCase();
+    return deviceDeleteKeywords.some(keyword => lower.includes(keyword));
+}
+
+// Seri numarasından cihazı bulup silen yardımcı fonksiyon
+enumSerialFields = [
+    'kasa_seri_no', 'laptop_seri_no', 'ekran_seri_no', 'yazici_seri_no',
+    'tarayici_seri_no', 'segbis_seri_no', 'tv_seri_no', 'mikrofon_seri_no',
+    'kamera_seri_no', 'edurusma_seri_no'
+];
+async function deleteDeviceBySerial(serial) {
+    const tables = [
+        { table: 'computers', serialField: 'kasa_seri_no' },
+        { table: 'laptops', serialField: 'laptop_seri_no' },
+        { table: 'screens', serialField: 'ekran_seri_no' },
+        { table: 'printers', serialField: 'yazici_seri_no' },
+        { table: 'scanners', serialField: 'tarayici_seri_no' },
+        { table: 'segbis', serialField: 'segbis_seri_no' },
+        { table: 'tvs', serialField: 'tv_seri_no' },
+        { table: 'microphones', serialField: 'mikrofon_seri_no' },
+        { table: 'cameras', serialField: 'kamera_seri_no' },
+        { table: 'e_durusma', serialField: 'edurusma_seri_no' }
+    ];
+    for (const t of tables) {
+        const { data, error } = await supabase
+            .from(t.table)
+            .select('*')
+            .eq(t.serialField, serial)
             .order('created_at', { ascending: false })
             .limit(1);
         if (!error && data && data.length > 0) {
-            found = { ...data[0], table: t.table };
-            break;
+            // Cihaz bulundu, sil
+            const id = data[0].id;
+            const { error: delError } = await supabase
+                .from(t.table)
+                .delete()
+                .eq('id', id);
+            if (!delError) {
+                return { success: true, table: t.table, serialField: t.serialField, deleted: data[0] };
+            } else {
+                return { success: false, error: delError.message };
+            }
         }
     }
-    return found;
+    return { success: false, error: 'Cihaz bulunamadı.' };
 }
 
 // sendMessage fonksiyonunu güncelle
 async function sendMessage() {
     const message = userInput.value.trim();
     if (!message) return;
+
+    // --- Cihaz silme akışı (ilk kontrol!) ---
+    if (conversationContext.waitingForDeviceDeleteSerial) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        const result = await deleteDeviceBySerial(message.trim());
+        removeTypingIndicator();
+        if (result.success) {
+            addBotMessage(`Cihaz başarıyla silindi! (Tablo: ${result.table})\nSeri No: ${message.trim()}`);
+        } else {
+            addBotMessage('Cihaz silinemedi: ' + result.error);
+        }
+        conversationContext.waitingForDeviceDeleteSerial = false;
+        return;
+    }
+    if (isDeviceDeleteIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        removeTypingIndicator();
+        conversationContext.waitingForDeviceDeleteSerial = true;
+        addBotMessage('Lütfen silmek istediğiniz cihazın seri numarasını giriniz:');
+        return;
+    }
+
+    // --- Temizlik tarihi geçen cihazlar sorgulama (son 3 ay) ---
+    if (isExpiredCleaningQueryIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        const now = new Date();
+        const threeMonthsAgo = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        const results = await queryDevicesWithExpiredWarranty('son_temizlik_tarihi', threeMonthsAgo, now);
+        removeTypingIndicator();
+        if (results.length > 0) {
+            const list = results.map(r =>
+                `• **${r.typeLabel}** | Birim: ${r.birim || '-'} | Seri No: ${r.kasa_seri_no || r.laptop_seri_no || r.ekran_seri_no || r.yazici_seri_no || r.tarayici_seri_no || r.segbis_seri_no || r.tv_seri_no || r.mikrofon_seri_no || r.kamera_seri_no || r.edurusma_seri_no || '-'} | Son Temizlik: ${r.son_temizlik_tarihi}`
+            ).join('\n');
+            addBotMessage(`Son 3 ayda temizlik tarihi geçen cihazlar:\n${list}`);
+        } else {
+            addBotMessage('Son 3 ayda temizlik tarihi geçen cihaz bulunamadı.');
+        }
+        return;
+    }
+
+    // --- Garantisi geçen cihazlar sorgulama ---
+    if (isExpiredWarrantyQueryIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        // Son 1 yıl içinde garantisi bitmiş cihazlar
+        const now = new Date();
+        const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        const results = await queryDevicesWithExpiredWarranty('son_garanti_tarihi', oneYearAgo, now);
+        removeTypingIndicator();
+        if (results.length > 0) {
+            const list = results.map(r =>
+                `• **${r.typeLabel}** | Birim: ${r.birim || '-'} | Seri No: ${r.kasa_seri_no || r.laptop_seri_no || r.ekran_seri_no || r.yazici_seri_no || r.tarayici_seri_no || r.segbis_seri_no || r.tv_seri_no || r.mikrofon_seri_no || r.kamera_seri_no || r.edurusma_seri_no || '-'} | Son Garanti: ${r.son_garanti_tarihi}`
+            ).join('\n');
+            addBotMessage(`Son 1 yıl içinde garantisi biten cihazlar:\n${list}`);
+        } else {
+            addBotMessage('Son 1 yıl içinde garantisi biten cihaz bulunamadı.');
+        }
+        return;
+    }
+    // --- Yaklaşan garanti sorgulama (artık 1 yıl) ---
+    if (isWarrantyQueryIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        const results = await queryDevicesWithUpcomingDate('son_garanti_tarihi', 365); // 1 yıl
+        removeTypingIndicator();
+        if (results.length > 0) {
+            const list = results.map(r =>
+                `• **${r.typeLabel}** | Birim: ${r.birim || '-'} | Seri No: ${r.kasa_seri_no || r.laptop_seri_no || r.ekran_seri_no || r.yazici_seri_no || r.tarayici_seri_no || r.segbis_seri_no || r.tv_seri_no || r.mikrofon_seri_no || r.kamera_seri_no || r.edurusma_seri_no || '-'} | Son Garanti: ${r.son_garanti_tarihi}`
+            ).join('\n');
+            addBotMessage(`Yaklaşan garanti bitiş tarihli cihazlar (1 yıl içinde):\n${list}`);
+        } else {
+            addBotMessage('Önümüzdeki 1 yıl içinde garantisi bitecek cihaz bulunamadı.');
+        }
+        return;
+    }
+    // --- Yaklaşan temizlik sorgulama (30 gün) ---
+    if (isCleaningQueryIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        const results = await queryDevicesWithUpcomingDate('son_temizlik_tarihi', 30);
+        removeTypingIndicator();
+        if (results.length > 0) {
+            const list = results.map(r =>
+                `• **${r.typeLabel}** | Birim: ${r.birim || '-'} | Seri No: ${r.kasa_seri_no || r.laptop_seri_no || r.ekran_seri_no || r.yazici_seri_no || r.tarayici_seri_no || r.segbis_seri_no || r.tv_seri_no || r.mikrofon_seri_no || r.kamera_seri_no || r.edurusma_seri_no || '-'} | Son Temizlik: ${r.son_temizlik_tarihi}`
+            ).join('\n');
+            addBotMessage(`Yaklaşan temizlik tarihi olan cihazlar (30 gün içinde):\n${list}`);
+        } else {
+            addBotMessage('Önümüzdeki 30 gün içinde temizlik zamanı gelen cihaz bulunamadı.');
+        }
+        return;
+    }
 
     // --- Seri numarasından cihaz sorgulama akışı ---
     if (conversationContext.waitingForSerialQuery) {
@@ -1092,6 +1411,11 @@ async function sendMessage() {
         return;
     }
 
+    function isExpiredCleaningQueryIntent(message) {
+        const lower = message.toLowerCase();
+        return expiredCleaningKeywords.some(keyword => lower.includes(keyword));
+    }
+
     conversationContext.conversationHistory.push({
         role: 'user',
         message: message,
@@ -1182,6 +1506,31 @@ Sorun türü: ${problemType}
         addBotMessage("Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.");
         await saveMessage(currentChatId, 'assistant', "Üzgünüm, bir hata oluştu. Lütfen tekrar deneyin.");
         await renderChatHistory();
+    }
+
+    // --- Cihaz silme akışı ---
+    if (conversationContext.waitingForDeviceDeleteSerial) {
+        addUserMessage(message);
+        userInput.value = '';
+        showTypingIndicator();
+        const result = await deleteDeviceBySerial(message.trim());
+        removeTypingIndicator();
+        if (result.success) {
+            addBotMessage(`Cihaz başarıyla silindi! (Tablo: ${result.table})\nSeri No: ${message.trim()}`);
+        } else {
+            addBotMessage('Cihaz silinemedi: ' + result.error);
+        }
+        conversationContext.waitingForDeviceDeleteSerial = false;
+        return;
+    }
+    // Cihaz silme niyeti kontrolü teknik destekten önce olmalı
+    if (isDeviceDeleteIntent(message)) {
+        addUserMessage(message);
+        userInput.value = '';
+        removeTypingIndicator();
+        conversationContext.waitingForDeviceDeleteSerial = true;
+        addBotMessage('Lütfen silmek istediğiniz cihazın seri numarasını giriniz:');
+        return;
     }
 }
 

@@ -223,6 +223,10 @@
                 <div id="activeFilters" class="active-filters"></div>
             </section>
 
+            <!-- Issues Table Titles -->
+            <div class="tables-titles">
+                <div class="table-title" style="margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">Arıza Listesi</div>
+            </div>
             <!-- Issues Table -->
             <div class="table-container">
                 <table class="issues-table">
@@ -243,7 +247,10 @@
                 </table>
                 <div class="pagination-controls" id="issuesPagination"></div>
             </div>
-            <div class="table-container" style="margin-top: 32px;">
+            <div class="tables-titles" style="margin-top: 32px;">
+                <div class="table-title" style="margin-bottom: 8px; font-size: 1.2rem; font-weight: 600;">Çözülen Arızalar</div>
+            </div>
+            <div class="table-container">
                 <table class="issues-table">
                     <thead>
                         <tr>
@@ -284,7 +291,7 @@
           </div>
           <div class="issuemodal-card">
             <i class="fas fa-user-cog"></i>
-            <div class="issuemodal-card-label">Arızayı Çözen Personel</div>
+            <div class="issuemodal-card-label" id="detailGorevliLabel">Görevli Personel</div>
             <div class="issuemodal-card-value" id="detailGorevli"></div>
           </div>
           <div class="issuemodal-card">

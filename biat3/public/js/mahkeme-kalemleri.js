@@ -1,4 +1,3 @@
-
 const supabase = window.supabaseClient;
 // Mahkeme Kalemleri verilerini tutacak dizi
 let mahkemeKalemleri = [];
@@ -10,7 +9,8 @@ let devices = JSON.parse(localStorage.getItem('devices')) || [];
 let currentFilters = {
     tip: 'all',
     durum: 'all',
-    search: ''
+    search: '',
+    location: ''
 };
 
 // Mahkeme kalemlerini filtreleme
@@ -19,13 +19,14 @@ function filterMahkemeKalemleri(kalemler) {
         const turMatch = currentFilters.tip === 'all' || (kalem.mahkeme_turu && kalem.mahkeme_turu === currentFilters.tip);
         // Eğer durum alanı yoksa, her zaman true kabul et
         const durumMatch = true;
+        const locationMatch = !currentFilters.location || (kalem.blok && kalem.blok === currentFilters.location);
         const searchMatch =
             (kalem.mahkeme_turu && kalem.mahkeme_turu.toLowerCase().includes(currentFilters.search.toLowerCase())) ||
             (kalem.mahkeme_no && kalem.mahkeme_no.toString().toLowerCase().includes(currentFilters.search.toLowerCase())) ||
             (kalem.blok && kalem.blok.toLowerCase().includes(currentFilters.search.toLowerCase())) ||
             (kalem.kat && kalem.kat.toLowerCase().includes(currentFilters.search.toLowerCase()));
 
-        return turMatch && durumMatch && searchMatch;
+        return turMatch && durumMatch && locationMatch && searchMatch;
     });
 }
 
@@ -46,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     const durumFilter = document.querySelector('#durumFilter');
     const searchInput = document.querySelector('#searchInput');
     const resetFiltersBtn = document.querySelector('#resetFilters');
+    const locationFilter = document.getElementById('locationFilter');
 
     // Filtre değişikliklerini dinle
     if (tipFilter) {
@@ -69,18 +71,27 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }
 
+    if (locationFilter) {
+        locationFilter.addEventListener('change', function(e) {
+            currentFilters.location = e.target.value;
+            renderMahkemeKalemleri();
+        });
+    }
+
     // Filtreleri sıfırlama
     if (resetFiltersBtn) {
         resetFiltersBtn.addEventListener('click', function() {
             currentFilters = {
                 tip: 'all',
                 durum: 'all',
-                search: ''
+                search: '',
+                location: ''
             };
             
             if (tipFilter) tipFilter.value = 'all';
             if (durumFilter) durumFilter.value = 'all';
             if (searchInput) searchInput.value = '';
+            if (locationFilter) locationFilter.value = '';
             
             renderMahkemeKalemleri();
         });

@@ -8826,3 +8826,16 @@ select option,
   color: #f3f4f6;
 }
 
+#searchInput {
+    color: #111 !important;
+    background: #fff !important;
+  }
+
+  .oda-karti:hover {
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    transform: translateY(-2px) scale(1.02);
+    transition: all 0.2s;
+    border-color: #3a6cf6;
+  }
+
+  

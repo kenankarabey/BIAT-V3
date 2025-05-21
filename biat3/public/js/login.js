@@ -66,7 +66,7 @@ async function handleLogin(event) {
                 window.location.href = 'ariza-bildir-personel.html';
             }
         } else {
-            showNotification(error?.message || 'Giriş başarısız. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.', 'error');
+            showNotification('Şifreniz veya e-postanız yanlış, tekrar deneyin.', 'error');
             loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> <span>Giriş Yap</span>';
             loginBtn.disabled = false;
         }

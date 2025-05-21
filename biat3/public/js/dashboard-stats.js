@@ -1,5 +1,5 @@
 // Supabase client'ı kullan
-const supabase = window.supabaseClient;
+var supabase = window.supabaseClient;
 
 async function updateDashboardStats() {
     // Tarih aralıklarını hesapla
@@ -134,46 +134,46 @@ async function updateDashboardStats() {
       return (((current - previous) / previous) * 100).toFixed(1);
     }
     if (document.querySelector('.monthly-stats')) {
-      // Toplam Kayıt: Bu ay açılan ariza_bildirimleri + bu ay çözülen cozulen_arizalar
-      const totalThisMonth = (thisMonthIssues?.length || 0) + (thisMonthSolved?.length || 0);
-      const totalPrevMonth = (prevMonthIssues?.length || 0) + (prevMonthSolved?.length || 0);
+      // Toplam Kayıt: Bu ay açılan ariza_bildirimleri sayısı
+      const totalThisMonth = thisMonthIssues?.length || 0;
       document.querySelector('.monthly-stat-item:nth-child(1) .stat-value').textContent = totalThisMonth;
-      // Çözülen
-      document.querySelector('.monthly-stat-item:nth-child(2) .stat-value').textContent = thisMonthSolved?.length || 0;
-      // Bekleyen
-      document.querySelector('.monthly-stat-item:nth-child(3) .stat-value').textContent = thisMonthPending?.length || 0;
-      // İşlemde (her iki tablonun toplamı)
-      const { data: thisMonthInProgressAriza } = await supabase
+
+      // Çözülen: Bu ay çözülen_arizalar tablosundaki kayıtlar
+      const solvedThisMonth = thisMonthSolved?.length || 0;
+      document.querySelector('.monthly-stat-item:nth-child(2) .stat-value').textContent = solvedThisMonth;
+
+      // Bekleyen: ariza_bildirimleri tablosunda durumu 'Beklemede' olanlar
+      const pendingCount = thisMonthPending?.length || 0;
+      document.querySelector('.monthly-stat-item:nth-child(3) .stat-value').textContent = pendingCount;
+
+      // İşlemde: ariza_bildirimleri tablosunda durumu 'İşlemde' olanlar
+      const { data: inProgressIssues } = await supabase
         .from('ariza_bildirimleri')
         .select('id')
         .gte('tarih', firstDay)
         .lte('tarih', lastDay)
         .eq('ariza_durumu', 'İşlemde');
-      const { data: prevMonthInProgressAriza } = await supabase
+      
+      document.querySelector('.monthly-stat-item:nth-child(4) .stat-value').textContent = inProgressIssues?.length || 0;
+
+      // İptal Edilen: Her iki tablodaki 'İptal Edildi' durumundaki kayıtların toplamı
+      const { data: cancelledFromAriza } = await supabase
         .from('ariza_bildirimleri')
         .select('id')
-        .gte('tarih', prevFirstDay)
-        .lte('tarih', prevLastDay)
-        .eq('ariza_durumu', 'İşlemde');
-      const { data: thisMonthInProgressCozulen } = await supabase
+        .gte('tarih', firstDay)
+        .lte('tarih', lastDay)
+        .eq('ariza_durumu', 'İptal Edildi');
+
+      const { data: cancelledFromCozulen } = await supabase
         .from('cozulen_arizalar')
         .select('id')
         .gte('cozulme_tarihi', firstDay)
         .lte('cozulme_tarihi', lastDay)
-        .eq('ariza_durumu', 'İşlemde');
-      const { data: prevMonthInProgressCozulen } = await supabase
-        .from('cozulen_arizalar')
-        .select('id')
-        .gte('cozulme_tarihi', prevFirstDay)
-        .lte('cozulme_tarihi', prevLastDay)
-        .eq('ariza_durumu', 'İşlemde');
-      const totalThisMonthInProgress = (thisMonthInProgressAriza?.length || 0) + (thisMonthInProgressCozulen?.length || 0);
-      const totalPrevMonthInProgress = (prevMonthInProgressAriza?.length || 0) + (prevMonthInProgressCozulen?.length || 0);
-      document.querySelector('.monthly-stat-item:nth-child(4) .stat-value').textContent = totalThisMonthInProgress;
-      // İptal Edilen (her iki tablonun toplamı, alan adı kesin)
-      const totalThisMonthCancelled = (thisMonthCancelledAriza?.length || 0) + (thisMonthCancelledCozulen?.length || 0);
-      const totalPrevMonthCancelled = (prevMonthCancelledAriza?.length || 0) + (prevMonthCancelledCozulen?.length || 0);
-      document.querySelector('.monthly-stat-item:nth-child(5) .stat-value').textContent = totalThisMonthCancelled;
+        .eq('ariza_durumu', 'İptal Edildi');
+
+      const totalCancelled = (cancelledFromAriza?.length || 0) + (cancelledFromCozulen?.length || 0);
+      document.querySelector('.monthly-stat-item:nth-child(5) .stat-value').textContent = totalCancelled;
+
       const monthNames = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
       document.querySelector('.stat-detail-header .date-range').textContent = `${monthNames[month-1]} ${year}`;
     }

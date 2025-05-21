@@ -154,7 +154,7 @@ function updateFormFields() {
             birimSelect.addEventListener('change', () => hidePersonFieldsIfMahkemeKalemi(''));
             birimSelect._mahkemeKalemiListener = true;
         }
-        hidePersonFieldsIfMahkemeKalemi('');
+        
     }
 }
 
@@ -369,27 +369,27 @@ function toggleFilter() {
             <div class="filter-form">
                 <div class="form-group">
                     <label for="filterBirim">Birim</label>
-                    <input type="text" id="filterBirim" placeholder="Birim ara..." onkeyup="handleFilterChange()">
+                    <input type="text" id="filterBirim" class="modern-input" placeholder="Birim ara..." onkeyup="handleFilterChange()">
                 </div>
                 <div class="form-group">
                     <label for="filterMarka">Marka</label>
-                    <input type="text" id="filterMarka" placeholder="Marka ara..." onkeyup="handleFilterChange()">
+                    <input type="text" id="filterMarka" class="modern-input" placeholder="Marka ara..." onkeyup="handleFilterChange()">
                 </div>
                 <div class="form-group">
                     <label for="filterModel">Model</label>
-                    <input type="text" id="filterModel" placeholder="Model ara..." onkeyup="handleFilterChange()">
+                    <input type="text" id="filterModel" class="modern-input" placeholder="Model ara..." onkeyup="handleFilterChange()">
                 </div>
                 <div class="form-group">
                     <label for="filterSeriNo">Seri No</label>
-                    <input type="text" id="filterSeriNo" placeholder="Seri No ara..." onkeyup="handleFilterChange()">
+                    <input type="text" id="filterSeriNo" class="modern-input" placeholder="Seri No ara..." onkeyup="handleFilterChange()">
                 </div>
             </div>
             <div class="filter-actions">
-                <button class="btn-reset" onclick="clearFilters()">
+                <button class="btn btn-secondary" onclick="clearFilters()">
                     <i class="fas fa-times"></i>
                     Temizle
                 </button>
-                <button class="btn-apply" onclick="applyFilters()">
+                <button class="btn btn-primary" onclick="applyFilters()">
                     <i class="fas fa-check"></i>
                     Uygula
                 </button>
@@ -402,7 +402,7 @@ function toggleFilter() {
         actionButtons.insertAdjacentElement('afterend', filterSection);
         
         // Update button text and icon
-        filterBtn.innerHTML = '<i class="fas fa-times"></i> Filtreyi Kapat';
+        filterBtn.innerHTML = '<i class="fas fa-times"></i> <span>Filtreyi Kapat</span>';
     } else {
         // Remove filter section
         const filterSection = document.querySelector('.filter-section');
@@ -411,16 +411,18 @@ function toggleFilter() {
         }
         
         // Update button text and icon
-        filterBtn.innerHTML = '<i class="fas fa-filter"></i> Filtrele';
+        filterBtn.innerHTML = '<i class="fas fa-filter"></i> <span>Filtrele</span>';
         
-        // Clear filters and show all devices
-        renderDevices(devices);
+        // Clear filters and show all devices for current tab
+        clearFilters();
     }
 }
 
 // Handle Filter Change
 function handleFilterChange() {
     updateActiveFilters();
+    // Automatically apply filters when typing
+    applyFilters();
 }
 
 // Update Active Filters
@@ -456,7 +458,6 @@ function clearFilter(filterType) {
     if (input) {
         input.value = '';
         handleFilterChange();
-        applyFilters();
     }
 }
 
@@ -465,7 +466,10 @@ function clearFilters() {
     const inputs = document.querySelectorAll('.filter-form input');
     inputs.forEach(input => input.value = '');
     handleFilterChange();
-    renderDevices(devices);
+    
+    // Get current active tab type and render all devices for that type
+    const activeTab = document.querySelector('.tab-button.active').getAttribute('data-tab');
+    renderDevices(activeTab);
 }
 
 // Apply Filters
@@ -475,71 +479,215 @@ function applyFilters() {
     const model = document.getElementById('filterModel').value.toLowerCase();
     const seriNo = document.getElementById('filterSeriNo').value.toLowerCase();
     
+    // Get current active tab
+    const activeTab = document.querySelector('.tab-button.active').getAttribute('data-tab');
+    
+    // Filter devices for the current tab
     const filteredDevices = devices.filter(device => {
-        const matchBirim = device.birim.toLowerCase().includes(birim);
+        if (device.type !== activeTab) return false;
         
-        let matchMarka = false;
-        let matchModel = false;
-        let matchSeriNo = false;
+        const matchBirim = !birim || (device.birim && device.birim.toLowerCase().includes(birim));
         
-        // Check device type specific properties
-        switch (device.type) {
+        let deviceMarka = '';
+        let deviceModel = '';
+        let deviceSeriNo = '';
+        
+        // Get the correct property names based on device type
+        switch (activeTab) {
             case 'computer':
-                matchMarka = device.kasa_marka.toLowerCase().includes(marka);
-                matchModel = device.kasa_model.toLowerCase().includes(model);
-                matchSeriNo = device.kasa_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.kasa_marka || '';
+                deviceModel = device.kasa_model || '';
+                deviceSeriNo = device.kasa_seri_no || '';
                 break;
             case 'laptop':
-                matchMarka = device.laptop_marka.toLowerCase().includes(marka);
-                matchModel = device.laptop_model.toLowerCase().includes(model);
-                matchSeriNo = device.laptop_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.laptop_marka || '';
+                deviceModel = device.laptop_model || '';
+                deviceSeriNo = device.laptop_seri_no || '';
                 break;
             case 'screen':
-                matchMarka = device.ekran_marka.toLowerCase().includes(marka);
-                matchModel = device.ekran_model.toLowerCase().includes(model);
-                matchSeriNo = device.ekran_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.ekran_marka || '';
+                deviceModel = device.ekran_model || '';
+                deviceSeriNo = device.ekran_seri_no || '';
                 break;
             case 'printer':
-                matchMarka = device.yazici_marka.toLowerCase().includes(marka);
-                matchModel = device.yazici_model.toLowerCase().includes(model);
-                matchSeriNo = device.yazici_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.yazici_marka || '';
+                deviceModel = device.yazici_model || '';
+                deviceSeriNo = device.yazici_seri_no || '';
                 break;
             case 'scanner':
-                matchMarka = device.tarayici_marka.toLowerCase().includes(marka);
-                matchModel = device.tarayici_model.toLowerCase().includes(model);
-                matchSeriNo = device.tarayici_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.tarayici_marka || '';
+                deviceModel = device.tarayici_model || '';
+                deviceSeriNo = device.tarayici_seri_no || '';
                 break;
             case 'tv':
-                matchMarka = device.tv_marka.toLowerCase().includes(marka);
-                matchModel = device.tv_model.toLowerCase().includes(model);
-                matchSeriNo = device.tv_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.tv_marka || '';
+                deviceModel = device.tv_model || '';
+                deviceSeriNo = device.tv_seri_no || '';
                 break;
             case 'camera':
-                matchMarka = device.kamera_marka.toLowerCase().includes(marka);
-                matchModel = device.kamera_model.toLowerCase().includes(model);
-                matchSeriNo = device.kamera_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.kamera_marka || '';
+                deviceModel = device.kamera_model || '';
+                deviceSeriNo = device.kamera_seri_no || '';
                 break;
             case 'segbis':
-                matchMarka = device.segbis_marka.toLowerCase().includes(marka);
-                matchModel = device.segbis_model.toLowerCase().includes(model);
-                matchSeriNo = device.segbis_seri_no.toLowerCase().includes(seriNo);
-                break;
-            case 'e_durusma':
-                matchMarka = device.edurusma_marka.toLowerCase().includes(marka);
-                matchModel = device.edurusma_model.toLowerCase().includes(model);
-                matchSeriNo = device.edurusma_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.segbis_marka || '';
+                deviceModel = device.segbis_model || '';
+                deviceSeriNo = device.segbis_seri_no || '';
                 break;
             case 'microphone':
-                matchMarka = device.mikrofon_marka.toLowerCase().includes(marka);
-                matchModel = device.mikrofon_model.toLowerCase().includes(model);
-                matchSeriNo = device.mikrofon_seri_no.toLowerCase().includes(seriNo);
+                deviceMarka = device.mikrofon_marka || '';
+                deviceModel = device.mikrofon_model || '';
+                deviceSeriNo = device.mikrofon_seri_no || '';
+                break;
+            case 'e_durusma':
+                deviceMarka = device.edurusma_marka || '';
+                deviceModel = device.edurusma_model || '';
+                deviceSeriNo = device.edurusma_seri_no || '';
                 break;
         }
         
-        return matchBirim && (!marka || matchMarka) && (!model || matchModel) && (!seriNo || matchSeriNo);
+        const matchMarka = !marka || deviceMarka.toLowerCase().includes(marka);
+        const matchModel = !model || deviceModel.toLowerCase().includes(model);
+        const matchSeriNo = !seriNo || deviceSeriNo.toLowerCase().includes(seriNo);
+        
+        return matchBirim && matchMarka && matchModel && matchSeriNo;
     });
     
-    renderDevices(filteredDevices);
+    // Update the table with filtered devices
+    const tbody = document.getElementById(`${activeTab}TableBody`);
+    if (!tbody) return;
+    
+    tbody.innerHTML = '';
+    
+    // Render filtered devices
+    filteredDevices.forEach(device => {
+        const row = document.createElement('tr');
+        let cells = [];
+        
+        // Add common fields
+        cells.push(`<td>${device.mahkeme_no || '-'}</td>`);
+        cells.push(`<td>${device.birim || '-'}</td>`);
+        
+        // Add device-specific fields based on type
+        switch (activeTab) {
+            case 'computer':
+            case 'laptop':
+            case 'screen':
+            case 'printer':
+                cells.push(
+                    `<td>${device.unvan || '-'}</td>`,
+                    `<td>${device.adi_soyadi || '-'}</td>`,
+                    `<td>${device.sicil_no || '-'}</td>`
+                );
+                break;
+        }
+        
+        // Add device-specific marka, model, seri no
+        switch (activeTab) {
+            case 'computer':
+                cells.push(
+                    `<td>${device.kasa_marka || '-'}</td>`,
+                    `<td>${device.kasa_model || '-'}</td>`,
+                    `<td>${device.kasa_seri_no || '-'}</td>`
+                );
+                break;
+            case 'laptop':
+                cells.push(
+                    `<td>${device.laptop_marka || '-'}</td>`,
+                    `<td>${device.laptop_model || '-'}</td>`,
+                    `<td>${device.laptop_seri_no || '-'}</td>`
+                );
+                break;
+            case 'screen':
+                cells.push(
+                    `<td>${device.ekran_marka || '-'}</td>`,
+                    `<td>${device.ekran_model || '-'}</td>`,
+                    `<td>${device.ekran_seri_no || '-'}</td>`
+                );
+                break;
+            case 'printer':
+                cells.push(
+                    `<td>${device.yazici_marka || '-'}</td>`,
+                    `<td>${device.yazici_model || '-'}</td>`,
+                    `<td>${device.yazici_seri_no || '-'}</td>`
+                );
+                break;
+            case 'scanner':
+                cells.push(
+                    `<td>${device.tarayici_marka || '-'}</td>`,
+                    `<td>${device.tarayici_model || '-'}</td>`,
+                    `<td>${device.tarayici_seri_no || '-'}</td>`
+                );
+                break;
+            case 'tv':
+                cells.push(
+                    `<td>${device.tv_marka || '-'}</td>`,
+                    `<td>${device.tv_model || '-'}</td>`,
+                    `<td>${device.tv_seri_no || '-'}</td>`
+                );
+                break;
+            case 'camera':
+                cells.push(
+                    `<td>${device.kamera_marka || '-'}</td>`,
+                    `<td>${device.kamera_model || '-'}</td>`,
+                    `<td>${device.kamera_seri_no || '-'}</td>`
+                );
+                break;
+            case 'segbis':
+                cells.push(
+                    `<td>${device.segbis_marka || '-'}</td>`,
+                    `<td>${device.segbis_model || '-'}</td>`,
+                    `<td>${device.segbis_seri_no || '-'}</td>`
+                );
+                break;
+            case 'microphone':
+                cells.push(
+                    `<td>${device.mikrofon_marka || '-'}</td>`,
+                    `<td>${device.mikrofon_model || '-'}</td>`,
+                    `<td>${device.mikrofon_seri_no || '-'}</td>`
+                );
+                break;
+            case 'e_durusma':
+                cells.push(
+                    `<td>${device.edurusma_marka || '-'}</td>`,
+                    `<td>${device.edurusma_model || '-'}</td>`,
+                    `<td>${device.edurusma_seri_no || '-'}</td>`
+                );
+                break;
+        }
+        
+        // Add action buttons
+        cells.push(`
+            <td class="table-actions">
+                <button onclick="showDeviceDetails('${device.id}', '${device.type}')" class="btn-icon info" title="Detayları Göster">
+                    <i class="fas fa-info-circle"></i>
+                </button>
+                <button onclick="showEditModal('${device.id}', '${device.type}')" class="btn-icon edit" title="Düzenle">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="deleteDevice('${device.id}', '${device.type}')" class="btn-icon delete" title="Sil">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `);
+        
+        row.innerHTML = cells.join('');
+        tbody.appendChild(row);
+    });
+    
+    // Update pagination if needed
+    const paginationContainer = document.getElementById(`${activeTab}Pagination`);
+    if (paginationContainer) {
+        renderPaginationControlsDevices(
+            filteredDevices.length,
+            devicesCurrentPage[activeTab] || 1,
+            (page) => {
+                devicesCurrentPage[activeTab] = page;
+                renderDevices(activeTab);
+            },
+            `${activeTab}Pagination`
+        );
+    }
 }
 
 // Switch active tab
@@ -561,8 +709,22 @@ function switchTab(tabType) {
         }
     });
     
-    // Re-render devices for the current tab
-    renderDevices(tabType);
+    // Check if filter is active
+    const filterBirim = document.getElementById('filterBirim');
+    const filterMarka = document.getElementById('filterMarka');
+    const filterModel = document.getElementById('filterModel');
+    const filterSeriNo = document.getElementById('filterSeriNo');
+    
+    // If any filter has value, apply filters, otherwise render normally
+    if ((filterBirim && filterBirim.value) || 
+        (filterMarka && filterMarka.value) || 
+        (filterModel && filterModel.value) || 
+        (filterSeriNo && filterSeriNo.value)) {
+        applyFilters();
+    } else {
+        // Re-render devices for the current tab
+        renderDevices(tabType);
+    }
 }
 
 // Update device statistics
@@ -818,6 +980,12 @@ function showEditModal(deviceId, deviceType) {
     document.getElementById('editDeviceId').value = device.id;
     document.getElementById('editDeviceType').value = device.type;
     document.getElementById('editBirim').value = device.birim;
+
+    // Oda tipi select'ini otomatik seç
+    const editOdaTipiSelect = document.getElementById('editOdaTipi');
+    if (editOdaTipiSelect) {
+        editOdaTipiSelect.value = device.oda_tipi || '';
+    }
 
     console.log('Form alanları dolduruluyor...');
     updateEditFormFields();
@@ -1544,49 +1712,55 @@ async function updateDeviceInDatabase(device) {
 
 // Get form fields by device type
 function getFormFieldsByType(deviceType) {
-    const odaTipiElement = document.getElementById('oda_tipi') || document.getElementById('editOdaTipi');
+    const odaTipiElement = document.getElementById('editOdaTipi') || document.getElementById('oda_tipi');
     const odaTipi = odaTipiElement?.value;
     const isDurusmaSalonu = odaTipi === 'Duruşma Salonu';
     const isHakimOdasi = odaTipi === 'Hakim Odaları';
 
     let fields = [];
 
-    // Unvan alanını sadece Duruşma Salonu değilse ekle
-    if (!isDurusmaSalonu) {
+    // Unvan alanını sadece ilgili durumlarda ekle
+    if (
+        (deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen') ||
+        (deviceType === 'printer' && isHakimOdasi)
+    ) {
         let unvanField = {
-        id: 'unvan', 
-        label: 'Unvan', 
-        required: true,
-        type: 'select',
+            id: 'unvan',
+            label: 'Unvan',
+            required: true,
+            type: 'select',
             options: isHakimOdasi ? ['Hakim', 'Savcı'] : [
-            'Zabıt Katibi',
-            'Mübaşir',
-            'İcra Katibi',
-            'İcra Memuru',
-            'İcra Müdür Yardımcısı',
-            'İcra Müdürü',
-            'Yazı İşleri Müdürü',
-            'Hakim',
-            'Savcı',
-            'Veznedar',
-            'Hizmetli',
-            'Tarama Memuru',
-            'Memur',
-            'Teknisyen',
-            'Tekniker',
-            'Bilgi İşlem Müdürü',
-            'Uzman'
-        ]
-    };
+                'Zabıt Katibi',
+                'Mübaşir',
+                'İcra Katibi',
+                'İcra Memuru',
+                'İcra Müdür Yardımcısı',
+                'İcra Müdürü',
+                'Yazı İşleri Müdürü',
+                'Hakim',
+                'Savcı',
+                'Veznedar',
+                'Hizmetli',
+                'Tarama Memuru',
+                'Memur',
+                'Teknisyen',
+                'Tekniker',
+                'Bilgi İşlem Müdürü',
+                'Uzman'
+            ]
+        };
         fields.push(unvanField);
+    }
 
-        // Kişisel bilgi alanlarını ekle (Duruşma Salonu değilse)
-        if (deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen') {
-            fields.push(
-                { id: 'adi_soyadi', label: 'Ad Soyad', required: true },
-                { id: 'sicil_no', label: 'Sicil No', required: true }
-            );
-        }
+    // Kişisel bilgi alanlarını ekle
+    if (
+        deviceType === 'computer' || deviceType === 'laptop' || deviceType === 'screen' ||
+        (deviceType === 'printer' && isHakimOdasi)
+    ) {
+        fields.push(
+            { id: 'adi_soyadi', label: 'Ad Soyad', required: true },
+            { id: 'sicil_no', label: 'Sicil No', required: true }
+        );
     }
 
     // Cihaz tipine göre özel alanları ekle

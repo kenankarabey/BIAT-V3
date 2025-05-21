@@ -5,6 +5,22 @@ let durusmaSalonlari = [];
 document.addEventListener('DOMContentLoaded', function() {
     setupEventListeners();
     loadDurusmaSalonlari();
+
+    const searchInput = document.getElementById('searchInput');
+    const locationFilter = document.getElementById('locationFilter');
+    const statusFilter = document.getElementById('statusFilter');
+
+    function triggerFilter() {
+        filterDurusmaSalonlari(
+            searchInput ? searchInput.value : '',
+            locationFilter ? locationFilter.value : '',
+            statusFilter ? statusFilter.value : ''
+        );
+    }
+
+    if (searchInput) searchInput.addEventListener('input', triggerFilter);
+    if (locationFilter) locationFilter.addEventListener('change', triggerFilter);
+    if (statusFilter) statusFilter.addEventListener('change', triggerFilter);
 });
 
 function setupEventListeners() {
@@ -218,4 +234,71 @@ window.editDurusmaSalonu = function(id) {
         // Kaydetten sonra submit handler'ı eski haline döndür
         setupEventListeners();
     };
-}; 
+};
+
+function filterDurusmaSalonlari(query, location, status) {
+    query = (query || '').toLowerCase();
+    location = (location || '').toLowerCase();
+    status = (status || '').toLowerCase();
+
+    const filtered = durusmaSalonlari.filter(salon => {
+        const matchesQuery =
+            (salon.salon_no && salon.salon_no.toString().toLowerCase().includes(query)) ||
+            (salon.mahkeme_turu && salon.mahkeme_turu.toLowerCase().includes(query)) ||
+            (salon.blok && salon.blok.toLowerCase().includes(query)) ||
+            (salon.kat && salon.kat.toLowerCase().includes(query));
+        const matchesLocation = !location || (salon.blok && salon.blok.toLowerCase() === location);
+        const matchesStatus = !status || (salon.durum && salon.durum.toLowerCase() === status);
+
+        return matchesQuery && matchesLocation && matchesStatus;
+    });
+    renderFilteredDurusmaSalonlari(filtered);
+}
+
+function renderFilteredDurusmaSalonlari(list) {
+    const container = document.getElementById('durusmaSalonlariGrid');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!list || list.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-info-circle"></i>
+                <p>Aramanıza uygun salon bulunamadı.</p>
+            </div>
+        `;
+        return;
+    }
+    list.forEach(salon => {
+        let statusClass = 'active';
+        if (salon.durum === 'Bakımda' || salon.durum === 'maintenance') statusClass = 'maintenance';
+        else if (salon.durum === 'Arızalı' || salon.durum === 'issue') statusClass = 'issue';
+        else if (salon.durum === 'Aktif' || salon.durum === 'active') statusClass = 'active';
+        const card = document.createElement('div');
+        card.className = `court-office-card ${statusClass}`;
+        card.style.cursor = 'pointer';
+        card.innerHTML = `
+            <div class="card-header">
+                <h3>${salon.salon_no} ${salon.mahkeme_turu}</h3>
+                <div class="card-actions">
+                    <button class="btn-icon edit" onclick="event.stopPropagation(); editDurusmaSalonu('${salon.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon delete" onclick="event.stopPropagation(); deleteDurusmaSalonu('${salon.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="status-badge ${statusClass}" style="margin: 8px 0 0 0;">
+                ${getStatusText(salon.durum)}
+            </div>
+            <div class="info-row">
+                <i class="fas fa-map-marker-alt"></i>
+                ${salon.blok} - ${salon.kat}
+            </div>
+        `;
+        card.addEventListener('click', function() {
+            window.location.href = `durusma-salonu-detay.html?id=${salon.id}`;
+        });
+        container.appendChild(card);
+    });
+} 

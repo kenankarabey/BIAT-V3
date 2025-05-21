@@ -130,40 +130,20 @@
             <div class="search-filter-section">
                 <div class="search-row">
                     <div class="search-box">
-                        <i class="fas fa-search"></i>
                         <input type="text" id="searchInput" placeholder="Mahkeme adı veya konum ara...">
                     </div>
                 </div>
                 <div class="filter-row">
                     <div class="filter-group">
-                        <label>Mahkeme Türü</label>
-                        <select id="tipFilter">
-                            <option value="all">Tümü</option>
-                            <option value="Ağır Ceza">Ağır Ceza</option>
-                            <option value="Asliye Ceza">Asliye Ceza</option>
-                            <option value="Asliye Hukuk">Asliye Hukuk</option>
-                            <option value="Sulh Ceza">Sulh Ceza</option>
-                            <option value="Sulh Hukuk">Sulh Hukuk</option>
-                            <option value="İcra">İcra</option>
-                            <option value="İş">İş</option>
-                            <option value="Ticaret">Ticaret</option>
-                            <option value="Çocuk">Çocuk</option>
-                            <option value="Tüketici">Tüketici</option>
+                        <label>Konum</label>
+                        <select id="locationFilter">
+                            <option value="">Tümü</option>
+                            <option value="A Blok">A Blok</option>
+                            <option value="B Blok">B Blok</option>
+                            <option value="C Blok">C Blok</option>
+                            <option value="D Blok">D Blok</option>
                         </select>
-                    </div>
-                    <div class="filter-group">
-                        <label>Durum</label>
-                        <select id="durumFilter">
-                            <option value="all">Tümü</option>
-                            <option value="Aktif">Aktif</option>
-                            <option value="Pasif">Pasif</option>
-                        </select>
-                    </div>
-                    <div class="filter-actions">
-                        <button class="btn-reset" id="resetFilters">
-                            <i class="fas fa-undo"></i>
-                            <span>Sıfırla</span>
-                        </button>
+                        <i class="fas fa-chevron-down"></i>
                     </div>
                 </div>
             </div>

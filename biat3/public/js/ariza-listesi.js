@@ -233,6 +233,7 @@ function viewIssueDetail(idx) {
     if (!row) return;
     document.getElementById('detailArizaNo').textContent = row.ariza_no || '-';
     document.getElementById('detailTarih').textContent = new Date(row.tarih).toLocaleString('tr-TR');
+    document.getElementById('detailGorevliLabel').textContent = 'Görevli Personel';
     document.getElementById('detailGorevli').textContent = row.gpersonel || '-';
     document.getElementById('detailBildiren').textContent = row.bildirenAd || '-';
     document.getElementById('detailTelefon').textContent = row.telefon || '-';
@@ -437,6 +438,7 @@ function viewSolvedIssueDetail(idx) {
     if (!row) return;
     document.getElementById('detailArizaNo').textContent = row.ariza_no || '-';
     document.getElementById('detailTarih').textContent = row.cozulme_tarihi ? new Date(row.cozulme_tarihi).toLocaleString('tr-TR') : '-';
+    document.getElementById('detailGorevliLabel').textContent = 'Arızayı Çözen Personel';
     document.getElementById('detailGorevli').textContent = row.arizayi_cozen_personel || '-';
     document.getElementById('detailBildiren').textContent = row.sicil_no || '-';
     document.getElementById('detailTelefon').textContent = row.telefon || '-';

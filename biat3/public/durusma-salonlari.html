@@ -155,32 +155,17 @@
                         <p id="maintenanceCourtroomsCount">1</p>
                     </div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-desktop"></i>
-                    </div>
-                    <div class="stat-info">
-                        <h3>Toplam Donanım</h3>
-                        <p id="totalDevicesCount">54</p>
-                    </div>
-                </div>
+                
             </div>
 
             <!-- Search and Filter Section -->
             <div class="search-filter-section">
                 <div class="search-row">
                     <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="courtroomSearch" placeholder="Salon adı veya konum ara...">
+                        
+                        <input type="text" id="searchInput" placeholder="Salon adı veya konum ara...">
                     </div>
-                    <div class="view-options">
-                        <button class="btn-view active" data-view="grid">
-                            <i class="fas fa-th-large"></i>
-                        </button>
-                        <button class="btn-view" data-view="list">
-                            <i class="fas fa-list"></i>
-                        </button>
-                    </div>
+                    
                 </div>
                 <div class="filter-row">
                     <div class="filter-group">
@@ -190,32 +175,18 @@
                             <option value="A Blok">A Blok</option>
                             <option value="B Blok">B Blok</option>
                             <option value="C Blok">C Blok</option>
+                            <option value="D Blok">D Blok</option>
                         </select>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
                     <div class="filter-group">
                         <label>Durum</label>
                         <select id="statusFilter">
                             <option value="">Tümü</option>
-                            <option value="active">Aktif</option>
-                            <option value="issue">Arızalı</option>
-                            <option value="maintenance">Bakımda</option>
+                            <option value="Aktif">Aktif</option>
+                            <option value="Arızalı">Arızalı</option>
+                            <option value="Bakımda">Bakımda</option>
                         </select>
-                        <i class="fas fa-chevron-down"></i>
                     </div>
-                    <div class="filter-actions">
-                        <button class="btn-reset" id="resetFilters">
-                            <i class="fas fa-undo"></i>
-                            <span>Sıfırla</span>
-                        </button>
-                        <button class="btn-apply" id="applyFilters">
-                            <i class="fas fa-filter"></i>
-                            <span>Uygula</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="active-filters" id="activeFilters">
-                    <!-- Active filters will be added here dynamically -->
                 </div>
             </div>
 
@@ -239,8 +210,6 @@
                     <select name="mahkemeTuru" id="mahkemeTuru" class="form-control" required>
                         <option value="">Mahkeme Türü Seçin</option>
                         <option value="Sulh Hukuk Mahkemesi">Sulh Hukuk Mahkemesi</option>
-                        <option value="Hukuk Ön Büro">Hukuk Ön Büro</option>
-                        <option value="Hukuk Vezne">Hukuk Vezne</option>
                         <option value="Asliye Hukuk Mahkemesi">Asliye Hukuk Mahkemesi</option>
                         <option value="Tüketici Mahkemesi">Tüketici Mahkemesi</option>
                         <option value="Kadastro Mahkemesi">Kadastro Mahkemesi</option>
@@ -253,22 +222,8 @@
                         <option value="Çocuk Mahkemesi">Çocuk Mahkemesi</option>
                         <option value="Savcılık İnfaz Bürosu">Savcılık İnfaz Bürosu</option>
                         <option value="Asliye Ceza Mahkemesi">Asliye Ceza Mahkemesi</option>
-                        <option value="Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları">Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları</option>
-                        <option value="Ceza Ön Büro">Ceza Ön Büro</option>
-                        <option value="Ceza Vezne">Ceza Vezne</option>
-                        <option value="Soruşturma Bürosu">Soruşturma Bürosu</option>
-                        <option value="İdari İşler Müdürlüğü">İdari İşler Müdürlüğü</option>
-                        <option value="Müracaat Bürosu">Müracaat Bürosu</option>
-                        <option value="Muhabere Bürosu">Muhabere Bürosu</option>
-                        <option value="Talimat Bürosu">Talimat Bürosu</option>
-                        <option value="Emanet Bürosu">Emanet Bürosu</option>
                         <option value="Nöbetçi Sulh Ceza Hakimliği">Nöbetçi Sulh Ceza Hakimliği</option>
                         <option value="Cumhuriyet Başsavcılığı">Cumhuriyet Başsavcılığı</option>
-                        <option value="Bakanlık Muhabere Bürosu">Bakanlık Muhabere Bürosu</option>
-                        <option value="CMK">CMK</option>
-                        <option value="Maaş">Maaş</option>
-                        <option value="İcra Müdürlüğü">İcra Müdürlüğü</option>
-                        <option value="Adli Sicil Şefliği">Adli Sicil Şefliği</option>
                         <option value="İcra Hukuk Mahkemesi">İcra Hukuk Mahkemesi</option>
                         <option value="İcra Ceza Mahkemesi">İcra Ceza Mahkemesi</option>
                     </select>
