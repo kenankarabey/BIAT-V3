@@ -170,43 +170,16 @@
                         <label for="searchInput">Ara</label>
                         <input type="text" id="searchInput" placeholder="Arıza no, lokasyon veya açıklama...">
                     </div>
-                    <div class="form-group">
-                        <label for="locationFilter">Lokasyon</label>
-                        <select id="locationFilter">
-                            <option value="">Tümü</option>
-                            <option value="mahkeme">Mahkeme Kalemi</option>
-                            <option value="durusma">Duruşma Salonu</option>
-                            <option value="icra">İcra Dairesi</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="deviceTypeFilter">Cihaz Türü</label>
-                        <select id="deviceTypeFilter">
-                            <option value="">Tümü</option>
-                            <option value="bilgisayar">Bilgisayar</option>
-                            <option value="yazici">Yazıcı</option>
-                            <option value="segbis">SEGBİS</option>
-                            <option value="tarayici">Tarayıcı</option>
-                        </select>
-                    </div>
+                </div>
+                <div class="filters-grid">
                     <div class="form-group">
                         <label for="statusFilter">Durum</label>
                         <select id="statusFilter">
                             <option value="">Tümü</option>
                             <option value="beklemede">Beklemede</option>
                             <option value="islemde">İşlemde</option>
-                            <option value="tamamlandi">Tamamlandı</option>
+                            <option value="tamamlandi">Çözüldü</option>
                             <option value="iptal">İptal Edildi</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="urgencyFilter">Aciliyet</label>
-                        <select id="urgencyFilter">
-                            <option value="">Tümü</option>
-                            <option value="low">Düşük</option>
-                            <option value="medium">Orta</option>
-                            <option value="high">Yüksek</option>
-                            <option value="critical">Kritik</option>
                         </select>
                     </div>
                 </div>
@@ -450,6 +423,18 @@
     <script src="js/main.js"></script>
     <script src="js/ariza-listesi.js"></script>
     <script src="js/login.js"></script>
-   
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        // Sadece admin erişebilsin
+        if (user.yetki !== "admin") {
+            window.location.href = "personel-yetkiniz-yok.html";
+        }
+    });
+    </script>
 </body>
 </html> 

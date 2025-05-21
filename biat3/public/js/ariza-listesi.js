@@ -14,6 +14,10 @@ let _allCozulenArizaRows = [];
 let _allDeviceData = [];
 let _allDeviceDataLoaded = false;
 
+// Filtreleme için global değişkenler
+let currentSearch = '';
+let currentStatus = '';
+
 function renderPaginationControls(totalRows, currentPage, onPageChange, containerId) {
     const totalPages = Math.ceil(totalRows / ROWS_PER_PAGE);
     const container = document.getElementById(containerId);
@@ -117,11 +121,12 @@ async function loadArizaListesi(forceFetch = false) {
     // Tabloyu en yeni arıza üstte olacak şekilde ters çevirerek ekrana bas
     const tbody = document.getElementById('issuesTableBody');
     tbody.innerHTML = '';
-    const reversedRows = _allArizaRows;
-    const totalRows = reversedRows.length;
+    // Filtre uygula
+    const filteredRows = filterArizaRows(arizalar, false);
+    const totalRows = filteredRows.length;
     const startIdx = (issuesCurrentPage - 1) * ROWS_PER_PAGE;
     const endIdx = startIdx + ROWS_PER_PAGE;
-    const pageRows = reversedRows.slice(startIdx, endIdx);
+    const pageRows = filteredRows.slice(startIdx, endIdx);
     pageRows.forEach((row, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
@@ -138,7 +143,7 @@ async function loadArizaListesi(forceFetch = false) {
         `;
         tbody.appendChild(tr);
     });
-    window._arizaRows = reversedRows;
+    window._arizaRows = filteredRows;
     renderPaginationControls(totalRows, issuesCurrentPage, (page) => { issuesCurrentPage = page; loadArizaListesi(); }, 'issuesPagination');
     loadCozulenArizalar();
 }
@@ -147,41 +152,39 @@ async function loadCozulenArizalar() {
     const allDeviceData = await fetchAllDeviceData();
     const tbody = document.getElementById('solvedIssuesTableBody');
     tbody.innerHTML = '';
-    const cozulenArizalar = _allCozulenArizaRows;
-    if (cozulenArizalar) {
-        window._cozulenArizaRows = cozulenArizalar;
-        const totalRows = cozulenArizalar.length;
-        const startIdx = (solvedIssuesCurrentPage - 1) * ROWS_PER_PAGE;
-        const endIdx = startIdx + ROWS_PER_PAGE;
-        const pageRows = cozulenArizalar.slice(startIdx, endIdx);
-        pageRows.forEach((row, idx) => {
-            let bildirenAd = row.sicil_no;
-            const cihazKaydi = allDeviceData.find(c => String(c.sicil_no) === String(row.sicil_no));
-            if (cihazKaydi) {
-                bildirenAd =
-                    cihazKaydi.adi_soyadi ||
-                    cihazKaydi.ad_soyad ||
-                    cihazKaydi.personel_ad_soyad ||
-                    cihazKaydi.personel_adi_soyadi ||
-                    row.sicil_no;
-            }
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${row.ariza_no}</td>
-                <td>${row.cozulme_tarihi ? new Date(row.cozulme_tarihi).toLocaleString('tr-TR') : '-'}</td>
-                <td>${row.arizayi_cozen_personel || '-'}</td>
-                <td>${bildirenAd}</td>
-                <td>${row.telefon || '-'}</td>
-                <td>${row.ariza_durumu || '-'}</td>
-                <td>
-                    <button class="action-btn view" onclick="viewSolvedIssueDetail(${startIdx + idx})"><i class="fas fa-eye"></i></button>
-                    <button class="action-btn delete" onclick="deleteSolvedIssue(${startIdx + idx})"><i class="fas fa-trash"></i></button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-        renderPaginationControls(totalRows, solvedIssuesCurrentPage, (page) => { solvedIssuesCurrentPage = page; loadCozulenArizalar(); }, 'solvedIssuesPagination');
-    }
+    // Filtre uygula
+    const filteredRows = filterArizaRows(_allCozulenArizaRows, true);
+    const totalRows = filteredRows.length;
+    const startIdx = (solvedIssuesCurrentPage - 1) * ROWS_PER_PAGE;
+    const endIdx = startIdx + ROWS_PER_PAGE;
+    const pageRows = filteredRows.slice(startIdx, endIdx);
+    pageRows.forEach((row, idx) => {
+        let bildirenAd = row.sicil_no;
+        const cihazKaydi = allDeviceData.find(c => String(c.sicil_no) === String(row.sicil_no));
+        if (cihazKaydi) {
+            bildirenAd =
+                cihazKaydi.adi_soyadi ||
+                cihazKaydi.ad_soyad ||
+                cihazKaydi.personel_ad_soyad ||
+                cihazKaydi.personel_adi_soyadi ||
+                row.sicil_no;
+        }
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${row.ariza_no}</td>
+            <td>${row.cozulme_tarihi ? new Date(row.cozulme_tarihi).toLocaleString('tr-TR') : '-'}</td>
+            <td>${row.arizayi_cozen_personel || '-'}</td>
+            <td>${bildirenAd}</td>
+            <td>${row.telefon || '-'}</td>
+            <td>${row.ariza_durumu || '-'}</td>
+            <td>
+                <button class="action-btn view" onclick="viewSolvedIssueDetail(${startIdx + idx})"><i class="fas fa-eye"></i></button>
+                <button class="action-btn delete" onclick="deleteSolvedIssue(${startIdx + idx})"><i class="fas fa-trash"></i></button>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+    renderPaginationControls(totalRows, solvedIssuesCurrentPage, (page) => { solvedIssuesCurrentPage = page; loadCozulenArizalar(); }, 'solvedIssuesPagination');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -204,6 +207,26 @@ document.addEventListener('DOMContentLoaded', function() {
             event.target.style.display = 'none';
         }
     });
+
+    // Filtre inputlarını seç
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            currentSearch = this.value;
+            issuesCurrentPage = 1;
+            solvedIssuesCurrentPage = 1;
+            loadArizaListesi();
+        });
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            currentStatus = this.value;
+            issuesCurrentPage = 1;
+            solvedIssuesCurrentPage = 1;
+            loadArizaListesi();
+        });
+    }
 
     // Her iki fonksiyonu da çağır
     loadArizaListesi();
@@ -538,4 +561,87 @@ function deleteIssue(idx) {
                 showNotification('Bir hata oluştu: ' + (error.message || JSON.stringify(error)), 'error');
             }
         });
+}
+
+// Ortak arıza istatistik fonksiyonu
+async function getArizaStats() {
+    // 1. Üst tabloyu çek
+    const { data: arizalar } = await supabase
+        .from('ariza_bildirimleri')
+        .select('*');
+    // 2. Alt tabloyu çek
+    const { data: cozulenArizalar } = await supabase
+        .from('cozulen_arizalar')
+        .select('*');
+    const bekleyen = arizalar ? arizalar.filter(a => a.ariza_durumu === 'Beklemede').length : 0;
+    const islemde = arizalar ? arizalar.filter(a => a.ariza_durumu === 'İşlemde').length : 0;
+    const cozuldu = cozulenArizalar ? cozulenArizalar.filter(a => a.ariza_durumu === 'Çözüldü').length : 0;
+    const iptalUst = arizalar ? arizalar.filter(a => a.ariza_durumu === 'İptal Edildi').length : 0;
+    const iptalAlt = cozulenArizalar ? cozulenArizalar.filter(a => a.ariza_durumu === 'İptal Edildi').length : 0;
+    const iptal = iptalUst + iptalAlt;
+    return {
+        bekleyen,
+        islemde,
+        cozuldu,
+        iptal
+    };
+}
+
+// Eğer modül olarak kullanılıyorsa export et
+if (typeof window !== 'undefined') {
+    window.getArizaStats = getArizaStats;
+}
+
+function normalizeText(text) {
+    return (text || '')
+        .replace(/İ/g, 'i')
+        .replace(/I/g, 'i')
+        .replace(/ı/g, 'i')
+        .toLowerCase()
+        .replace(/ç/g, 'c')
+        .replace(/ğ/g, 'g')
+        .replace(/ö/g, 'o')
+        .replace(/ş/g, 's')
+        .replace(/ü/g, 'u');
+}
+
+function filterArizaRows(rows, isSolved = false) {
+    return rows.filter(row => {
+        // Arama
+        let searchMatch = true;
+        if (currentSearch) {
+            const search = normalizeText(currentSearch);
+            searchMatch =
+                (row.ariza_no && normalizeText(String(row.ariza_no)).includes(search)) ||
+                (row.tarih && normalizeText(new Date(row.tarih).toLocaleString('tr-TR')).includes(search)) ||
+                (row.gpersonel && normalizeText(row.gpersonel).includes(search)) ||
+                (row.bildirenAd && normalizeText(row.bildirenAd).includes(search)) ||
+                (row.telefon && normalizeText(String(row.telefon)).includes(search)) ||
+                (row.ariza_durumu && normalizeText(row.ariza_durumu).includes(search));
+            if (isSolved) {
+                searchMatch =
+                    searchMatch ||
+                    (row.cozulme_tarihi && normalizeText(new Date(row.cozulme_tarihi).toLocaleString('tr-TR')).includes(search)) ||
+                    (row.arizayi_cozen_personel && normalizeText(row.arizayi_cozen_personel).includes(search));
+            }
+        }
+        // Durum
+        let statusMatch = true;
+        if (currentStatus) {
+            let durum = normalizeText(row.ariza_durumu || '');
+            if (currentStatus === 'islemde') {
+                statusMatch = durum === 'islemde';
+            } else if (currentStatus === 'iptal') {
+                statusMatch = durum === 'iptal edildi';
+            } else if (currentStatus === 'tamamlandi') {
+                statusMatch = durum === 'cozuldu';
+            } else if (currentStatus === 'beklemede') {
+                statusMatch = durum === 'beklemede';
+            } else {
+                statusMatch = true;
+            }
+        
+        }
+        return searchMatch && statusMatch;
+    });
 }

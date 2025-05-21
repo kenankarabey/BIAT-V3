@@ -3,8 +3,8 @@
     /* Light Theme Variables */
     --bg-color: #f5f6fa;
     --text-color: #2d3436;
-    --primary-color: #161a4a;
-    --secondary-color: #161a4a;
+    --primary-color: #00042b;
+    --secondary-color: #00042b;
     --danger-color: #d63031;
     --warning-color: #fdcb6e;
     --success-color: #28a745;
@@ -43,8 +43,8 @@
     /* Dark Theme Variables */
     --bg-color: #1a1a1a;
     --text-color: #ffffff;
-    --primary-color: #161a4a;
-    --secondary-color: #161a4a;
+    --primary-color: #00042b;
+    --secondary-color: #00042b;
     --danger-color: #ff7675;
     --warning-color: #ffeaa7;
     --success-color: #55efc4;
@@ -4114,7 +4114,7 @@ a.courtroom-card:hover {
 }
 
 .btn-primary {
-    background: #161a4a;
+    background: #00042b;
     color: white;
     border: none;
 }
@@ -4971,7 +4971,7 @@ input:checked + .slider:before {
 
 /* Dark Theme Table Overrides */
 [data-theme="dark"] {
-    --table-header-bg: #161a4a;
+    --table-header-bg: #00042b;
     --table-row-hover: rgba(255, 255, 255, 0.05);
 }
 
@@ -5049,7 +5049,7 @@ input:checked + .slider:before {
 }
 
 .btn-icon.edit {
-    background-color: var(--primary-color);
+    background-color: white;
 }
 
 .btn-icon.delete {

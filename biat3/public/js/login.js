@@ -63,7 +63,7 @@ async function handleLogin(event) {
             if (userData.yetki === 'admin') {
                 window.location.href = 'index.html';
             } else {
-                window.location.href = 'ariza-bildir-personel.html';
+                window.location.href = 'personel-ariza-bildir.html';
             }
         } else {
             showNotification('Şifreniz veya e-postanız yanlış, tekrar deneyin.', 'error');

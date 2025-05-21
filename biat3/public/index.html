@@ -163,7 +163,7 @@
                         </div>
                         <div class="stat-info">
                             <h3>Çözülen Arıza</h3>
-                            <p class="stat-number" id="solvedIssue">0</p>
+                            <p class="stat-number" id="solvedIssueCard">0</p>
                             <span class="stat-text">Toplam</span>
                         </div>
                     </div>
@@ -215,7 +215,7 @@
                             <div class="monthly-stat-item">
                                 <div class="stat-header">
                                     <span class="stat-label">Çözülen</span>
-                                    <span class="stat-value">142</span>
+                                    <span class="stat-value" id="solvedIssue">142</span>
                                 </div>
                                 <div>
                                     <div class="trend-line"></div>
@@ -263,7 +263,18 @@
     <script src="js/main.js"></script>
     <script src="js/login.js"></script>
     <script src="js/dashboard-stats.js"></script>
-   
-
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        // index.html için sadece admin erişebilsin
+        if (user.yetki !== "admin") {
+            window.location.href = "personel-yetkiniz-yok.html";
+        }
+    });
+    </script>
 </body>
 </html> 

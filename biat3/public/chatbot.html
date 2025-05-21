@@ -154,6 +154,18 @@
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="js/main.js"></script>
     <script src="js/chatbot.js"></script>
-  
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        // Sadece admin erişebilsin
+        if (user.yetki !== "admin") {
+            window.location.href = "personel-yetkiniz-yok.html";
+        }
+    });
+    </script>
 </body>
 </html> 

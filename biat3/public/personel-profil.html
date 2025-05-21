@@ -25,73 +25,13 @@
             <nav class="sidebar-nav">
                 <ul>
                     <li>
-                        <a href="index.html">
-                            <i class="fas fa-home"></i>
-                            <span>Ana Sayfa</span>
-                        </a>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="#">
-                            <i class="fas fa-laptop"></i>
-                            <span>Cihazlar</span>
-                            <i class="fas fa-chevron-down submenu-icon"></i>
-                        </a>
-                        <ul class="submenu">
-                            <li>
-                                <a href="tum-cihazlar.html" >
-                                    <i class="fas fa-list"></i>
-                                    <span>Tüm Cihazlar</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="mahkeme-kalemleri.html">
-                                    <i class="fas fa-building"></i>
-                                    <span>Mahkeme Kalemleri</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="durusma-salonlari.html">
-                                    <i class="fas fa-gavel"></i>
-                                    <span>Duruşma Salonları</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="hakim-odalari.html">
-                                    <i class="fas fa-user-tie"></i>
-                                    <span>Hakim Odaları</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="has-submenu">
-                        <a href="#">
+                        <a href="personel-ariza-bildir.html">
                             <i class="fas fa-tools"></i>
-                            <span>Arıza Takip</span>
-                            <i class="fas fa-chevron-down submenu-icon"></i>
-                        </a>
-                        <ul class="submenu">
-                            <li>
-                                <a href="ariza-bildir.html">
-                                    <i class="fas fa-plus-circle"></i>
-                                    <span>Arıza Bildir</span>
-                                </a>
-                            </li>
-                            <li>
-                                <a href="ariza-listesi.html">
-                                    <i class="fas fa-list"></i>
-                                    <span>Arıza Listesi</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="chatbot.html">
-                            <i class="fas fa-robot"></i>
-                            <span>Teknik Destek Chatbot</span>
+                            <span>Arıza Bildir</span>
                         </a>
                     </li>
                     <li>
-                        <a href="profil.html" class="active">
+                        <a href="personel-profil.html" class="active">
                             <i class="fas fa-user"></i>
                             <span>Profil</span>
                         </a>
@@ -160,10 +100,7 @@
                         <i class="fas fa-key"></i>
                         <span>Şifre Değiştir</span>
                     </button>
-                    <button class="nav-item" data-section="activity">
-                        <i class="fas fa-history"></i>
-                        <span>Aktivite</span>
-                    </button>
+                    
                 </div>
 
                 <!-- Profile Sections -->
@@ -240,11 +177,9 @@
                     </div>
 
                     <!-- Activity Section -->
-                    <div class="profile-section" id="activity">
-                        <div class="activity-timeline" id="activityTimeline">
+                    
                             <!-- Kullanıcının çözdüğü arızalar buraya JS ile eklenecek -->
-                        </div>
-                    </div>
+                        
                 </div>
             </div>
         </main>
@@ -262,21 +197,17 @@
                 window.location.href = "login.html";
                 return;
             }
-            // profil.html için sadece admin erişebilsin
-            if (user.yetki !== "admin") {
+            // Sadece personel erişebilsin, admin erişirse yetki yok sayfasına yönlendir
+            if (user.yetki === "admin") {
                 window.location.href = "personel-yetkiniz-yok.html";
+                return;
+            }
+            if (user.yetki !== "personel") {
+                window.location.href = "index.html";
+                return;
             }
             // Ana sayfa başlatma fonksiyonlarını çağır
-            if (typeof initializePage === 'function') {
-                initializePage();
-            }
-            // Tema ve menü başlatma
-            if (typeof setupThemeToggle === 'function') {
-                setupThemeToggle();
-            }
-            if (typeof setupSidebar === 'function') {
-                setupSidebar();
-            }
+            
         });
     </script>
 </body>

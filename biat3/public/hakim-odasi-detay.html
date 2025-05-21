@@ -235,5 +235,18 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = "login.html";
+            return;
+        }
+        // Sadece admin erişebilsin
+        if (user.yetki !== "admin") {
+            window.location.href = "personel-yetkiniz-yok.html";
+        }
+    });
+    </script>
 </body>
 </html> 
