@@ -22,7 +22,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Create a theme context
 const ThemeContext = createContext();
-
+console.log('ProfileScreen rendered');
 // Theme colors
 const lightTheme = {
   background: '#f3f4f6',
@@ -564,7 +564,7 @@ const ProfileScreen = ({ navigation }) => {
           <View style={[styles.header, dynamicStyles.header]}>
         <Image
                 source={user.foto_url ? { uri: user.foto_url } : require('../../images/BIAT-logo.png')}
-          style={styles.profileImage}
+          style={styles.Image}
                 resizeMode="cover"
         />
               <Text style={[styles.userName, dynamicStyles.userName]}>{user.ad_soyad}</Text>
@@ -665,7 +665,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0',
   },
-  profileImage: {
+  Image: {
     width: 100,
     height: 100,
     borderRadius: 50,

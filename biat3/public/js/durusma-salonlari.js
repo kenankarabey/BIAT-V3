@@ -234,7 +234,7 @@ window.editDurusmaSalonu = function(id) {
         // Kaydetten sonra submit handler'ı eski haline döndür
         setupEventListeners();
     };
-};
+}; 
 
 function filterDurusmaSalonlari(query, location, status) {
     query = (query || '').toLowerCase();

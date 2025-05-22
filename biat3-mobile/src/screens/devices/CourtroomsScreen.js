@@ -185,16 +185,10 @@ const CourtroomsScreen = ({ navigation, route }) => {
           onPress={() => navigation.goBack()}
           style={styles.backButton}
         >
-          <Ionicons name="arrow-back" size={24} color="#1e3a8a" />
+          <Ionicons name="arrow-back" size={24} color="#1e293b" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Duruşma Salonları</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleAddCourtroom}
-        >
-          <Ionicons name="add" size={20} color="#fff" />
-          <Text style={styles.addButtonText}>Yeni Salon</Text>
-        </TouchableOpacity>
+        <View style={{ width: 1 }} />
       </View>
 
       <View style={styles.searchContainer}>
@@ -231,6 +225,13 @@ const CourtroomsScreen = ({ navigation, route }) => {
           </View>
         }
       />
+
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={handleAddCourtroom}
+      >
+        <Ionicons name="add" size={28} color="#fff" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -244,32 +245,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#ffffff',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#e2e8f0',
-  },
-  backButton: {
-    padding: 8,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1e293b',
+    flex: 1,
+    textAlign: 'center',
   },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4f46e5',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  addButtonText: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: '#ffffff',
-    fontWeight: '500',
+  backButton: {
+    padding: 8,
   },
   searchContainer: {
     padding: 16,
@@ -391,6 +378,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#64748b',
     textAlign: 'center',
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#4f46e5',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });
 

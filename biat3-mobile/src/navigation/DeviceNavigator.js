@@ -25,7 +25,7 @@ const DeviceNavigator = () => {
       <Stack.Screen name="CourtroomDetail" component={CourtroomDetail} />
       <Stack.Screen name="CourtroomForm" component={CourtroomForm} />
       <Stack.Screen name="DeviceTypeDetail" component={DeviceTypeDetail} />
-      <Stack.Screen name="DeviceDetailScreen" component={DeviceDetailScreen} />
+      <Stack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
     </Stack.Navigator>
   );
 };

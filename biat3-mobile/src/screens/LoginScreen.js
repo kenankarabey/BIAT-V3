@@ -40,11 +40,13 @@ const LoginScreen = ({ navigation }) => {
       setError('E-posta veya şifre hatalı');
       return;
     }
-    await AsyncStorage.setItem('user_email', email);
-      navigation.reset({
-        index: 0,
-        routes: [{ name: 'MainApp' }],
-      });
+    // Store full user object for chatbot and other screens
+    await AsyncStorage.setItem('user', JSON.stringify({ id: data.id, email: data.email }));
+    await AsyncStorage.setItem('user_email', data.email);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'MainApp' }],
+    });
   };
 
   return (

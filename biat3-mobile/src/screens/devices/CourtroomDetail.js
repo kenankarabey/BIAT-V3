@@ -297,7 +297,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...comp, type: 'pc' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...comp,
+                      type: 'pc',
+                      marka: comp.kasa_marka || comp.marka || '',
+                      model: comp.kasa_model || comp.model || '',
+                      seri_no: comp.kasa_seri_no || comp.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{comp.kasa_marka} {comp.kasa_model}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{comp.kasa_seri_no}</Text>
@@ -323,7 +329,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...mon, type: 'monitor' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...mon,
+                      type: 'monitor',
+                      marka: mon.ekran_marka || mon.marka || '',
+                      model: mon.ekran_model || mon.model || '',
+                      seri_no: mon.ekran_seri_no || mon.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{mon.ekran_marka} {mon.ekran_model}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{mon.ekran_seri_no}</Text>
@@ -353,7 +365,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                         padding: 12,
                         marginBottom: 8,
                       }}
-                      onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'hearing' } })}
+                      onPress={() => navigation.navigate('DeviceDetail', { device: {
+                        ...item,
+                        type: 'hearing',
+                        marka,
+                        model,
+                        seri_no: seriNo
+                      } })}
                     >
                       <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{marka} {model}</Text>
                       <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{seriNo}</Text>
@@ -380,7 +398,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'segbis' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...item,
+                      type: 'segbis',
+                      marka: item.segbis_marka || item.marka || '',
+                      model: item.segbis_model || item.model || '',
+                      seri_no: item.segbis_seri_no || item.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.segbis_marka || item.marka || ''} {item.segbis_model || item.model || ''}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.segbis_seri_no || item.seri_no || ''}</Text>
@@ -406,7 +430,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'microphone' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...item,
+                      type: 'microphone',
+                      marka: item.mikrofon_marka || item.marka || '',
+                      model: item.mikrofon_model || item.model || '',
+                      seri_no: item.mikrofon_seri_no || item.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.mikrofon_marka || item.marka || ''} {item.mikrofon_model || item.model || ''}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.mikrofon_seri_no || item.seri_no || ''}</Text>
@@ -432,7 +462,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'tv' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...item,
+                      type: 'tv',
+                      marka: item.tv_marka || item.marka || '',
+                      model: item.tv_model || item.model || '',
+                      seri_no: item.tv_seri_no || item.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.tv_marka || item.marka || ''} {item.tv_model || item.model || ''}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.tv_seri_no || item.seri_no || ''}</Text>
@@ -458,7 +494,13 @@ const CourtroomDetail = ({ route, theme, themedStyles }) => {
                       padding: 12,
                       marginBottom: 8,
                     }}
-                    onPress={() => navigation.navigate('DeviceDetail', { device: { ...item, type: 'kamera' } })}
+                    onPress={() => navigation.navigate('DeviceDetail', { device: {
+                      ...item,
+                      type: 'kamera',
+                      marka: item.kamera_marka || item.marka || '',
+                      model: item.kamera_model || item.model || '',
+                      seri_no: item.kamera_seri_no || item.seri_no || ''
+                    } })}
                   >
                     <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 15 }}>{item.kamera_marka || item.marka || ''} {item.kamera_model || item.model || ''}</Text>
                     <Text style={{ color: theme.textSecondary, fontSize: 13 }}>{item.kamera_seri_no || item.seri_no || ''}</Text>

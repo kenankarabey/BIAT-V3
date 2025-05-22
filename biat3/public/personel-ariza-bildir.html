@@ -98,6 +98,121 @@
                     </div>
                 </form>
             </div>
+
+            <!-- Bildirdiğim Arızalar Tablosu -->
+            <div class="card card-header-blue" style="margin-top:32px;">
+                <h1>Bildirdiğim Arızalar</h1>
+                <p>Daha önce bildirdiğiniz arızaların listesi aşağıda yer almaktadır.</p>
+            </div>
+
+            <div class="card" style="margin-top:16px;">
+                <div class="table-wrapper">
+                    <div class="table-title">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <h2>Arıza Listesi</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="table-container" style="background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <table class="data-table" style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background-color: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                    <th style="padding: 12px 15px; text-align: left;">Arıza No</th>
+                                    <th style="padding: 12px 15px; text-align: left;">Tarih</th>
+                                    <th style="padding: 12px 15px; text-align: left;">Görevli Personel</th>
+                                    <th style="padding: 12px 15px; text-align: left;">Arızayı Bildiren Personel</th>
+                                    <th style="padding: 12px 15px; text-align: left;">Telefon</th>
+                                    <th style="padding: 12px 15px; text-align: left;">Arıza Durumu</th>
+                                    <th style="padding: 12px 15px; text-align: center;">İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody id="myIssuesTableBody">
+                                <!-- Tablo içeriği JavaScript ile doldurulacak -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="myIssuesPagination" class="pagination-controls" style="margin-top: 16px; display: flex; justify-content: center;"></div>
+                </div>
+            </div>
+
+            <!-- Detay Modalı -->
+            <div class="modal" id="myIssueDetailsModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Arıza Detayları</h2>
+                        <button class="close-modal" onclick="closeMyIssueDetailModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="detail-grid">
+                            <div class="detail-item">
+                                <label>Arıza No:</label>
+                                <span id="myDetailArizaNo">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Tarih:</label>
+                                <span id="myDetailTarih">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Görevli Personel:</label>
+                                <span id="myDetailGorevli">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Arızayı Bildiren:</label>
+                                <span id="myDetailBildiren">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Telefon:</label>
+                                <span id="myDetailTelefon">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Durum:</label>
+                                <span id="myDetailDurum">-</span>
+                            </div>
+                            <div class="detail-item full-width">
+                                <label>Açıklama:</label>
+                                <div id="myDetailDescription" class="description-box">-</div>
+                            </div>
+                            <div class="detail-item full-width">
+                                <label>Fotoğraf:</label>
+                                <div id="myDetailFoto" class="photo-box">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Açıklama Modalı -->
+            <div class="modal" id="myDescriptionModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Arıza Açıklaması</h2>
+                        <button class="close-modal" onclick="closeMyDescriptionModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="myFullDescriptionText"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fotoğraf Modalı -->
+            <div class="modal" id="myPhotoModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button class="close-modal" onclick="closeMyPhotoModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <img id="myPhotoModalImg" src="" alt="Büyük Fotoğraf">
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 
@@ -190,6 +305,7 @@
     <script src="js/theme.js"></script>
     <script src="js/login.js"></script>
     <script src="js/ariza-bildir.js"></script>
+    <script src="js/personel-arizalarim.js"></script>
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         const user = JSON.parse(localStorage.getItem('user'));

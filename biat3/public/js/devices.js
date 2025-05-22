@@ -323,9 +323,11 @@ async function saveDevice(event) {
     });
 
     // Tablo adını belirle
-    let table = deviceType;
+    let table;
     if (deviceType === 'e_durusma') {
         table = 'e_durusma';
+    } else if (deviceType === 'segbis') {
+        table = 'segbis';
     } else {
         table = `${deviceType}s`;
     }
@@ -919,8 +921,14 @@ function renderDevices(activeTab = 'computer') {
 // Delete device from database
 async function deleteDeviceFromDatabase(device) {
     try {
-        let table = `${device.type}s`;
-        if (device.type === 'e_durusma') table = 'e_durusma';
+        let table;
+        if (device.type === 'e_durusma') {
+            table = 'e_durusma';
+        } else if (device.type === 'segbis') {
+            table = 'segbis';
+        } else {
+            table = `${device.type}s`;
+        }
         const { error } = await supabase
             .from(table)
             .delete()
@@ -1152,8 +1160,14 @@ async function updateDevice(event) {
     });
 
     // Tablo adını ayarla
-    let table = `${deviceType}s`;
-    if (deviceType === 'e_durusma') table = 'e_durusma';
+    let table;
+    if (device.type === 'e_durusma') {
+        table = 'e_durusma';
+    } else if (device.type === 'segbis') {
+        table = 'segbis';
+    } else {
+        table = `${device.type}s`;
+    }
 
     try {
         const { error } = await supabase
@@ -1634,9 +1648,11 @@ async function saveDeviceToDatabase(device) {
         }
 
         // Tablo adını doğru şekilde oluştur
-        let table = device.type;
+        let table;
         if (device.type === 'e_durusma') {
             table = 'e_durusma';
+        } else if (device.type === 'segbis') {
+            table = 'segbis';
         } else if (device.type === 'printers') {
             table = 'printers';
         } else {
@@ -1688,6 +1704,8 @@ async function updateDeviceInDatabase(device) {
         let table = device.type;
         if (device.type === 'e_durusma') {
             table = 'e_durusma';
+        } else if (device.type === 'segbis') {
+            table = 'segbis';
         } else if (device.type === 'printers') {
             table = 'printers';
         } else {
@@ -1963,9 +1981,11 @@ async function saveNewDevice(event) {
     });
 
     // Determine table name
-    let table = deviceType;
+    let table;
     if (deviceType === 'e_durusma') {
         table = 'e_durusma';
+    } else if (deviceType === 'segbis') {
+        table = 'segbis';
     } else {
         table = `${deviceType}s`;
     }

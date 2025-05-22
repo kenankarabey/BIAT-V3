@@ -334,22 +334,6 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
                   )}
                 </View>
               </View>
-
-              <View style={styles.infoSection}>
-                <Text style={[styles.sectionTitle, themedStyles.text]}>Cihaz Kodları</Text>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 }}>
-                  {/* QR Kod Kutusu */}
-                  <View style={styles.codeBox}>
-                    <QRCodeDisplay value={device.qr_kod || ''} />
-                    <Text style={styles.codeLabel}>QR Kod</Text>
-                  </View>
-                  {/* Barkod Kutusu */}
-                  <View style={styles.codeBox}>
-                    <BarcodeOnlyDisplay value={device.barkod || ''} />
-                    <Text style={styles.codeLabel}>Barkod</Text>
-                  </View>
-                </View>
-              </View>
             </View>
           </Swipeable>
         </GestureHandlerRootView>
@@ -490,9 +474,10 @@ const styles = StyleSheet.create({
   codeBox: {
     backgroundColor: '#f3f4f6',
     borderRadius: 16,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    width: '47%',
+    justifyContent: 'center',
+    minWidth: 0,
   },
   codeLabel: {
     marginTop: 8,

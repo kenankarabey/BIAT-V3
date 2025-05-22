@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, FlatList, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler';
 import withThemedScreen from '../../components/withThemedScreen';
@@ -20,6 +20,7 @@ const DEVICE_TABLES = [
 function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }) {
   const [selectedType, setSelectedType] = useState('Kasa');
   const [devices, setDevices] = useState([]);
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     const fetchAllDevices = async () => {
@@ -29,6 +30,9 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
         if (!error && data) {
           const mapped = data.map(item => ({
             id: item.id,
+            marka: item[`${dev.prefix}_marka`] || item.marka || '',
+            model: item[`${dev.prefix}_model`] || item.model || '',
+            seri_no: item[`${dev.prefix}_seri_no`] || item.seri_no || '',
             kasa_marka: item[`${dev.prefix}_marka`] || '',
             kasa_model: item[`${dev.prefix}_model`] || '',
             kasa_seri_no: item[`${dev.prefix}_seri_no`] || '',
@@ -53,6 +57,8 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
             mahkeme_no: item.mahkeme_no || '',
             birim: item.birim || '',
             durum: item[`${dev.prefix}_durum`] || 'active',
+            type: dev.table,
+            sourceTable: dev.table,
           }));
           allDevices = allDevices.concat(mapped);
         }
@@ -62,7 +68,19 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
     fetchAllDevices();
   }, []);
 
-  const filteredDevices = devices.filter(device => device.tip === selectedType);
+  const filteredDevices = devices.filter(device => {
+    const matchesType = selectedType ? device.tip === selectedType : true;
+    const search = searchText.trim().toLowerCase();
+    if (!search) return matchesType;
+    return matchesType && (
+      (device.marka && device.marka.toLowerCase().includes(search)) ||
+      (device.model && device.model.toLowerCase().includes(search)) ||
+      (device.seri_no && device.seri_no.toLowerCase().includes(search)) ||
+      (device.tip && device.tip.toLowerCase().includes(search)) ||
+      (device.oda_tipi && device.oda_tipi.toLowerCase().includes(search)) ||
+      (device.birim && device.birim.toLowerCase().includes(search))
+    );
+  });
 
   const handleEdit = (device) => {
     navigation.navigate('DeviceForm', { deviceType: { id: device.tip, name: device.tip }, device });
@@ -202,10 +220,27 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
         >
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={[styles.headerTitle, themedStyles.text]}>Tüm Cihazlar</Text>
-        <TouchableOpacity style={styles.actionButton}>
-          <Ionicons name="search" size={24} color={theme.primary} />
-        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+          <Text style={[styles.headerTitle, themedStyles.text]}>Tüm Cihazlar</Text>
+        </View>
+      </View>
+
+      <View style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: theme.inputBg, borderRadius: 12, borderWidth: 1, borderColor: theme.border, paddingHorizontal: 12 }}>
+          <Ionicons name="search-outline" size={20} color={theme.textSecondary} />
+          <TextInput
+            style={{ flex: 1, fontSize: 15, color: theme.text, backgroundColor: 'transparent', marginLeft: 8, height: 40 }}
+            placeholder="Marka, model, seri no veya tip ara..."
+            placeholderTextColor={theme.textSecondary}
+            value={searchText}
+            onChangeText={setSearchText}
+          />
+          {searchText ? (
+            <TouchableOpacity onPress={() => setSearchText('')}>
+              <Ionicons name="close-circle" size={20} color={theme.textSecondary} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
       </View>
 
       <View style={styles.container}>
@@ -247,17 +282,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    flex: 1,
+    textAlign: 'center',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  actionButton: {
     width: 40,
     height: 40,
     borderRadius: 20,

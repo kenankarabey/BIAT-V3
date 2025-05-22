@@ -11,8 +11,24 @@ import {
 import { BarCodeScanner } from 'expo-barcode-scanner';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { useNavigation } from '@react-navigation/native';
+import { supabase } from '../supabaseClient';
+
+const DEVICE_TABLES = [
+  'cameras',
+  'computers',
+  'e_durusma',
+  'laptops',
+  'microphones',
+  'printers',
+  'scanners',
+  'screens',
+  'segbis',
+  'tvs',
+];
 
 export default function ScannerScreen() {
+  const navigation = useNavigation();
   const { theme, isDarkMode } = useTheme();
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
@@ -28,25 +44,185 @@ export default function ScannerScreen() {
     getBarCodeScannerPermissions();
   }, []);
 
-  const handleBarCodeScanned = ({ type, data }) => {
+  const findDeviceByQr = async (value) => {
+    for (const table of DEVICE_TABLES) {
+      // Önce qr_kod'da ara
+      let { data, error } = await supabase
+        .from(table)
+        .select('*')
+        .eq('qr_kod', value)
+        .maybeSingle();
+      if (data) {
+        return { device: data, table };
+      }
+      // Sonra barkod'da ara
+      ({ data, error } = await supabase
+        .from(table)
+        .select('*')
+        .eq('barkod', value)
+        .maybeSingle());
+      if (data) {
+        return { device: data, table };
+      }
+    }
+    return null;
+  };
+
+  const handleBarCodeScanned = async ({ type, data }) => {
     setScanned(true);
-    
-    // QR kod için type 256, diğer barkodlar için farklı değerler
+    console.log('Scanned type:', type, 'data:', data, 'scanMode:', scanMode);
+    // Barkod modunda QR kod okutulursa hiçbir şey yapma
+    if (scanMode === 'barcode' && type === 256) {
+      setScanned(false);
+      return;
+    }
     const isQRCode = type === 256;
-    
     if (scanMode === 'qr' && !isQRCode) {
       alert('Lütfen bir QR kod okutun');
       setScanned(false);
       return;
     }
-    
-    if (scanMode === 'barcode' && isQRCode) {
-      alert('Lütfen bir barkod okutun');
+    if (scanMode === 'barcode' && !isQRCode) {
+      // Barkoddan sadece değer gelecek (ör: "123456789")
+      const barcodeValue = data;
+      setModalVisible(false);
+      // Supabase'de ara
+      const result = await findDeviceByQr(barcodeValue);
+      if (result) {
+        const { device, table } = result;
+        // Alanları tamamla (her tabloya özel)
+        const fieldMap = {
+          computers: { marka: 'kasa_marka', model: 'kasa_model', seri_no: 'kasa_seri_no' },
+          printers: { marka: 'yazici_marka', model: 'yazici_model', seri_no: 'yazici_seri_no' },
+          screens: { marka: 'ekran_marka', model: 'ekran_model', seri_no: 'ekran_seri_no' },
+          scanners: { marka: 'tarayici_marka', model: 'tarayici_model', seri_no: 'tarayici_seri_no' },
+          laptops: { marka: 'laptop_marka', model: 'laptop_model', seri_no: 'laptop_seri_no' },
+          microphones: { marka: 'mikrofon_marka', model: 'mikrofon_model', seri_no: 'mikrofon_seri_no' },
+          cameras: { marka: 'kamera_marka', model: 'kamera_model', seri_no: 'kamera_seri_no' },
+          segbis: { marka: 'segbis_marka', model: 'segbis_model', seri_no: 'segbis_seri_no' },
+          tvs: { marka: 'tv_marka', model: 'tv_model', seri_no: 'tv_seri_no' },
+          e_durusma: { marka: 'e_durusma_marka', model: 'e_durusma_model', seri_no: 'e_durusma_seri_no' },
+        };
+        const fields = fieldMap[table] || {};
+        let marka = device[fields.marka] || device.marka || '';
+        let model = device[fields.model] || device.model || '';
+        let seri_no = device[fields.seri_no] || device.seri_no || '';
+        // Icon ve color eşlemesi
+        const iconMap = {
+          computers: 'desktop-outline',
+          screens: 'tv-outline',
+          printers: 'print-outline',
+          scanners: 'scan-outline',
+          segbis: 'videocam-outline',
+          microphones: 'mic-outline',
+          cameras: 'camera-outline',
+          tvs: 'tv-outline',
+          e_durusma: 'people-outline',
+          laptops: 'laptop-outline',
+        };
+        const colorMap = {
+          computers: '#4f46e5',
+          screens: '#10b981',
+          printers: '#f59e0b',
+          scanners: '#ef4444',
+          segbis: '#6366f1',
+          microphones: '#ec4899',
+          cameras: '#f472b6',
+          tvs: '#14b8a6',
+          e_durusma: '#8b5cf6',
+          laptops: '#6366f1',
+        };
+        navigation.navigate('DeviceDetail', {
+          device: {
+            ...device,
+            marka,
+            model,
+            seri_no,
+            icon: iconMap[table],
+            color: colorMap[table],
+            type: table,
+            sourceTable: table,
+          },
+          table,
+        });
+      } else {
+        alert('Bu barkoda sahip cihaz bulunamadı.');
+      }
       setScanned(false);
       return;
     }
-    
-    alert(`Taranan ${scanMode === 'qr' ? 'QR Kod' : 'Barkod'}: ${data}`);
+    // QR kod modunda, QR kod ise devam et
+    if (scanMode === 'qr' && isQRCode) {
+      // QR koddan sadece değer gelecek (ör: "123456789")
+      const qrValue = data;
+      setModalVisible(false);
+      // Supabase'de ara
+      const result = await findDeviceByQr(qrValue);
+      if (result) {
+        const { device, table } = result;
+        // Alanları tamamla (her tabloya özel)
+        const fieldMap = {
+          computers: { marka: 'kasa_marka', model: 'kasa_model', seri_no: 'kasa_seri_no' },
+          printers: { marka: 'yazici_marka', model: 'yazici_model', seri_no: 'yazici_seri_no' },
+          screens: { marka: 'ekran_marka', model: 'ekran_model', seri_no: 'ekran_seri_no' },
+          scanners: { marka: 'tarayici_marka', model: 'tarayici_model', seri_no: 'tarayici_seri_no' },
+          laptops: { marka: 'laptop_marka', model: 'laptop_model', seri_no: 'laptop_seri_no' },
+          microphones: { marka: 'mikrofon_marka', model: 'mikrofon_model', seri_no: 'mikrofon_seri_no' },
+          cameras: { marka: 'kamera_marka', model: 'kamera_model', seri_no: 'kamera_seri_no' },
+          segbis: { marka: 'segbis_marka', model: 'segbis_model', seri_no: 'segbis_seri_no' },
+          tvs: { marka: 'tv_marka', model: 'tv_model', seri_no: 'tv_seri_no' },
+          e_durusma: { marka: 'e_durusma_marka', model: 'e_durusma_model', seri_no: 'e_durusma_seri_no' },
+        };
+        const fields = fieldMap[table] || {};
+        let marka = device[fields.marka] || device.marka || '';
+        let model = device[fields.model] || device.model || '';
+        let seri_no = device[fields.seri_no] || device.seri_no || '';
+        // Icon ve color eşlemesi
+        const iconMap = {
+          computers: 'desktop-outline',
+          screens: 'tv-outline',
+          printers: 'print-outline',
+          scanners: 'scan-outline',
+          segbis: 'videocam-outline',
+          microphones: 'mic-outline',
+          cameras: 'camera-outline',
+          tvs: 'tv-outline',
+          e_durusma: 'people-outline',
+          laptops: 'laptop-outline',
+        };
+        const colorMap = {
+          computers: '#4f46e5',
+          screens: '#10b981',
+          printers: '#f59e0b',
+          scanners: '#ef4444',
+          segbis: '#6366f1',
+          microphones: '#ec4899',
+          cameras: '#f472b6',
+          tvs: '#14b8a6',
+          e_durusma: '#8b5cf6',
+          laptops: '#6366f1',
+        };
+        navigation.navigate('DeviceDetail', {
+          device: {
+            ...device,
+            marka,
+            model,
+            seri_no,
+            icon: iconMap[table],
+            color: colorMap[table],
+            type: table,
+            sourceTable: table,
+          },
+          table,
+        });
+      } else {
+        alert('Bu QR koda sahip cihaz bulunamadı.');
+      }
+      setScanned(false);
+      return;
+    }
+    // Diğer durumlar için fallback
+    alert(`Taranan Kod: ${data}`);
     setModalVisible(false);
     setScanned(false);
   };
@@ -142,9 +318,10 @@ export default function ScannerScreen() {
           
           <View style={styles.scannerContainer}>
             <BarCodeScanner
-              onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
-              style={StyleSheet.absoluteFillObject}
-            />
+  onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+  barCodeTypes={Object.values(BarCodeScanner.Constants.BarCodeType)}
+  style={StyleSheet.absoluteFillObject}
+/>
             
             <View style={styles.overlay}>
               <View style={styles.scanFrame} />

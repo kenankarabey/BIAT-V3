@@ -157,14 +157,9 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
           >
             <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, themedStyles.text]}>Mahkeme Kalemleri</Text>
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={() => navigation.navigate('CourtOfficeForm')}
-          >
-            <Ionicons name="add" size={20} color="#fff" />
-            <Text style={styles.addButtonText}>Yeni Kalem Ekle</Text>
-          </TouchableOpacity>
+          <View style={{ flex: 1, alignItems: 'center', flexDirection: 'row', justifyContent: 'center' }}>
+            <Text style={[styles.headerTitle, themedStyles.text]}>Mahkeme Kalemleri</Text>
+          </View>
         </View>
 
         <View style={[styles.subHeader, { backgroundColor: theme.card }]}>
@@ -213,19 +208,8 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-  },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1e3a8a',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 6,
-  },
-  addButtonText: {
-    marginLeft: 6,
-    fontSize: 14,
-    color: '#ffffff',
+    flex: 1,
+    textAlign: 'center',
   },
   subHeader: {
     padding: 16,
@@ -353,6 +337,22 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 12,
     marginTop: 4,
+  },
+  fab: {
+    position: 'absolute',
+    right: 24,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1e3a8a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
   },
 });
 

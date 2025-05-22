@@ -30,11 +30,13 @@ import DeviceTypeDetail from '../screens/devices/DeviceTypeDetail';
 import IssueReportScreen from '../screens/issues/IssueReportScreen';
 import IssueListScreen from '../screens/issues/IssueListScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
+import ChatbotScreen from '../screens/ChatbotScreen';
 
 const Tab = createBottomTabNavigator();
 const DevicesStack = createStackNavigator();
 const IssuesStack = createStackNavigator();
 const HomeStack = createStackNavigator();
+const RootStack = createStackNavigator();
 
 const HomeStackNavigator = () => {
   const { theme } = useTheme();
@@ -146,7 +148,7 @@ const TabNavigator = () => {
           tabBarLabel: 'Cihazlar',
           tabBarIcon: ({ color, size, focused }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? 'desktop' : 'desktop-outline'} size={size} color={color} />
+              <Ionicons name={focused ? 'laptop' : 'laptop-outline'} size={size} color={color} />
             </View>
           ),
         }}
@@ -176,6 +178,30 @@ const TabNavigator = () => {
         }}
       />
       <Tab.Screen 
+        name="Chatbot" 
+        component={ChatbotScreen} 
+        options={{
+          tabBarLabel: 'Destek',
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
+        name="Notifications" 
+        component={NotificationsScreen} 
+        options={{
+          tabBarLabel: 'Bildirimler',
+          tabBarIcon: ({ color, size, focused }) => (
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={size} color={color} />
+            </View>
+          ),
+        }}
+      />
+      <Tab.Screen 
         name="Profile" 
         component={ProfileScreen} 
         options={{
@@ -191,4 +217,11 @@ const TabNavigator = () => {
   );
 };
 
-export default TabNavigator; 
+const RootStackNavigator = () => (
+  <RootStack.Navigator screenOptions={{ headerShown: false }}>
+    <RootStack.Screen name="Tab" component={TabNavigator} />
+    <RootStack.Screen name="DeviceDetail" component={DeviceDetailScreen} />
+  </RootStack.Navigator>
+);
+
+export default RootStackNavigator; 
