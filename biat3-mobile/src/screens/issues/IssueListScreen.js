@@ -316,6 +316,13 @@ const IssueListScreen = ({ route, theme }) => {
                 <MaterialCommunityIcons name="account-check" size={18} color={theme.textSecondary} />
                 <Text style={[styles.detailText, { color: theme.textSecondary, marginLeft: 4 }]} numberOfLines={1}>{item.arizayi_cozen_personel}</Text>
               </View>
+            ) : item.ariza_durumu === 'İptal Edildi' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="account-tie" size={18} color={theme.textSecondary} />
+                <Text style={[styles.detailText, { color: theme.textSecondary, marginLeft: 4 }]} numberOfLines={1}>
+                  {item.arizayi_cozen_personel ? item.arizayi_cozen_personel : item.gorevli_personel}
+                </Text>
+              </View>
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <MaterialCommunityIcons name="account-tie" size={18} color={theme.textSecondary} />

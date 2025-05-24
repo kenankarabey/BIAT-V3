@@ -164,34 +164,57 @@ const ProfileScreen = ({ navigation }) => {
     setShowAboutModal(true);
   };
 
-  const handlePasswordChange = () => {
-    // Validate input
+  const handlePasswordChange = async () => {
     if (!currentPassword) {
       Alert.alert("Hata", "Mevcut şifrenizi girmelisiniz.");
       return;
     }
-    
     if (newPassword.length < 6) {
       Alert.alert("Hata", "Yeni şifreniz en az 6 karakter olmalıdır.");
       return;
     }
-    
     if (newPassword !== confirmPassword) {
       Alert.alert("Hata", "Yeni şifreler eşleşmiyor.");
       return;
     }
-
-    // Simulate password change
     setIsLoading(true);
-    setTimeout(() => {
+    try {
+      // Kullanıcıyı tekrar çek
+      const email = await AsyncStorage.getItem('user_email');
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();
+      if (userError || !userData) {
+        setIsLoading(false);
+        Alert.alert('Hata', 'Kullanıcı bulunamadı.');
+        return;
+      }
+      if (userData.sifre !== currentPassword) {
+        setIsLoading(false);
+        Alert.alert('Hata', 'Mevcut şifreniz yanlış.');
+        return;
+      }
+      // Şifreyi güncelle
+      const { error: updateError } = await supabase
+        .from('users')
+        .update({ sifre: newPassword })
+        .eq('email', email);
       setIsLoading(false);
+      if (updateError) {
+        Alert.alert('Hata', 'Şifre güncellenemedi: ' + updateError.message);
+        return;
+      }
       setShowSecurityModal(false);
-      // Reset fields
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      Alert.alert("Başarılı", "Şifreniz başarıyla değiştirildi.");
-    }, 1500);
+      Alert.alert('Başarılı', 'Şifreniz başarıyla değiştirildi.');
+    } catch (e) {
+      setIsLoading(false);
+      Alert.alert('Hata', 'Beklenmeyen bir hata oluştu.');
+    }
   };
 
   if (!isLoading && !user) {
@@ -312,6 +335,48 @@ const ProfileScreen = ({ navigation }) => {
                 thumbColor={isDarkMode ? theme.primary : "#f4f4f5"}
               />
             </View>
+            
+            {/* Şifre Değişikliği Alanı */}
+            <Text style={[styles.sectionTitle, dynamicStyles.text, { marginTop: 24 }]}>Şifre Değişikliği</Text>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Mevcut Şifre</Text>
+              <TextInput
+                style={[styles.input, dynamicStyles.input]}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                placeholder="Mevcut şifrenizi girin"
+                placeholderTextColor={theme.textSecondary}
+                secureTextEntry
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Yeni Şifre</Text>
+              <TextInput
+                style={[styles.input, dynamicStyles.input]}
+                value={newPassword}
+                onChangeText={setNewPassword}
+                placeholder="Yeni şifrenizi girin"
+                placeholderTextColor={theme.textSecondary}
+                secureTextEntry
+              />
+            </View>
+            <View style={styles.inputContainer}>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Yeni Şifre (Tekrar)</Text>
+              <TextInput
+                style={[styles.input, dynamicStyles.input]}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                placeholder="Yeni şifrenizi tekrar girin"
+                placeholderTextColor={theme.textSecondary}
+                secureTextEntry
+              />
+            </View>
+            <TouchableOpacity 
+              style={[styles.saveButton, { backgroundColor: theme.primary }]} 
+              onPress={handlePasswordChange}
+            >
+              <Text style={styles.saveButtonText}>Şifreyi Değiştir</Text>
+            </TouchableOpacity>
           </ScrollView>
           
           <TouchableOpacity 
@@ -397,7 +462,7 @@ const ProfileScreen = ({ navigation }) => {
             <Text style={styles.sectionTitle}>Şifre Değişikliği</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Mevcut Şifre</Text>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Mevcut Şifre</Text>
               <TextInput
                 style={styles.input}
                 value={currentPassword}
@@ -408,7 +473,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Yeni Şifre</Text>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Yeni Şifre</Text>
               <TextInput
                 style={styles.input}
                 value={newPassword}
@@ -419,7 +484,7 @@ const ProfileScreen = ({ navigation }) => {
             </View>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Yeni Şifre (Tekrar)</Text>
+              <Text style={[styles.inputLabel, dynamicStyles.text]}>Yeni Şifre (Tekrar)</Text>
               <TextInput
                 style={styles.input}
                 value={confirmPassword}
@@ -429,34 +494,6 @@ const ProfileScreen = ({ navigation }) => {
               />
             </View>
             
-            <View style={styles.passwordRequirements}>
-              <Text style={styles.requirementsTitle}>Şifre Gereksinimleri:</Text>
-              <View style={styles.requirementItem}>
-                <Ionicons 
-                  name={newPassword.length >= 6 ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={newPassword.length >= 6 ? "#16a34a" : "#94a3b8"} 
-                />
-                <Text style={styles.requirementText}>En az 6 karakter uzunluğunda</Text>
-              </View>
-              <View style={styles.requirementItem}>
-                <Ionicons 
-                  name={/[A-Z]/.test(newPassword) ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={/[A-Z]/.test(newPassword) ? "#16a34a" : "#94a3b8"} 
-                />
-                <Text style={styles.requirementText}>En az bir büyük harf</Text>
-              </View>
-              <View style={styles.requirementItem}>
-                <Ionicons 
-                  name={/[0-9]/.test(newPassword) ? "checkmark-circle" : "ellipse-outline"} 
-                  size={16} 
-                  color={/[0-9]/.test(newPassword) ? "#16a34a" : "#94a3b8"} 
-                />
-                <Text style={styles.requirementText}>En az bir sayı</Text>
-              </View>
-            </View>
-
             <Text style={styles.sectionTitle}>Güvenlik Önlemleri</Text>
             
             <View style={styles.settingItem}>
@@ -604,10 +641,6 @@ const ProfileScreen = ({ navigation }) => {
             <View style={[styles.infoItem, { borderBottomColor: theme.border }]}>
               <Ionicons name="business-outline" size={22} color={theme.primary} />
               <Text style={[styles.infoText, dynamicStyles.text]}>{user?.departman}</Text>
-        </View>
-            <View style={[styles.infoItem, { borderBottomWidth: 0 }]}>
-              <Ionicons name="time-outline" size={22} color={theme.primary} />
-              <Text style={[styles.infoText, dynamicStyles.text]}>Son Aktivite: {user?.last_activity || '-'}</Text>
         </View>
       </View>
 

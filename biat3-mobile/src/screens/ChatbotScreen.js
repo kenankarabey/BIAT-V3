@@ -290,14 +290,34 @@ function isDeviceQueryIntent(message) {
   const lower = message.toLowerCase();
   return deviceQueryKeywords.some(keyword => lower.includes(keyword));
 }
-const warrantyQueryKeywords = [/* ... doldur ... */];
-const cleaningQueryKeywords = [/* ... doldur ... */];
-function isWarrantyQueryIntent(message) { /* ... doldur ... */ }
-function isCleaningQueryIntent(message) { /* ... doldur ... */ }
-const expiredWarrantyKeywords = [/* ... doldur ... */];
-function isExpiredWarrantyQueryIntent(message) { /* ... doldur ... */ }
-const expiredCleaningKeywords = [/* ... doldur ... */];
-function isExpiredCleaningQueryIntent(message) { /* ... doldur ... */ }
+const warrantyQueryKeywords = [
+  'garanti', 'garanti süresi', 'garanti bitiş', 'garanti tarihi', 'garanti durumu', 'garantisi yaklaşan'
+];
+const cleaningQueryKeywords = [
+  'temizlik', 'temizlik tarihi', 'temizlik süresi', 'temizlik yaklaşan', 'temizlik biten', 'temizlik geçmiş', 'temizlik durumu'
+];
+function isWarrantyQueryIntent(message) {
+  const lower = message.toLowerCase();
+  return warrantyQueryKeywords.some(keyword => lower.includes(keyword));
+}
+function isCleaningQueryIntent(message) {
+  const lower = message.toLowerCase();
+  return cleaningQueryKeywords.some(keyword => lower.includes(keyword));
+}
+const expiredWarrantyKeywords = [
+  'garantisi biten', 'garantisi dolan', 'garantisi geçmiş', 'garantisi sona eren'
+];
+function isExpiredWarrantyQueryIntent(message) {
+  const lower = message.toLowerCase();
+  return expiredWarrantyKeywords.some(keyword => lower.includes(keyword));
+}
+const expiredCleaningKeywords = [
+  'temizlik geçmiş', 'temizlik biten', 'temizlik dolan', 'temizlik süresi dolan', 'temizlik süresi biten'
+];
+function isExpiredCleaningQueryIntent(message) {
+  const lower = message.toLowerCase();
+  return expiredCleaningKeywords.some(keyword => lower.includes(keyword));
+}
 function showSelectionMessage(label, options, addBotMessage) {
   if (!options || !Array.isArray(options) || options.length === 0) {
     addBotMessage(label + ': (Seçenek bulunamadı)');
@@ -549,7 +569,10 @@ const ChatbotScreen = () => {
 
     // --- Cihaz ekleme akışı ---
     if (deviceAddState || isDeviceAddIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       // 1. Oda Tipi seçimi
       if (!deviceAddState) {
         setDeviceAddState({ step: 'odaTipi' });
@@ -785,7 +808,10 @@ const ChatbotScreen = () => {
     }
     // 2. Cihaz silme akışı
     if (waitingForDeviceDeleteSerial || isDeviceDeleteIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       // Seri no bekleniyor mu?
       if (!waitingForDeviceDeleteSerial) {
         setWaitingForDeviceDeleteSerial(true);
@@ -796,8 +822,25 @@ const ChatbotScreen = () => {
       // Seri no geldi, sil
       const serial = message.trim();
       try {
-        const { error } = await supabase.from('devices').delete().eq('kasa_seri_no', serial);
-        if (!error) {
+        const silinecekTablolar = [
+          { table: 'computers', field: 'kasa_seri_no' },
+          { table: 'laptops', field: 'laptop_seri_no' },
+          { table: 'printers', field: 'yazici_seri_no' },
+          { table: 'screens', field: 'ekran_seri_no' },
+          { table: 'scanners', field: 'tarayici_seri_no' },
+          { table: 'tvs', field: 'tv_seri_no' },
+          { table: 'segbis', field: 'segbis_seri_no' },
+          { table: 'e_durusma', field: 'edurusma_seri_no' }
+        ];
+        let silindi = false;
+        for (const { table, field } of silinecekTablolar) {
+          const { error, data } = await supabase.from(table).delete().eq(field, serial).select();
+          if (!error && data && data.length > 0) {
+            silindi = true;
+            break;
+          }
+        }
+        if (silindi) {
           addBotMessage('Cihaz başarıyla silindi.');
         } else {
           addBotMessage('Cihaz silinirken hata oluştu veya cihaz bulunamadı.');
@@ -811,7 +854,10 @@ const ChatbotScreen = () => {
     }
     // 3. Cihaz sorgulama akışı
     if (waitingForSerialQuery || isDeviceQueryIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       // Seri no bekleniyor mu?
       if (!waitingForSerialQuery) {
         setWaitingForSerialQuery(true);
@@ -840,64 +886,80 @@ const ChatbotScreen = () => {
       return;
     }
     // 4. Garanti/temizlik/bitmiş garanti/temizlik sorguları
-    if (isWarrantyQueryIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
-      // Garanti bitişi yaklaşan cihazlar (ör: 30 gün içinde bitecek)
+    if (isExpiredWarrantyQueryIntent(message)) {
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       try {
         const now = new Date();
-        const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const { data, error } = await supabase.from('devices')
-          .select('*')
-          .gte('son_garanti_tarihi', now.toISOString().slice(0, 10))
-          .lte('son_garanti_tarihi', future.toISOString().slice(0, 10));
-        if (!error && data && data.length > 0) {
-          const list = data.map(d => `${d.kasa_marka || ''} ${d.kasa_model || ''} - Seri No: ${d.kasa_seri_no || ''} - Garanti Bitiş: ${d.son_garanti_tarihi || ''}`).join('\n');
-          addBotMessage('Garanti bitişi yaklaşan cihazlar:\n' + list);
-        } else {
-          addBotMessage('Garanti bitişi yaklaşan cihaz bulunamadı.');
+        const tablolars = [
+          { table: 'computers', marka: 'kasa_marka', model: 'kasa_model', seri: 'kasa_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'laptops', marka: 'laptop_marka', model: 'laptop_model', seri: 'laptop_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'printers', marka: 'yazici_marka', model: 'yazici_model', seri: 'yazici_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'screens', marka: 'ekran_marka', model: 'ekran_model', seri: 'ekran_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'scanners', marka: 'tarayici_marka', model: 'tarayici_model', seri: 'tarayici_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'tvs', marka: 'tv_marka', model: 'tv_model', seri: 'tv_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'segbis', marka: 'segbis_marka', model: 'segbis_model', seri: 'segbis_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'e_durusma', marka: 'edurusma_marka', model: 'edurusma_model', seri: 'edurusma_seri_no', son_garanti: 'son_garanti_tarihi' }
+        ];
+        let expiredResults = [];
+        for (const t of tablolars) {
+          const { data: expired, error: err2 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_garanti}`)
+            .lt(t.son_garanti, now.toISOString().slice(0, 10));
+          if (!err2 && expired && expired.length > 0) {
+            expiredResults = expiredResults.concat(expired.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Garanti Bitiş: ${d[t.son_garanti] || ''}`));
+          }
         }
+        let msg = '';
+        if (expiredResults.length > 0) {
+          msg += 'Garantisi bitmiş cihazlar:\n' + expiredResults.join('\n');
+        } else {
+          msg += 'Garantisi bitmiş cihaz bulunamadı.';
+        }
+        addBotMessage(msg);
       } catch (e) {
         addBotMessage('Garanti sorgulanırken hata oluştu.');
       }
       setTyping(false);
       return;
     }
-    if (isCleaningQueryIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
-      // Temizlik tarihi yaklaşan cihazlar (ör: 30 gün içinde)
+    if (isWarrantyQueryIntent(message)) {
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       try {
         const now = new Date();
         const future = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-        const { data, error } = await supabase.from('devices')
-          .select('*')
-          .gte('son_temizlik_tarihi', now.toISOString().slice(0, 10))
-          .lte('son_temizlik_tarihi', future.toISOString().slice(0, 10));
-        if (!error && data && data.length > 0) {
-          const list = data.map(d => `${d.kasa_marka || ''} ${d.kasa_model || ''} - Seri No: ${d.kasa_seri_no || ''} - Temizlik Tarihi: ${d.son_temizlik_tarihi || ''}`).join('\n');
-          addBotMessage('Temizlik tarihi yaklaşan cihazlar:\n' + list);
-        } else {
-          addBotMessage('Temizlik tarihi yaklaşan cihaz bulunamadı.');
+        const tablolars = [
+          { table: 'computers', marka: 'kasa_marka', model: 'kasa_model', seri: 'kasa_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'laptops', marka: 'laptop_marka', model: 'laptop_model', seri: 'laptop_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'printers', marka: 'yazici_marka', model: 'yazici_model', seri: 'yazici_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'screens', marka: 'ekran_marka', model: 'ekran_model', seri: 'ekran_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'scanners', marka: 'tarayici_marka', model: 'tarayici_model', seri: 'tarayici_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'tvs', marka: 'tv_marka', model: 'tv_model', seri: 'tv_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'segbis', marka: 'segbis_marka', model: 'segbis_model', seri: 'segbis_seri_no', son_garanti: 'son_garanti_tarihi' },
+          { table: 'e_durusma', marka: 'edurusma_marka', model: 'edurusma_model', seri: 'edurusma_seri_no', son_garanti: 'son_garanti_tarihi' }
+        ];
+        let approachingResults = [];
+        for (const t of tablolars) {
+          const { data: approaching, error: err1 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_garanti}`)
+            .gte(t.son_garanti, now.toISOString().slice(0, 10))
+            .lte(t.son_garanti, future.toISOString().slice(0, 10));
+          if (!err1 && approaching && approaching.length > 0) {
+            approachingResults = approachingResults.concat(approaching.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Garanti Bitiş: ${d[t.son_garanti] || ''}`));
+          }
         }
-      } catch (e) {
-        addBotMessage('Temizlik sorgulanırken hata oluştu.');
-      }
-      setTyping(false);
-      return;
-    }
-    if (isExpiredWarrantyQueryIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
-      // Garantisi bitmiş cihazlar
-      try {
-        const now = new Date();
-        const { data, error } = await supabase.from('devices')
-          .select('*')
-          .lt('son_garanti_tarihi', now.toISOString().slice(0, 10));
-        if (!error && data && data.length > 0) {
-          const list = data.map(d => `${d.kasa_marka || ''} ${d.kasa_model || ''} - Seri No: ${d.kasa_seri_no || ''} - Garanti Bitiş: ${d.son_garanti_tarihi || ''}`).join('\n');
-          addBotMessage('Garantisi bitmiş cihazlar:\n' + list);
+        let msg = '';
+        if (approachingResults.length > 0) {
+          msg += 'Garanti bitişi yaklaşan cihazlar:\n' + approachingResults.join('\n');
         } else {
-          addBotMessage('Garantisi bitmiş cihaz bulunamadı.');
+          msg += 'Garanti bitişi yaklaşan cihaz bulunamadı.';
         }
+        addBotMessage(msg);
       } catch (e) {
         addBotMessage('Garanti sorgulanırken hata oluştu.');
       }
@@ -905,19 +967,102 @@ const ChatbotScreen = () => {
       return;
     }
     if (isExpiredCleaningQueryIntent(message)) {
-      const addBotMessage = (content) => setMessages(prev => [...prev, { role: 'assistant', content }]);
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
       // Temizlik tarihi geçmiş cihazlar
       try {
         const now = new Date();
-        const { data, error } = await supabase.from('devices')
-          .select('*')
-          .lt('son_temizlik_tarihi', now.toISOString().slice(0, 10));
-        if (!error && data && data.length > 0) {
-          const list = data.map(d => `${d.kasa_marka || ''} ${d.kasa_model || ''} - Seri No: ${d.kasa_seri_no || ''} - Temizlik Tarihi: ${d.son_temizlik_tarihi || ''}`).join('\n');
-          addBotMessage('Temizlik tarihi geçmiş cihazlar:\n' + list);
-        } else {
-          addBotMessage('Temizlik tarihi geçmiş cihaz bulunamadı.');
+        const tablolars = [
+          { table: 'computers', marka: 'kasa_marka', model: 'kasa_model', seri: 'kasa_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'laptops', marka: 'laptop_marka', model: 'laptop_model', seri: 'laptop_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'printers', marka: 'yazici_marka', model: 'yazici_model', seri: 'yazici_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'screens', marka: 'ekran_marka', model: 'ekran_model', seri: 'ekran_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'scanners', marka: 'tarayici_marka', model: 'tarayici_model', seri: 'tarayici_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'tvs', marka: 'tv_marka', model: 'tv_model', seri: 'tv_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'segbis', marka: 'segbis_marka', model: 'segbis_model', seri: 'segbis_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'e_durusma', marka: 'edurusma_marka', model: 'edurusma_model', seri: 'edurusma_seri_no', son_temizlik: 'son_temizlik_tarihi' }
+        ];
+        let expiredResults = [];
+        for (const t of tablolars) {
+          const { data: expired, error: err2 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_temizlik}`)
+            .lt(t.son_temizlik, now.toISOString().slice(0, 10));
+          if (!err2 && expired && expired.length > 0) {
+            expiredResults = expiredResults.concat(expired.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Temizlik Tarihi: ${d[t.son_temizlik] || ''}`));
+          }
         }
+        let msg = '';
+        if (expiredResults.length > 0) {
+          msg += 'Temizlik tarihi geçmiş cihazlar:\n' + expiredResults.join('\n');
+        } else {
+          msg += 'Temizlik tarihi geçmiş cihaz bulunamadı.';
+        }
+        addBotMessage(msg);
+      } catch (e) {
+        addBotMessage('Temizlik sorgulanırken hata oluştu.');
+      }
+      setTyping(false);
+      return;
+    }
+    if (isCleaningQueryIntent(message)) {
+      const addBotMessage = (content) => {
+        setMessages(prev => [...prev, { role: 'assistant', content }]);
+        saveMessage(currentChatId, 'assistant', content);
+      };
+      try {
+        const now = new Date();
+        const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+        const twoMonthsAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+        const threeMonthsLater = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+        const tablolars = [
+          { table: 'computers', marka: 'kasa_marka', model: 'kasa_model', seri: 'kasa_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'laptops', marka: 'laptop_marka', model: 'laptop_model', seri: 'laptop_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'printers', marka: 'yazici_marka', model: 'yazici_model', seri: 'yazici_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'screens', marka: 'ekran_marka', model: 'ekran_model', seri: 'ekran_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'scanners', marka: 'tarayici_marka', model: 'tarayici_model', seri: 'tarayici_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'tvs', marka: 'tv_marka', model: 'tv_model', seri: 'tv_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'segbis', marka: 'segbis_marka', model: 'segbis_model', seri: 'segbis_seri_no', son_temizlik: 'son_temizlik_tarihi' },
+          { table: 'e_durusma', marka: 'edurusma_marka', model: 'edurusma_model', seri: 'edurusma_seri_no', son_temizlik: 'son_temizlik_tarihi' }
+        ];
+        let approachingResults = [];
+        let expiredResults = [];
+        let futureResults = [];
+        for (const t of tablolars) {
+          // 1 yıl içinde temizlik tarihi yaklaşanlar
+          const { data: approaching, error: err1 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_temizlik}`)
+            .gte(t.son_temizlik, now.toISOString().slice(0, 10))
+            .lte(t.son_temizlik, oneYearLater.toISOString().slice(0, 10));
+          if (!err1 && approaching && approaching.length > 0) {
+            approachingResults = approachingResults.concat(approaching.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Temizlik Tarihi: ${d[t.son_temizlik] || ''}`));
+          }
+          // Son 2 ayda temizlik tarihi geçenler
+          const { data: expired, error: err2 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_temizlik}`)
+            .gte(t.son_temizlik, twoMonthsAgo.toISOString().slice(0, 10))
+            .lt(t.son_temizlik, now.toISOString().slice(0, 10));
+          if (!err2 && expired && expired.length > 0) {
+            expiredResults = expiredResults.concat(expired.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Temizlik Tarihi: ${d[t.son_temizlik] || ''}`));
+          }
+          // 3 ay içinde gelecekte temizlik tarihi olanlar
+          const { data: future, error: err3 } = await supabase.from(t.table)
+            .select(`${t.marka}, ${t.model}, ${t.seri}, ${t.son_temizlik}`)
+            .gt(t.son_temizlik, now.toISOString().slice(0, 10))
+            .lte(t.son_temizlik, threeMonthsLater.toISOString().slice(0, 10));
+          if (!err3 && future && future.length > 0) {
+            futureResults = futureResults.concat(future.map(d => `${d[t.marka] || ''} ${d[t.model] || ''} - Seri No: ${d[t.seri] || ''} - Temizlik Tarihi: ${d[t.son_temizlik] || ''}`));
+          }
+        }
+        let msg = '';
+        msg += '1 yıl içinde temizlik tarihi yaklaşan cihazlar:\n';
+        msg += approachingResults.length > 0 ? approachingResults.join('\n') : 'Yok';
+        msg += '\n\n2 ay içinde temizlik tarihi geçen cihazlar:\n';
+        msg += expiredResults.length > 0 ? expiredResults.join('\n') : 'Yok';
+        msg += '\n\n3 ay içinde temizlik tarihi gelecekte olan cihazlar:\n';
+        msg += futureResults.length > 0 ? futureResults.join('\n') : 'Yok';
+        addBotMessage(msg);
       } catch (e) {
         addBotMessage('Temizlik sorgulanırken hata oluştu.');
       }
@@ -1002,7 +1147,7 @@ const ChatbotScreen = () => {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>  
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 140}
       >
         <View style={{ flex: 1 }}>

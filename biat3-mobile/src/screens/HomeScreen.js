@@ -323,12 +323,12 @@ const HomeScreen = ({ navigation }) => {
                   shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
                 }
               ]}
-              onPress={() => navigation.navigate('Issues', { screen: 'IssueReport' })}
+              onPress={() => navigation.navigate('Devices', { screen: 'AddDevice' })}
             >
-              <Ionicons name="warning" size={28} color={theme.primary} />
-              <Text style={[styles.quickAccessText, { color: theme.text }]}>Arıza Bildir</Text>
+              <Ionicons name="add-circle" size={28} color={theme.primary} />
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>Cihaz Ekle</Text>
             </TouchableOpacity>
-            
+
             <TouchableOpacity 
               style={[
                 styles.quickAccessItem, 
@@ -339,10 +339,10 @@ const HomeScreen = ({ navigation }) => {
                   shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
                 }
               ]}
-              onPress={() => navigation.navigate('Devices', { screen: 'AddDevice' })}
+              onPress={() => navigation.navigate('Chatbot')}
             >
-              <Ionicons name="add-circle" size={28} color={theme.primary} />
-              <Text style={[styles.quickAccessText, { color: theme.text }]}>Cihaz Ekle</Text>
+              <Ionicons name="chatbubbles" size={28} color={theme.primary} />
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>Destek</Text>
             </TouchableOpacity>
           </View>
         </View>

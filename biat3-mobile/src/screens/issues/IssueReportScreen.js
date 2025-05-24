@@ -67,6 +67,9 @@ const IssueReportScreen = ({ route, theme }) => {
     { label: 'Kritik', value: 'Kritik' },
   ];
 
+  // Kayıdın hangi tablodan geldiğini belirle
+  const isFromCozulenArizalar = !!(editIssue && editIssue.cozulme_tarihi && editIssue.arizayi_cozen_personel);
+
   // Form validasyonu yap
   const validateForm = () => {
     const newErrors = {};
@@ -165,7 +168,19 @@ const IssueReportScreen = ({ route, theme }) => {
       const userStr = await AsyncStorage.getItem('user');
       const user = userStr ? JSON.parse(userStr) : null;
       const currentUserName = user?.ad_soyad || '';
-      if (status === 'Çözüldü' && editIssue.ariza_durumu !== 'Çözüldü') {
+      if (isFromCozulenArizalar) {
+        // Sadece cozulen_arizalar tablosunda güncelle
+        const { error } = await supabase
+          .from('cozulen_arizalar')
+          .update({ ariza_durumu: status })
+          .eq('id', editIssue.id);
+        if (!error) {
+          Alert.alert('Başarılı', 'Durum güncellendi.');
+          navigation.goBack();
+        } else {
+          Alert.alert('Hata', 'Kayıt güncellenemedi.');
+        }
+      } else if (status === 'Çözüldü' && editIssue.ariza_durumu !== 'Çözüldü') {
         // Kayıt ariza_bildirimleri'nden sil, cozulen_arizalar'a ekle
         const newSolved = {
           ariza_no: editIssue.ariza_no,
@@ -181,25 +196,12 @@ const IssueReportScreen = ({ route, theme }) => {
         const { error: insertError } = await supabase
           .from('cozulen_arizalar')
           .insert([newSolved]);
-        console.log('cozulen_arizalar insert error:', insertError);
         // 2. ariza_bildirimleri tablosundan sil
         const { error: deleteError } = await supabase
           .from('ariza_bildirimleri')
           .delete()
           .eq('id', editIssue.id);
         if (!insertError && !deleteError) {
-          Alert.alert('Başarılı', 'Durum güncellendi.');
-          navigation.goBack();
-        } else {
-          Alert.alert('Hata', 'Kayıt güncellenemedi.');
-        }
-      } else if (editIssue.ariza_durumu === 'Çözüldü' && status === 'İptal Edildi') {
-        // Çözülen arızayı iptal edildi olarak güncelle
-        const { error } = await supabase
-          .from('cozulen_arizalar')
-          .update({ ariza_durumu: 'İptal Edildi' })
-          .eq('id', editIssue.id);
-        if (!error) {
           Alert.alert('Başarılı', 'Durum güncellendi.');
           navigation.goBack();
         } else {
@@ -278,19 +280,18 @@ const IssueReportScreen = ({ route, theme }) => {
 
   // Eğer edit modunda ve ariza_durumu Beklemede/İşlemde/İptal Edildi/Çözüldü ise özel detay görünümünü göster
   if (isEditMode && ['Beklemede', 'İşlemde', 'İptal Edildi', 'Çözüldü'].includes(editIssue.ariza_durumu)) {
-    // ModalSelector seçeneklerini duruma göre ayarla
-    const statusOptions =
-      status === 'Çözüldü'
-        ? [
-            { key: 'Çözüldü', label: 'Çözüldü' },
-            { key: 'İptal Edildi', label: 'İptal Edildi' },
-          ]
-        : [
-            { key: 'Beklemede', label: 'Beklemede' },
-            { key: 'İşlemde', label: 'İşlemde' },
-            { key: 'Çözüldü', label: 'Çözüldü' },
-            { key: 'İptal Edildi', label: 'İptal Edildi' },
-          ];
+    // ModalSelector seçeneklerini tabloya göre ayarla
+    const statusOptions = isFromCozulenArizalar
+      ? [
+          { key: 'Çözüldü', label: 'Çözüldü' },
+          { key: 'İptal Edildi', label: 'İptal Edildi' },
+        ]
+      : [
+          { key: 'Beklemede', label: 'Beklemede' },
+          { key: 'İşlemde', label: 'İşlemde' },
+          { key: 'Çözüldü', label: 'Çözüldü' },
+          { key: 'İptal Edildi', label: 'İptal Edildi' },
+        ];
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}> 
         <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}> 
@@ -527,7 +528,11 @@ const InfoRow = ({ label, value, theme, multiline, item }) => {
   // Tarih alanı için Türkçe formatlama
   let displayValue = value;
   if (label === 'Tarih') {
-    if (item && item.ariza_durumu === 'Çözüldü' && item.cozulme_tarihi) {
+    if (
+      item &&
+      (item.ariza_durumu === 'Çözüldü' || item.ariza_durumu === 'İptal Edildi') &&
+      item.cozulme_tarihi
+    ) {
       displayValue = formatDate(item.cozulme_tarihi);
     } else if (value) {
       displayValue = formatDate(value);
