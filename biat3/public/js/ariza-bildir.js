@@ -6,13 +6,13 @@ document.addEventListener('DOMContentLoaded', function() {
         e.preventDefault();
         
         // Form verilerini al
-        const sicil_no = document.getElementById('sicilNo').value;
+        const arizayi_bildiren_personel = document.getElementById('sicilNo').value;
         const aciklama = document.getElementById('description').value;
         const telefon = document.getElementById('telefon').value;
         const fileInput = document.getElementById('fileUpload');
         const file = fileInput.files[0];
 
-        console.log('Form verileri:', { sicil_no, aciklama, telefon, file });
+        console.log('Form verileri:', { arizayi_bildiren_personel, aciklama, telefon, file });
 
         let foto_url = null;
 
@@ -83,14 +83,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const gorevli_personel = adminler[adminIndex].ad_soyad;
 
         // Şimdi tabloya kaydet
-        console.log('Tabloya kaydediliyor:', { sicil_no, aciklama, telefon, foto_url, gorevli_personel });
+        console.log('Tabloya kaydediliyor:', { arizayi_bildiren_personel, aciklama, telefon, foto_url, gorevli_personel });
         const today = new Date().toISOString(); // UTC ISO formatı
         const ariza_no = generateArizaNo();
         const { error: insertError } = await supabase
             .from('ariza_bildirimleri')
             .insert([{
                 ariza_no: ariza_no,
-                sicil_no: sicil_no,
+                arizayi_bildiren_personel: arizayi_bildiren_personel,
                 ariza_aciklamasi: aciklama,
                 telefon: telefon,
                 foto_url: foto_url,

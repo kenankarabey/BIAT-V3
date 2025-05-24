@@ -18,6 +18,9 @@ import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { Picker } from '@react-native-picker/picker';
 import withThemedScreen from '../../components/withThemedScreen';
+import ModalSelector from 'react-native-modal-selector';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '../../supabaseClient';
 
 const IssueReportScreen = ({ route, theme }) => {
   const navigation = useNavigation();
@@ -30,9 +33,10 @@ const IssueReportScreen = ({ route, theme }) => {
   const [location, setLocation] = useState(editIssue?.location || '');
   const [deviceType, setDeviceType] = useState(editIssue?.deviceType || '');
   const [deviceId, setDeviceId] = useState(editIssue?.deviceId || '');
-  const [status, setStatus] = useState(editIssue?.status || 'Açık');
+  const [status, setStatus] = useState(editIssue?.ariza_durumu || editIssue?.status || 'Beklemede');
   const [priority, setPriority] = useState(editIssue?.priority || 'Orta');
   const [images, setImages] = useState(editIssue?.images || []);
+  const [updating, setUpdating] = useState(false);
 
   // Form validasyonu
   const [errors, setErrors] = useState({});
@@ -154,30 +158,70 @@ const IssueReportScreen = ({ route, theme }) => {
   };
 
   // Kaydet
-  const handleSave = () => {
-    if (!validateForm()) {
-      Alert.alert('Hata', 'Lütfen zorunlu alanları doldurun.');
-      return;
-    }
-
-    const issueData = {
-      id: editIssue?.id || Date.now().toString(),
-      title,
-      description,
-      location,
-      deviceType,
-      deviceId,
-      priority,
-      status,
-      images,
-      reportDate: editIssue?.reportDate || new Date().toISOString(),
-      lastUpdateDate: new Date().toISOString(),
-    };
-
-    if (isEditMode) {
-      navigation.navigate('IssueList', { updatedIssue: issueData });
-    } else {
-      navigation.navigate('IssueList', { newIssue: issueData });
+  const handleSave = async () => {
+    setUpdating(true);
+    try {
+      // Kullanıcı adını çek
+      const userStr = await AsyncStorage.getItem('user');
+      const user = userStr ? JSON.parse(userStr) : null;
+      const currentUserName = user?.ad_soyad || '';
+      if (status === 'Çözüldü' && editIssue.ariza_durumu !== 'Çözüldü') {
+        // Kayıt ariza_bildirimleri'nden sil, cozulen_arizalar'a ekle
+        const newSolved = {
+          ariza_no: editIssue.ariza_no,
+          arizayi_bildiren_personel: editIssue.arizayi_bildiren_personel,
+          arizayi_cozen_personel: currentUserName,
+          telefon: editIssue.telefon,
+          cozulme_tarihi: new Date().toISOString(),
+          ariza_durumu: 'Çözüldü',
+          ariza_aciklamasi: editIssue.ariza_aciklamasi,
+          foto_url: editIssue.foto_url,
+        };
+        // 1. cozulen_arizalar tablosuna ekle
+        const { error: insertError } = await supabase
+          .from('cozulen_arizalar')
+          .insert([newSolved]);
+        console.log('cozulen_arizalar insert error:', insertError);
+        // 2. ariza_bildirimleri tablosundan sil
+        const { error: deleteError } = await supabase
+          .from('ariza_bildirimleri')
+          .delete()
+          .eq('id', editIssue.id);
+        if (!insertError && !deleteError) {
+          Alert.alert('Başarılı', 'Durum güncellendi.');
+          navigation.goBack();
+        } else {
+          Alert.alert('Hata', 'Kayıt güncellenemedi.');
+        }
+      } else if (editIssue.ariza_durumu === 'Çözüldü' && status === 'İptal Edildi') {
+        // Çözülen arızayı iptal edildi olarak güncelle
+        const { error } = await supabase
+          .from('cozulen_arizalar')
+          .update({ ariza_durumu: 'İptal Edildi' })
+          .eq('id', editIssue.id);
+        if (!error) {
+          Alert.alert('Başarılı', 'Durum güncellendi.');
+          navigation.goBack();
+        } else {
+          Alert.alert('Hata', 'Kayıt güncellenemedi.');
+        }
+      } else {
+        // Sadece ariza_bildirimleri tablosunda güncelle
+        const { error } = await supabase
+          .from('ariza_bildirimleri')
+          .update({ ariza_durumu: status })
+          .eq('id', editIssue.id);
+        if (!error) {
+          Alert.alert('Başarılı', 'Durum güncellendi.');
+          navigation.goBack();
+        } else {
+          Alert.alert('Hata', 'Kayıt güncellenemedi.');
+        }
+      }
+    } catch (e) {
+      Alert.alert('Hata', 'Bir hata oluştu.');
+    } finally {
+      setUpdating(false);
     }
   };
 
@@ -231,6 +275,87 @@ const IssueReportScreen = ({ route, theme }) => {
       </View>
     </View>
   );
+
+  // Eğer edit modunda ve ariza_durumu Beklemede/İşlemde/İptal Edildi/Çözüldü ise özel detay görünümünü göster
+  if (isEditMode && ['Beklemede', 'İşlemde', 'İptal Edildi', 'Çözüldü'].includes(editIssue.ariza_durumu)) {
+    // ModalSelector seçeneklerini duruma göre ayarla
+    const statusOptions =
+      status === 'Çözüldü'
+        ? [
+            { key: 'Çözüldü', label: 'Çözüldü' },
+            { key: 'İptal Edildi', label: 'İptal Edildi' },
+          ]
+        : [
+            { key: 'Beklemede', label: 'Beklemede' },
+            { key: 'İşlemde', label: 'İşlemde' },
+            { key: 'Çözüldü', label: 'Çözüldü' },
+            { key: 'İptal Edildi', label: 'İptal Edildi' },
+          ];
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}> 
+        <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}> 
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Arıza Kaydını Düzenle</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <ScrollView style={styles.scrollView} contentContainerStyle={{ padding: 16 }}>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}> 
+            <InfoRow label="Arıza No" value={editIssue.ariza_no} theme={theme} item={editIssue} />
+            <Divider theme={theme} />
+            <InfoRow label="Arızayı Bildiren" value={editIssue.arizayi_bildiren_personel} theme={theme} item={editIssue} />
+            <Divider theme={theme} />
+            {status === 'Çözüldü' && (
+              <>
+                <InfoRow label="Arızayı Çözen" value={editIssue.arizayi_cozen_personel} theme={theme} item={editIssue} />
+                <Divider theme={theme} />
+              </>
+            )}
+            <InfoRow label="Telefon" value={editIssue.telefon} theme={theme} item={editIssue} />
+            <Divider theme={theme} />
+            <InfoRow label="Tarih" value={editIssue.tarih} theme={theme} item={editIssue} />
+            <Divider theme={theme} />
+            <InfoRow label="Durum" value={status} theme={theme} item={editIssue} />
+            <Divider theme={theme} />
+            <InfoRow label="Açıklama" value={editIssue.ariza_aciklamasi} theme={theme} multiline item={editIssue} />
+            <View style={{ marginTop: 16 }}>
+              <Text style={[styles.fieldLabel, { color: theme.textSecondary, marginBottom: 8 }]}>Fotoğraf</Text>
+              {editIssue.foto_url ? (
+                <Image source={{ uri: editIssue.foto_url }} style={styles.photo} resizeMode="cover" />
+              ) : (
+                <Text style={{ color: theme.textSecondary }}>Fotoğraf yok</Text>
+              )}
+            </View>
+          </View>
+          <View style={{ marginTop: 24 }}>
+            <Text style={[styles.fieldLabel, { color: theme.textSecondary, marginBottom: 8 }]}>Durum</Text>
+            <ModalSelector
+              data={statusOptions}
+              initValue={status}
+              selectedKey={status}
+              disabled={updating}
+              onChange={option => setStatus(option.key)}
+              style={{ backgroundColor: theme.inputBg, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}
+              selectStyle={{ backgroundColor: theme.inputBg, borderRadius: 8, borderWidth: 0, padding: 12 }}
+              optionTextStyle={{ color: theme.text }}
+              optionContainerStyle={{ backgroundColor: theme.card }}
+              initValueTextStyle={{ color: theme.text }}
+              selectedItemTextStyle={{ color: theme.primary }}
+              cancelText="Kapat"
+            />
+          </View>
+          <TouchableOpacity 
+            style={[styles.submitButton, { backgroundColor: theme.primary, marginTop: 24 }]}
+            onPress={handleSave}
+            disabled={updating}
+          >
+            <Text style={styles.submitButtonText}>{updating ? 'Güncelleniyor...' : 'Güncelle'}</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -398,6 +523,42 @@ const getPriorityBackgroundColor = (priority) => {
   }
 };
 
+const InfoRow = ({ label, value, theme, multiline, item }) => {
+  // Tarih alanı için Türkçe formatlama
+  let displayValue = value;
+  if (label === 'Tarih') {
+    if (item && item.ariza_durumu === 'Çözüldü' && item.cozulme_tarihi) {
+      displayValue = formatDate(item.cozulme_tarihi);
+    } else if (value) {
+      displayValue = formatDate(value);
+    }
+  }
+  return (
+    <View style={styles.infoRow}>
+      <Text style={[styles.infoLabel, { color: theme.textSecondary }]}>{label}</Text>
+      <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={multiline ? 4 : 1}>{displayValue || '-'}</Text>
+    </View>
+  );
+};
+
+// Türkçe tarih formatlama fonksiyonu
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  return date.toLocaleDateString('tr-TR', {
+    year: 'numeric',
+    month: 'short',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+}
+
+const Divider = ({ theme }) => (
+  <View style={{ height: 1, backgroundColor: theme.border, marginVertical: 2 }} />
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -532,6 +693,40 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  card: {
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  value: {
+    fontSize: 15,
+    fontWeight: '400',
+  },
+  photo: {
+    width: '100%',
+    height: 180,
+    borderRadius: 10,
+    backgroundColor: '#e5e7eb',
+    marginBottom: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  infoLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    flex: 1,
+  },
+  infoValue: {
+    fontSize: 15,
+    fontWeight: '400',
+    flex: 1,
+    textAlign: 'right',
   },
 });
 

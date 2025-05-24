@@ -7,6 +7,7 @@ import { supabase } from '../../supabaseClient';
 
 const DEVICE_TABLES = [
   { table: 'computers', prefix: 'kasa', type: 'Kasa', icon: 'desktop', color: '#4f46e5' },
+  { table: 'laptops', prefix: 'laptop', type: 'Laptop', icon: 'laptop', color: '#6366f1' },
   { table: 'screens', prefix: 'ekran', type: 'Monitör', icon: 'tv', color: '#10b981' },
   { table: 'printers', prefix: 'yazici', type: 'Yazıcı', icon: 'print', color: '#f59e0b' },
   { table: 'scanners', prefix: 'tarayici', type: 'Tarayıcı', icon: 'scan', color: '#ef4444' },
@@ -16,6 +17,33 @@ const DEVICE_TABLES = [
   { table: 'tvs', prefix: 'tv', type: 'TV', icon: 'tv', color: '#14b8a6' },
   { table: 'e_durusma', prefix: 'e_durusma', type: 'E-Duruşma', icon: 'people', color: '#8b5cf6' },
 ];
+
+function AddDeviceFAB({ onPress, theme }) {
+  return (
+    <TouchableOpacity
+      style={{
+        position: 'absolute',
+        right: 24,
+        bottom: 24,
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: theme.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        zIndex: 99,
+      }}
+      onPress={onPress}
+    >
+      <Ionicons name="add" size={32} color="#fff" />
+    </TouchableOpacity>
+  );
+}
 
 function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }) {
   const [selectedType, setSelectedType] = useState('Kasa');
@@ -30,19 +58,23 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
         if (!error && data) {
           const mapped = data.map(item => ({
             id: item.id,
-            marka: item[`${dev.prefix}_marka`] || item.marka || '',
-            model: item[`${dev.prefix}_model`] || item.model || '',
-            seri_no: item[`${dev.prefix}_seri_no`] || item.seri_no || '',
+            marka: dev.prefix === 'e_durusma'
+              ? (item.edurusma_marka || item.marka || '')
+              : (item[`${dev.prefix}_marka`] || item.marka || ''),
+            model: dev.prefix === 'e_durusma'
+              ? (item.edurusma_model || item.model || '')
+              : (item[`${dev.prefix}_model`] || item.model || ''),
+            seri_no: dev.prefix === 'e_durusma'
+              ? (item.edurusma_seri_no || item.seri_no || '')
+              : (item[`${dev.prefix}_seri_no`] || item.seri_no || ''),
             kasa_marka: item[`${dev.prefix}_marka`] || '',
             kasa_model: item[`${dev.prefix}_model`] || '',
             kasa_seri_no: item[`${dev.prefix}_seri_no`] || '',
             oda_tipi: item.oda_tipi || '',
             unvan: item.unvan || '',
             adi_soyadi: item.adi_soyadi || '',
-            ...(dev.prefix === 'yazici'
-              ? { sicilno: item.sicilno || '' }
-              : { sicil_no: item.sicil_no || '' }
-            ),
+            sicil_no: dev.prefix === 'yazici' ? (item.sicilno || '') : (item.sicil_no || ''),
+            sicilno: dev.prefix === 'yazici' ? (item.sicilno || '') : '',
             kasa_ilk_temizlik_tarihi: dev.prefix === 'kasa' ? (item.kasa_ilk_temizlik_tarihi || '') : '',
             kasa_son_temizlik_tarihi: dev.prefix === 'kasa' ? (item.kasa_son_temizlik_tarihi || '') : '',
             ilk_temizlik_tarihi: item.ilk_temizlik_tarihi || '',
@@ -194,7 +226,7 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
             </View>
             <View style={styles.deviceInfo}>
               <View style={styles.deviceHeader}>
-                <Text style={[styles.deviceName, themedStyles.text]}>{(item.kasa_marka || '') + ' ' + (item.kasa_model || '')}</Text>
+                <Text style={[styles.deviceName, themedStyles.text]}>{(item.marka || '') + ' ' + (item.model || '')}</Text>
                 <View style={styles.statusContainer}>
                   <View style={[styles.statusDot, { backgroundColor: getStatusColor(item.durum) }]} />
                   <Text style={styles.statusText}>{getStatusText(item.durum)}</Text>
@@ -268,6 +300,7 @@ function AllDevicesScreen({ navigation, route, theme, themedStyles, isDarkMode }
             </View>
           }
         />
+        <AddDeviceFAB onPress={() => navigation.navigate('RoomTypeSelection')} theme={theme} />
       </View>
     </>
   );

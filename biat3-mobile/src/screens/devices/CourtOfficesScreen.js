@@ -46,6 +46,15 @@ const CourtOfficesScreen = ({ navigation, theme, themedStyles }) => {
       (office.mahkeme_turu || '').toLowerCase().includes(query) ||
       (office.mahkeme_hakimi || '').toLowerCase().includes(query)
     );
+  }).sort((a, b) => {
+    const aType = (a.mahkeme_turu || '').toLowerCase();
+    const bType = (b.mahkeme_turu || '').toLowerCase();
+    if (aType < bType) return -1;
+    if (aType > bType) return 1;
+    // Türler eşitse, mahkeme_no'ya göre sırala (sayıya çevir)
+    const aNo = parseInt(a.mahkeme_no, 10) || 0;
+    const bNo = parseInt(b.mahkeme_no, 10) || 0;
+    return aNo - bNo;
   });
 
   // Durum rengini belirleme

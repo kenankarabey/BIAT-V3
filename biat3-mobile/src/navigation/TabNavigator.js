@@ -92,7 +92,6 @@ const IssuesStackNavigator = () => {
         cardStyle: { backgroundColor: theme.background },
       }}
     >
-      <IssuesStack.Screen name="IssuesMain" component={IssuesScreen} />
       <IssuesStack.Screen name="IssueList" component={IssueListScreen} />
       <IssuesStack.Screen name="IssueReport" component={IssueReportScreen} />
     </IssuesStack.Navigator>
@@ -185,18 +184,6 @@ const TabNavigator = () => {
           tabBarIcon: ({ color, size, focused }) => (
             <View style={{ alignItems: 'center', justifyContent: 'center' }}>
               <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={color} />
-            </View>
-          ),
-        }}
-      />
-      <Tab.Screen 
-        name="Notifications" 
-        component={NotificationsScreen} 
-        options={{
-          tabBarLabel: 'Bildirimler',
-          tabBarIcon: ({ color, size, focused }) => (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={size} color={color} />
             </View>
           ),
         }}

@@ -285,7 +285,7 @@ const JudgeRoomDetail = ({ route, theme, themedStyles }) => {
             // Debug log
             console.log(`Hakim ${idx+1}:`, hakim.adisoyadi, 'Laptop:', hakimDevices[idx]?.laptop, 'Monitor:', hakimDevices[idx]?.monitor, 'Printer:', hakimDevices[idx]?.printer);
             return (
-              <View key={idx} style={[styles.card, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}> 
+              <View key={idx} style={[styles.card, { backgroundColor: '#23272e', borderColor: '#23272e' }]}> 
                 <View style={styles.infoRow}>
                   <MaterialCommunityIcons name="account-tie" size={20} color={theme.textSecondary} />
                   <Text style={[styles.infoText, { color: theme.text }]}>{hakim.adisoyadi || 'Belirtilmemiş'}</Text>

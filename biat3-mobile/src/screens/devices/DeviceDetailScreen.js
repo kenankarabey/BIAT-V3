@@ -5,11 +5,53 @@ import { GestureHandlerRootView, Swipeable } from 'react-native-gesture-handler'
 import BarcodeDisplay, { QRCodeDisplay, BarcodeOnlyDisplay } from '../../components/BarcodeDisplay';
 import withThemedScreen from '../../components/withThemedScreen';
 import { supabase } from '../../supabaseClient';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 
 
 const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode }) => {
-  const { device } = route.params;
-  console.log('Device detail:', route?.params?.device);
+  const { device: initialDevice } = route.params;
+  const [device, setDevice] = useState(initialDevice);
+  console.log('Device detail:', initialDevice);
+
+  // Ekrana her odaklanıldığında güncel veriyi çek
+  useFocusEffect(
+    useCallback(() => {
+      const fetchDevice = async () => {
+        if (!device?.id) return;
+        // Tabloyu belirle
+        let table = device.sourceTable || device.type || device.tip;
+        // Bazı tipler için mapping
+        const tableMap = {
+          kasa: 'computers',
+          computers: 'computers',
+          laptop: 'laptops',
+          laptops: 'laptops',
+          monitör: 'screens',
+          screens: 'screens',
+          yazıcı: 'printers',
+          printers: 'printers',
+          tarayıcı: 'scanners',
+          scanners: 'scanners',
+          segbis: 'segbis',
+          tv: 'tvs',
+          mikrofon: 'microphones',
+          kamera: 'cameras',
+          cameras: 'cameras',
+          edurusma: 'e_durusmas',
+          e_durusmas: 'e_durusmas',
+        };
+        table = tableMap[table] || table;
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .eq('id', device.id)
+          .single();
+        if (data) setDevice({ ...device, ...data });
+      };
+      fetchDevice();
+    }, [device?.id])
+  );
 
   // Cihaz türüne göre ek detayları belirleme
   const isUserDevice = ['pc', 'monitor'].includes(device.type);
@@ -259,22 +301,22 @@ const DeviceDetailScreen = ({ route, navigation, theme, themedStyles, isDarkMode
 
                   {/* Kasa, Laptop, Monitör için Unvan, Sicil No, İsim Soyisim */}
                   {(
-                    (['Kasa', 'Monitör'].includes(device.tip) ||
-                     ['computers', 'screens'].includes(device.sourceTable)
+                    (['Kasa', 'Monitör', 'Laptop'].includes(device.tip) ||
+                     ['computers', 'screens', 'laptops'].includes(device.sourceTable)
                     ) && device.oda_tipi !== 'Duruşma Salonu'
                   ) && (
                     <>
                       <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                         <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Unvan</Text>
-                        <Text style={[styles.infoValue, themedStyles.text]}>{device.unvan || '-'}</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.unvan || device.laptop_unvan || '-'}</Text>
                       </View>
                       <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                         <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Adı Soyadı</Text>
-                        <Text style={[styles.infoValue, themedStyles.text]}>{device.adi_soyadi || '-'}</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.adi_soyadi || device.laptop_adi_soyadi || '-'}</Text>
                       </View>
                       <View style={[styles.infoItem, { borderBottomColor: theme.border }]}> 
                         <Text style={[styles.infoLabel, themedStyles.textSecondary]}>Sicil No</Text>
-                        <Text style={[styles.infoValue, themedStyles.text]}>{device.sicil_no || '-'}</Text>
+                        <Text style={[styles.infoValue, themedStyles.text]}>{device.sicil_no || device.sicilno || device.laptop_sicil_no || '-'}</Text>
                       </View>
                     </>
                   )}

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import withThemedScreen from '../components/withThemedScreen';
 
 const ODA_TIPLERI = {
-  MAHKEME_KALEMLERI: 'Mahkeme Kalemleri',
+  MAHKEME_KALEMLERI: 'Mahkeme Kalemi',
   HAKIM_ODALARI: 'Hakim Odaları',
   DURUSMA_SALONU: 'Duruşma Salonu'
 };

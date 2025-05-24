@@ -145,7 +145,17 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
           .eq('id', judgeRoom.id);
 
         if (error) throw error;
-        Alert.alert('Başarılı', 'Hakim odası başarıyla güncellendi.');
+        Alert.alert(
+          'Başarılı',
+          'Hakim odası başarıyla güncellendi.',
+          [
+            {
+              text: 'Tamam',
+              onPress: () => navigation.navigate('JudgeRooms', { updatedJudgeRoom: { ...judgeRoom, ...judgeRoomData, id: judgeRoom.id } })
+            }
+          ]
+        );
+        return;
       } else {
         const { error } = await supabase
           .from('hakim_odalari')
@@ -187,6 +197,32 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
     }
   };
 
+  const isDark = theme?.isDark;
+  const modalOptionContainer = {
+    backgroundColor: theme.inputBg,
+    borderRadius: 12,
+  };
+  const modalOptionText = {
+    color: isDark ? '#fff' : theme.text,
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  };
+  const modalCancelText = {
+    color: isDark ? '#fff' : theme.text,
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 12,
+  };
+  const modalOverlay = {
+    backgroundColor: 'rgba(22,26,74,0.7)',
+  };
+
+  // Inputlar için koyu gri ve siyah yazı dark modda
+  const inputBgColor = isDark ? '#23272e' : theme.inputBg;
+  const inputTextColor = isDark ? '#111' : theme.text;
+
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]}>
       <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
@@ -218,15 +254,15 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                   styles.input, 
                   errors.roomNumber && styles.inputError, 
                   { 
-                    backgroundColor: theme.inputBg, 
+                    backgroundColor: inputBgColor, 
                     borderColor: errors.roomNumber ? "#ef4444" : theme.border,
-                    color: theme.text 
+                    color: inputTextColor 
                   }
                 ]}
                 value={roomNumber}
                 onChangeText={setRoomNumber}
                 placeholder="Oda numarasını girin"
-                placeholderTextColor={theme.textSecondary}
+                placeholderTextColor={isDark ? '#888' : theme.textSecondary}
               />
               {errors.roomNumber && (
                 <Text style={styles.errorText}>{errors.roomNumber}</Text>
@@ -243,18 +279,22 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                 cancelText="Vazgeç"
                 selectedKey={blok}
                 value={blok}
+                optionContainerStyle={modalOptionContainer}
+                optionTextStyle={modalOptionText}
+                cancelTextStyle={modalCancelText}
+                overlayStyle={modalOverlay}
               >
                 <View style={[
                   styles.input,
                   errors.blok && styles.inputError,
                   { 
-                    backgroundColor: theme.inputBg, 
+                    backgroundColor: inputBgColor, 
                     borderColor: errors.blok ? "#ef4444" : theme.border,
-                    color: theme.text,
+                    color: inputTextColor,
                     justifyContent: 'center'
                   }
                 ]}>
-                  <Text style={[styles.selectText, !blok && styles.selectTextPlaceholder, { color: theme.text }]}>
+                  <Text style={[styles.selectText, !blok && styles.selectTextPlaceholder, { color: inputTextColor }]}>
                     {blok || 'Blok Seçin'}
                   </Text>
                 </View>
@@ -274,17 +314,21 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                 cancelText="Vazgeç"
                 selectedKey={kat}
                 value={kat}
+                optionContainerStyle={modalOptionContainer}
+                optionTextStyle={modalOptionText}
+                cancelTextStyle={modalCancelText}
+                overlayStyle={modalOverlay}
               >
                 <View style={[
                   styles.input,
                   { 
-                    backgroundColor: theme.inputBg, 
+                    backgroundColor: inputBgColor, 
                     borderColor: theme.border,
-                    color: theme.text,
+                    color: inputTextColor,
                     justifyContent: 'center'
                   }
                 ]}>
-                  <Text style={[styles.selectText, !kat && styles.selectTextPlaceholder, { color: theme.text }]}>
+                  <Text style={[styles.selectText, !kat && styles.selectTextPlaceholder, { color: inputTextColor }]}>
                     {kat || 'Kat Seçin'}
                   </Text>
                 </View>
@@ -314,15 +358,15 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                       style={[
                         styles.input,
                         { 
-                          backgroundColor: theme.inputBg, 
+                          backgroundColor: inputBgColor, 
                           borderColor: theme.border,
-                          color: theme.text 
+                          color: inputTextColor 
                         }
                       ]}
                       value={judge.name}
                       onChangeText={(value) => updateJudge(index, 'name', value)}
                       placeholder="Hakim adı soyadı girin"
-                      placeholderTextColor={theme.textSecondary}
+                      placeholderTextColor={isDark ? '#888' : theme.textSecondary}
                     />
                   </View>
 
@@ -336,17 +380,21 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                       cancelText="Vazgeç"
                       selectedKey={judge.court}
                       value={judge.court}
+                      optionContainerStyle={modalOptionContainer}
+                      optionTextStyle={modalOptionText}
+                      cancelTextStyle={modalCancelText}
+                      overlayStyle={modalOverlay}
                     >
                       <View style={[
                         styles.input,
                         { 
-                          backgroundColor: theme.inputBg, 
+                          backgroundColor: inputBgColor, 
                           borderColor: theme.border,
-                          color: theme.text,
+                          color: inputTextColor,
                           justifyContent: 'center'
                         }
                       ]}>
-                        <Text style={[styles.selectText, !judge.court && styles.selectTextPlaceholder, { color: theme.text }]}> 
+                        <Text style={[styles.selectText, !judge.court && styles.selectTextPlaceholder, { color: inputTextColor }]}> 
                           {judge.court || 'Birim Seçin'}
                         </Text>
                       </View>
@@ -359,15 +407,15 @@ const JudgeRoomForm = ({ route, theme, themedStyles }) => {
                       style={[
                         styles.input,
                         { 
-                          backgroundColor: theme.inputBg, 
+                          backgroundColor: inputBgColor, 
                           borderColor: theme.border,
-                          color: theme.text 
+                          color: inputTextColor 
                         }
                       ]}
                       value={judge.courtNo}
                       onChangeText={(value) => updateJudge(index, 'courtNo', value)}
                       placeholder="Mahkeme no girin"
-                      placeholderTextColor={theme.textSecondary}
+                      placeholderTextColor={isDark ? '#888' : theme.textSecondary}
                       keyboardType="numeric"
                     />
                   </View>

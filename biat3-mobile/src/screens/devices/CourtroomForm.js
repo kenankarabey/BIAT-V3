@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, TextInput, TouchableOpacity, Alert } from 'react-native';
 import ModalSelector from 'react-native-modal-selector';
 import withThemedScreen from '../../components/withThemedScreen';
 import { supabase } from '../../supabaseClient';
@@ -47,14 +47,30 @@ const statusOptions = [
   { label: 'Bakımda', value: 'Bakımda' },
 ];
 
-const CourtroomForm = ({ theme, navigation }) => {
+const CourtroomForm = ({ theme, navigation, route }) => {
+  const editMode = !!route?.params?.courtroom;
+  const initialData = editMode ? route.params.courtroom : {};
   const [formData, setFormData] = useState({
-    court: '',
-    name: '',
-    blok: '',
-    kat: '',
-    status: '',
+    court: initialData.court || initialData.mahkeme_turu || '',
+    name: initialData.name || initialData.salon_no ? String(initialData.salon_no) : '',
+    blok: initialData.blok || '',
+    kat: initialData.kat || '',
+    status: initialData.status || initialData.durum || '',
+    id: initialData.id || undefined,
   });
+
+  useEffect(() => {
+    if (editMode && route.params.courtroom) {
+      setFormData({
+        court: route.params.courtroom.court || route.params.courtroom.mahkeme_turu || '',
+        name: route.params.courtroom.name || (route.params.courtroom.salon_no ? String(route.params.courtroom.salon_no) : ''),
+        blok: route.params.courtroom.blok || '',
+        kat: route.params.courtroom.kat || '',
+        status: route.params.courtroom.status || route.params.courtroom.durum || '',
+        id: route.params.courtroom.id || undefined,
+      });
+    }
+  }, [editMode, route?.params?.courtroom]);
 
   const styles = StyleSheet.create({
     formContainer: {
@@ -135,33 +151,79 @@ const CourtroomForm = ({ theme, navigation }) => {
   const handleSave = async () => {
     // Validasyon
     if (!formData.kat || !formData.name || !formData.blok || !formData.status || !formData.court) {
-      alert('Lütfen tüm alanları doldurun.');
+      Alert.alert('Eksik Bilgi', 'Lütfen tüm alanları doldurun.');
       return;
     }
-    // salon_no int, diğerleri string
     const salon_no = parseInt(formData.name, 10);
     if (isNaN(salon_no)) {
-      alert('Salon No sayısal olmalı!');
+      Alert.alert('Hatalı Giriş', 'Salon No sayısal olmalı!');
       return;
     }
-    const { data, error } = await supabase.from('durusma_salonlari').insert([
-      {
+    if (editMode && formData.id) {
+      // Güncelleme
+      const { error } = await supabase.from('durusma_salonlari').update({
         kat: formData.kat,
         salon_no,
         blok: formData.blok,
         durum: formData.status,
         mahkeme_turu: formData.court,
-      }
-    ]);
-    console.log('Supabase insert response:', { data, error });
-    if (!error) {
-      if (navigation) {
-        navigation.navigate('Courtrooms', { refresh: true });
+      }).eq('id', formData.id);
+      if (!error) {
+        Alert.alert(
+          'Başarılı',
+          'Duruşma salonu başarıyla güncellendi.',
+          [
+            {
+              text: 'Tamam',
+              onPress: () => navigation.navigate('Courtrooms', { refresh: true })
+            }
+          ]
+        );
+      } else {
+        Alert.alert('Hata', 'Güncelleme sırasında hata oluştu: ' + (error?.message || JSON.stringify(error)));
       }
     } else {
-      alert('Kayıt sırasında hata oluştu: ' + (error?.message || JSON.stringify(error)));
+      // Ekleme
+      const { error } = await supabase.from('durusma_salonlari').insert([
+        {
+          kat: formData.kat,
+          salon_no,
+          blok: formData.blok,
+          durum: formData.status,
+          mahkeme_turu: formData.court,
+        }
+      ]);
+      if (!error) {
+        navigation.navigate('Courtrooms', { refresh: true });
+      } else {
+        Alert.alert('Hata', 'Kayıt sırasında hata oluştu: ' + (error?.message || JSON.stringify(error)));
+      }
     }
   };
+
+  const isDark = theme?.isDark;
+  const modalOptionContainer = {
+    backgroundColor: theme.inputBg,
+    borderRadius: 12,
+  };
+  const modalOptionText = {
+    color: isDark ? '#fff' : theme.text,
+    fontSize: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+  };
+  const modalCancelText = {
+    color: isDark ? '#fff' : theme.text,
+    fontWeight: 'bold',
+    fontSize: 16,
+    textAlign: 'center',
+    paddingVertical: 12,
+  };
+  const modalOverlay = {
+    backgroundColor: 'rgba(22,26,74,0.7)',
+  };
+  const inputBgColor = isDark ? '#23272e' : theme.inputBg;
+  const inputTextColor = isDark ? '#111' : theme.text;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: theme.background, justifyContent: 'center', alignItems: 'center' }}>
@@ -175,8 +237,12 @@ const CourtroomForm = ({ theme, navigation }) => {
           cancelText="Vazgeç"
           selectedKey={formData.court}
           value={formData.court}
+          optionContainerStyle={modalOptionContainer}
+          optionTextStyle={modalOptionText}
+          cancelTextStyle={modalCancelText}
+          overlayStyle={modalOverlay}
         >
-          <View style={styles.input}>
+          <View style={[styles.input, { backgroundColor: inputBgColor, color: inputTextColor }]}>
             <Text style={[styles.selectText, !formData.court && styles.selectTextPlaceholder]}>
               {formData.court || 'Mahkeme Türü Seçin'}
             </Text>
@@ -185,25 +251,28 @@ const CourtroomForm = ({ theme, navigation }) => {
 
         <Text style={styles.label}>Salon No</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { backgroundColor: inputBgColor, color: inputTextColor }]}
           value={formData.name}
           onChangeText={text => handleChange('name', text)}
           placeholder="Salon No Girin"
-          placeholderTextColor={theme.textSecondary}
+          placeholderTextColor={isDark ? '#888' : theme.textSecondary}
           keyboardType="default"
         />
 
         <Text style={styles.label}>Blok</Text>
         <ModalSelector
           data={blockOptions.map((item, idx) => ({ key: idx, label: item.label, value: item.value }))}
-          initValue="Blok Seçin"
           onChange={option => handleChange('blok', option.value)}
           style={styles.dropdown}
           cancelText="Vazgeç"
-          selectedKey={formData.blok}
           value={formData.blok}
+          selectedKey={formData.blok}
+          optionContainerStyle={modalOptionContainer}
+          optionTextStyle={modalOptionText}
+          cancelTextStyle={modalCancelText}
+          overlayStyle={modalOverlay}
         >
-          <View style={styles.input}>
+          <View style={[styles.input, { backgroundColor: inputBgColor, color: inputTextColor }]}>
             <Text style={[styles.selectText, !formData.blok && styles.selectTextPlaceholder]}>
               {formData.blok || 'Blok Seçin'}
             </Text>
@@ -213,14 +282,17 @@ const CourtroomForm = ({ theme, navigation }) => {
         <Text style={styles.label}>Kat</Text>
         <ModalSelector
           data={floorOptions.map((item, idx) => ({ key: idx, label: item.label, value: item.value }))}
-          initValue="Kat Seçin"
           onChange={option => handleChange('kat', option.value)}
           style={styles.dropdown}
           cancelText="Vazgeç"
-          selectedKey={formData.kat}
           value={formData.kat}
+          selectedKey={formData.kat}
+          optionContainerStyle={modalOptionContainer}
+          optionTextStyle={modalOptionText}
+          cancelTextStyle={modalCancelText}
+          overlayStyle={modalOverlay}
         >
-          <View style={styles.input}>
+          <View style={[styles.input, { backgroundColor: inputBgColor, color: inputTextColor }]}>
             <Text style={[styles.selectText, !formData.kat && styles.selectTextPlaceholder]}>
               {formData.kat || 'Kat Seçin'}
             </Text>
@@ -236,8 +308,12 @@ const CourtroomForm = ({ theme, navigation }) => {
           cancelText="Vazgeç"
           selectedKey={formData.status}
           value={formData.status}
+          optionContainerStyle={modalOptionContainer}
+          optionTextStyle={modalOptionText}
+          cancelTextStyle={modalCancelText}
+          overlayStyle={modalOverlay}
         >
-          <View style={styles.input}>
+          <View style={[styles.input, { backgroundColor: inputBgColor, color: inputTextColor }]}>
             <Text style={[styles.selectText, !formData.status && styles.selectTextPlaceholder]}>
               {formData.status || 'Durum Seçin'}
             </Text>

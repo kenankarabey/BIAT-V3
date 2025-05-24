@@ -40,8 +40,9 @@ const LoginScreen = ({ navigation }) => {
       setError('E-posta veya şifre hatalı');
       return;
     }
+    console.log('Login olan kullanıcı:', data);
     // Store full user object for chatbot and other screens
-    await AsyncStorage.setItem('user', JSON.stringify({ id: data.id, email: data.email }));
+    await AsyncStorage.setItem('user', JSON.stringify(data));
     await AsyncStorage.setItem('user_email', data.email);
     navigation.reset({
       index: 0,

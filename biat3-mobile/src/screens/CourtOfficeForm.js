@@ -110,7 +110,20 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
         .from('mahkeme_kalemleri')
         .update(formData)
         .eq('id', formData.id);
-      if (!error) navigation.goBack();
+      if (!error) {
+        Alert.alert(
+          'Başarılı',
+          'Mahkeme kalemi başarıyla güncellendi.',
+          [
+            {
+              text: 'Tamam',
+              onPress: () => {
+                navigation.navigate('CourtOfficeDetail', { office: formData, refresh: true });
+              },
+            },
+          ]
+        );
+      }
       else Alert.alert('Hata', 'Güncelleme başarısız');
     } else {
       // Ekle
@@ -144,22 +157,28 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
     paddingHorizontal: 0,
   };
   const modalOptionContainer = {
-    backgroundColor: isDark ? '#161a4a' : '#fff',
+    backgroundColor: theme.inputBg,
     borderRadius: 12,
   };
   const modalOptionText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontSize: 16,
     paddingVertical: 10,
     paddingHorizontal: 8,
   };
   const modalCancelText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
     paddingVertical: 12,
   };
+  const modalOverlay = {
+    backgroundColor: 'rgba(22,26,74,0.7)',
+  };
+  
+  const inputBgColor = isDark ? '#23272e' : theme.inputBg;
+  const inputTextColor = isDark ? '#111' : theme.text;
   
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
@@ -183,8 +202,8 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             
             <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Türü *</Text>
-              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_turu ? '#ef4444' : theme.border }]} onPress={() => setShowCourtType(true)}>
-                <Text style={{ color: formData.mahkeme_turu ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.mahkeme_turu || 'Mahkeme Türü Seçin'}</Text>
+              <TouchableOpacity style={[styles.input, { backgroundColor: inputBgColor, borderColor: errors.mahkeme_turu ? '#ef4444' : theme.border }]} onPress={() => setShowCourtType(true)}>
+                <Text style={{ color: inputTextColor, fontSize: 16 }}>{formData.mahkeme_turu || 'Mahkeme Türü Seçin'}</Text>
               </TouchableOpacity>
               <ModalSelector
                 data={courtTypeData}
@@ -194,6 +213,7 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
                 optionContainerStyle={modalOptionContainer}
                 optionTextStyle={modalOptionText}
                 cancelTextStyle={modalCancelText}
+                overlayStyle={modalOverlay}
                 cancelText="Vazgeç"
                 selectedKey={courtTypes.indexOf(formData.mahkeme_turu)}
                 value={formData.mahkeme_turu}
@@ -206,11 +226,11 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme No *</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_no ? '#ef4444' : theme.border, color: theme.text }]}
+                style={[styles.input, { backgroundColor: inputBgColor, borderColor: errors.mahkeme_no ? '#ef4444' : theme.border, color: inputTextColor }]}
                 value={formData.mahkeme_no}
                 onChangeText={text => handleChange('mahkeme_no', text)}
                 placeholder="Mahkeme No"
-                placeholderTextColor={theme.textSecondary}
+                placeholderTextColor={isDark ? '#888' : theme.textSecondary}
                 keyboardType="default"
               />
               {errors.mahkeme_no && <Text style={styles.errorText}>{errors.mahkeme_no}</Text>}
@@ -218,8 +238,8 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             
             <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Blok *</Text>
-              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.blok ? '#ef4444' : theme.border }]} onPress={() => setShowBlok(true)}>
-                <Text style={{ color: formData.blok ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.blok || 'Blok Seçin'}</Text>
+              <TouchableOpacity style={[styles.input, { backgroundColor: inputBgColor, borderColor: errors.blok ? '#ef4444' : theme.border }]} onPress={() => setShowBlok(true)}>
+                <Text style={{ color: inputTextColor, fontSize: 16 }}>{formData.blok || 'Blok Seçin'}</Text>
               </TouchableOpacity>
               <ModalSelector
                 data={bloklar.map((b, idx) => ({ key: idx, label: b }))}
@@ -229,6 +249,7 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
                 optionContainerStyle={modalOptionContainer}
                 optionTextStyle={modalOptionText}
                 cancelTextStyle={modalCancelText}
+                overlayStyle={modalOverlay}
                 cancelText="Vazgeç"
                 selectedKey={bloklar.indexOf(formData.blok)}
                 value={formData.blok}
@@ -240,8 +261,8 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             
             <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Kat *</Text>
-              <TouchableOpacity style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.kat ? '#ef4444' : theme.border }]} onPress={() => setShowKat(true)}>
-                <Text style={{ color: formData.kat ? theme.text : theme.textSecondary, fontSize: 16 }}>{formData.kat || 'Kat Seçin'}</Text>
+              <TouchableOpacity style={[styles.input, { backgroundColor: inputBgColor, borderColor: errors.kat ? '#ef4444' : theme.border }]} onPress={() => setShowKat(true)}>
+                <Text style={{ color: inputTextColor, fontSize: 16 }}>{formData.kat || 'Kat Seçin'}</Text>
               </TouchableOpacity>
               <ModalSelector
                 data={katlar.map((k, idx) => ({ key: idx, label: k }))}
@@ -251,6 +272,7 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
                 optionContainerStyle={modalOptionContainer}
                 optionTextStyle={modalOptionText}
                 cancelTextStyle={modalCancelText}
+                overlayStyle={modalOverlay}
                 cancelText="Vazgeç"
                 selectedKey={katlar.indexOf(formData.kat)}
                 value={formData.kat}
@@ -263,11 +285,11 @@ const CourtOfficeForm = ({ route, navigation, theme, themedStyles }) => {
             <View style={styles.formGroup}>
               <Text style={[styles.label, themedStyles.textSecondary]}>Mahkeme Hakimi *</Text>
               <TextInput
-                style={[styles.input, { backgroundColor: theme.inputBg, borderColor: errors.mahkeme_hakimi ? '#ef4444' : theme.border, color: theme.text }]}
+                style={[styles.input, { backgroundColor: inputBgColor, borderColor: errors.mahkeme_hakimi ? '#ef4444' : theme.border, color: inputTextColor }]}
                 value={formData.mahkeme_hakimi}
                 onChangeText={text => handleChange('mahkeme_hakimi', text)}
                 placeholder="Mahkeme Hakimi"
-                placeholderTextColor={theme.textSecondary}
+                placeholderTextColor={isDark ? '#888' : theme.textSecondary}
                 keyboardType="default"
               />
               {errors.mahkeme_hakimi && <Text style={styles.errorText}>{errors.mahkeme_hakimi}</Text>}

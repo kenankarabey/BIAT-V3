@@ -197,7 +197,9 @@ const CourtOfficeDetailScreen = ({ route, navigation, theme, themedStyles }) => 
           <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <Text style={[styles.headerTitle, themedStyles.text]}>Mahkeme Detayı</Text>
-        <View style={{ width: 24 }} />
+        <TouchableOpacity onPress={() => navigation.navigate('CourtOfficeForm', { office, editMode: true })}>
+          <Ionicons name="create-outline" size={24} color={theme.primary} />
+        </TouchableOpacity>
       </View>
       
       {/* Bilgi Kartı */}

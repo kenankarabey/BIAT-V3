@@ -17,6 +17,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
+import { supabase } from '../supabaseClient';
+import { useFocusEffect } from '@react-navigation/native';
 
 // Enable layout animations for Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -31,9 +33,9 @@ const HomeScreen = ({ navigation }) => {
   const [refreshing, setRefreshing] = useState(false);
   const [statsData, setStatsData] = useState([
     { title: 'Toplam Mahkeme', value: '148', icon: 'business', color: '#4C51BF' },
-    { title: 'Aktif Cihazlar', value: '3,724', icon: 'desktop', color: '#38B2AC' },
+    { title: 'Toplam Duruşma Salonu', value: '52', icon: 'people', color: '#38B2AC' },
     { title: 'Aktif Arıza', value: '17', icon: 'warning', color: '#ED8936' },
-    { title: 'Bakım', value: '42', icon: 'build', color: '#48BB78' },
+    { title: 'Çözülen Arıza', value: '35', icon: 'checkmark-done', color: '#48BB78' },
   ]);
 
   const [performanceData, setPerformanceData] = useState([
@@ -52,42 +54,104 @@ const HomeScreen = ({ navigation }) => {
     { type: 'Diğer', percentage: 10, color: '#48BB78' },
   ]);
 
-  // Simulate loading data
+  // Aylık özet state'i
+  const [monthlyStats, setMonthlyStats] = useState({
+    totalRecord: 0,
+    solved: 0,
+    pending: 0,
+    inProgress: 0,
+    canceled: 0,
+    monthLabel: '',
+  });
+
+  const fetchMonthlyStats = async () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const firstDay = `${year}-${month.toString().padStart(2, '0')}-01`;
+    const lastDayDate = new Date(year, month, 0);
+    const lastDay = `${year}-${month.toString().padStart(2, '0')}-${lastDayDate.getDate().toString().padStart(2, '0')}`;
+    // Çözülen
+    const { data: solvedIssues } = await supabase.from('cozulen_arizalar').select('id').eq('ariza_durumu', 'Çözüldü').gte('cozulme_tarihi', firstDay).lte('cozulme_tarihi', lastDay);
+    // İptal Edilen
+    const { data: canceledIssues } = await supabase.from('cozulen_arizalar').select('id').eq('ariza_durumu', 'İptal Edildi').gte('cozulme_tarihi', firstDay).lte('cozulme_tarihi', lastDay);
+    // Toplam Kayıt
+    const { data: allArizaBildirimi } = await supabase.from('ariza_bildirimleri').select('id').gte('tarih', firstDay).lte('tarih', lastDay);
+    const { data: solvedOrCanceled } = await supabase.from('cozulen_arizalar').select('id, ariza_durumu').gte('cozulme_tarihi', firstDay).lte('cozulme_tarihi', lastDay);
+    const totalCozenOrCanceled = solvedOrCanceled?.filter(row => row.ariza_durumu === 'Çözüldü' || row.ariza_durumu === 'İptal Edildi').length || 0;
+    const totalRecord = (allArizaBildirimi?.length || 0) + totalCozenOrCanceled;
+    // Bekleyen
+    const { data: pendingIssues } = await supabase.from('ariza_bildirimleri').select('id').eq('ariza_durumu', 'Beklemede').gte('tarih', firstDay).lte('tarih', lastDay);
+    // İşlemde
+    const { data: inProgressIssues } = await supabase.from('ariza_bildirimleri').select('id').eq('ariza_durumu', 'İşlemde').gte('tarih', firstDay).lte('tarih', lastDay);
+    setMonthlyStats({
+      totalRecord,
+      solved: solvedIssues?.length || 0,
+      pending: pendingIssues?.length || 0,
+      inProgress: inProgressIssues?.length || 0,
+      canceled: canceledIssues?.length || 0,
+      monthLabel: now.toLocaleString('tr-TR', { month: 'long', year: 'numeric' }),
+    });
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setIsLoading(false);
-      
-      // Animate the layout change
-      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    };
-    
-    loadData();
+    fetchMonthlyStats();
   }, []);
-  
+
+  const fetchStats = async () => {
+    setIsLoading(true);
+    // Toplam Mahkeme
+    const { count: mahkemeCount, error: mahkemeError } = await supabase
+      .from('mahkeme_kalemleri')
+      .select('*', { count: 'exact', head: true });
+    console.log('mahkeme_kalemleri count:', mahkemeCount, mahkemeError);
+    // Toplam Duruşma Salonu
+    const { count: durusmaCount, error: durusmaError } = await supabase
+      .from('durusma_salonlari')
+      .select('*', { count: 'exact', head: true });
+    console.log('durusma_salonlari count:', durusmaCount, durusmaError);
+    // Aktif Arıza (Beklemede veya İşlemde)
+    const { count: aktifArizaCount, error: arizaError } = await supabase
+      .from('ariza_bildirimleri')
+      .select('*', { count: 'exact', head: true })
+      .in('ariza_durumu', ['Beklemede', 'İşlemde']);
+    console.log('ariza_bildirimleri count:', aktifArizaCount, arizaError);
+    // Çözülen Arıza
+    const { count: cozulduArizaCount, error: cozulduError } = await supabase
+      .from('cozulen_arizalar')
+      .select('*', { count: 'exact', head: true })
+      .eq('ariza_durumu', 'Çözüldü');
+    console.log('cozulen_arizalar count:', cozulduArizaCount, cozulduError);
+    setStatsData([
+      { title: 'Toplam Mahkeme', value: mahkemeCount?.toString() || '0', icon: 'business', color: '#4C51BF' },
+      { title: 'Toplam Duruşma Salonu', value: durusmaCount?.toString() || '0', icon: 'people', color: '#38B2AC' },
+      { title: 'Aktif Arıza', value: aktifArizaCount?.toString() || '0', icon: 'warning', color: '#ED8936' },
+      { title: 'Çözülen Arıza', value: cozulduArizaCount?.toString() || '0', icon: 'checkmark-done', color: '#48BB78' },
+    ]);
+    setIsLoading(false);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
   // Handle refresh
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Update data with some random variations
-    setStatsData(prev => prev.map(item => ({
-      ...item,
-      value: Math.random() > 0.5 
-        ? (parseInt(item.value.replace(',', '')) + Math.floor(Math.random() * 10)).toString()
-        : item.value
-    })));
-    
-    setPerformanceData(prev => prev.map(item => ({
-      ...item,
-      value: Math.min(100, Math.max(70, item.value + Math.floor(Math.random() * 10) - 5))
-    })));
-    
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    await Promise.all([
+      fetchStats(),
+      fetchMonthlyStats()
+    ]);
     setRefreshing(false);
   };
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchStats();
+      fetchMonthlyStats();
+    }, [])
+  );
 
   const renderStatsCards = () => {
     // Calculate card width based on screen size
@@ -110,9 +174,9 @@ const HomeScreen = ({ navigation }) => {
               // Navigate to respective sections based on card type
               if (item.title === 'Toplam Mahkeme') {
                 navigation.navigate('Devices', { screen: 'CourtOffices' });
-              } else if (item.title === 'Aktif Cihazlar') {
+              } else if (item.title === 'Toplam Duruşma Salonu') {
                 navigation.navigate('Devices', { screen: 'AllDevices' });
-              } else if (item.title === 'Aktif Arıza' || item.title === 'Bakım') {
+              } else if (item.title === 'Aktif Arıza' || item.title === 'Çözülen Arıza') {
                 navigation.navigate('Issues');
               }
             }}
@@ -130,135 +194,39 @@ const HomeScreen = ({ navigation }) => {
     );
   };
 
-  const renderPerformanceMetrics = () => {
-    const maxValue = Math.max(...performanceData.map(item => item.value));
-    
-    return (
-      <View style={[
-        styles.cardContainer, 
-        { 
-          backgroundColor: theme.card,
-          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
-        }
-      ]}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: theme.text }]}>Performans Metrikleri</Text>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.chartContainer}>
-          {performanceData.map((item, index) => {
-            // Calculate bar height with animation delay
-            const barHeight = (item.value / maxValue) * 150;
-            const barColor = item.value > 85 
-              ? '#48BB78' 
-              : item.value > 75 
-                ? '#4C51BF' 
-                : '#ED8936';
-                
-            return (
-              <View key={index} style={styles.barContainer}>
-                <View style={styles.barWrapper}>
-                  <View 
-                    style={[
-                      styles.bar, 
-                      { 
-                        height: barHeight,
-                        backgroundColor: barColor
-                      }
-                    ]} 
-                  />
-                  <Text style={[styles.barValue, { color: theme.textSecondary }]}>{item.value}%</Text>
-                </View>
-                <View style={styles.barLabelContainer}>
-                  <Text style={[styles.barLabel, { color: theme.textSecondary }]}>{item.month}</Text>
-                </View>
-              </View>
-            );
-          })}
+  const renderMonthlyStats = () => (
+    <View style={{ backgroundColor: theme.card, borderRadius: 16, padding: 20, marginVertical: 16 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+        <Text style={{ color: isDarkMode ? '#fff' : theme.text, fontWeight: 'bold', fontSize: 20 }}>Aylık Özet</Text>
+        <View style={{ backgroundColor: isDarkMode ? '#232a5c' : theme.inputBg, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 4 }}>
+          <Text style={{ color: isDarkMode ? '#fff' : theme.text, fontWeight: 'bold', fontSize: 14 }}>{monthlyStats.monthLabel.charAt(0).toUpperCase() + monthlyStats.monthLabel.slice(1)}</Text>
         </View>
       </View>
-    );
-  };
-
-  const renderIssueDistribution = () => {
-    return (
-      <View style={[
-        styles.cardContainer, 
-        { 
-          backgroundColor: theme.card,
-          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)'
-        }
-      ]}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: theme.text }]}>Arıza Dağılımı</Text>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-          </TouchableOpacity>
+      <View style={{ height: 1, backgroundColor: isDarkMode ? '#232a5c' : theme.border, marginBottom: 16 }} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
+        <View style={{ width: '48%', backgroundColor: theme.card, borderRadius: 12, padding: 18, marginBottom: 16, borderWidth: isDarkMode ? 1 : 1, borderColor: isDarkMode ? '#161a4a' : theme.border }}>
+          <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>Toplam Kayıt</Text>
+          <Text style={{ color: theme.text, fontSize: 24, marginTop: 8 }}>{monthlyStats.totalRecord}</Text>
         </View>
-        <View style={styles.pieChartContainer}>
-          <View style={styles.pieChartWrapper}>
-            <View style={styles.simplePieChart}>
-              <View style={[styles.pieSection, { backgroundColor: '#4C51BF', flex: 0.45 }]} />
-              <View style={[styles.pieSection, { backgroundColor: '#38B2AC', flex: 0.3 }]} />
-              <View style={[styles.pieSection, { backgroundColor: '#ED8936', flex: 0.15 }]} />
-              <View style={[styles.pieSection, { backgroundColor: '#48BB78', flex: 0.1 }]} />
-            </View>
-          </View>
-          <View style={styles.legendContainer}>
-            {issueDistribution.map((item, index) => (
-              <View key={index} style={styles.legendItem}>
-                <View style={[styles.legendColor, { backgroundColor: item.color }]} />
-                <Text style={[styles.legendText, { color: theme.text }]}>{item.type}: %{item.percentage}</Text>
-              </View>
-            ))}
-          </View>
+        <View style={{ width: '48%', backgroundColor: theme.card, borderRadius: 12, padding: 18, marginBottom: 16, borderWidth: isDarkMode ? 1 : 1, borderColor: isDarkMode ? '#161a4a' : theme.border }}>
+          <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>Çözülen</Text>
+          <Text style={{ color: theme.text, fontSize: 24, marginTop: 8 }}>{monthlyStats.solved}</Text>
+        </View>
+        <View style={{ width: '48%', backgroundColor: theme.card, borderRadius: 12, padding: 18, marginBottom: 16, borderWidth: isDarkMode ? 1 : 1, borderColor: isDarkMode ? '#161a4a' : theme.border }}>
+          <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>Bekleyen</Text>
+          <Text style={{ color: theme.text, fontSize: 24, marginTop: 8 }}>{monthlyStats.pending}</Text>
+        </View>
+        <View style={{ width: '48%', backgroundColor: theme.card, borderRadius: 12, padding: 18, marginBottom: 16, borderWidth: isDarkMode ? 1 : 1, borderColor: isDarkMode ? '#161a4a' : theme.border }}>
+          <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>İşlemde</Text>
+          <Text style={{ color: theme.text, fontSize: 24, marginTop: 8 }}>{monthlyStats.inProgress}</Text>
+        </View>
+        <View style={{ width: '100%', backgroundColor: theme.card, borderRadius: 12, padding: 18, marginBottom: 0, borderWidth: isDarkMode ? 1 : 1, borderColor: isDarkMode ? '#161a4a' : theme.border }}>
+          <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 16 }}>İptal Edilen</Text>
+          <Text style={{ color: theme.text, fontSize: 24, marginTop: 8 }}>{monthlyStats.canceled}</Text>
         </View>
       </View>
-    );
-  };
-  
-  const renderMonthlySummary = () => {
-    return (
-      <View style={[
-        styles.cardContainer, 
-        { 
-          backgroundColor: theme.card,
-          shadowColor: isDarkMode ? 'rgba(0, 0, 0, 0.5)' : 'rgba(0, 0, 0, 0.1)' 
-        }
-      ]}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: theme.text }]}>Aylık Özet</Text>
-          <TouchableOpacity>
-            <Ionicons name="ellipsis-horizontal" size={24} color={theme.textSecondary} />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.summaryContainer}>
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryValue, { color: theme.text }]}>94%</Text>
-            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Çözüm Oranı</Text>
-          </View>
-          <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryValue, { color: theme.text }]}>2.4 saat</Text>
-            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Ortalama Müdahale</Text>
-          </View>
-          <View style={[styles.summaryDivider, { backgroundColor: theme.border }]} />
-          <View style={styles.summaryItem}>
-            <Text style={[styles.summaryValue, { color: theme.text }]}>112</Text>
-            <Text style={[styles.summaryLabel, { color: theme.textSecondary }]}>Toplam Destek</Text>
-          </View>
-        </View>
-        <View style={[styles.summaryFooter, { borderTopColor: theme.border }]}>
-          <View style={styles.summaryFooterItem}>
-            <Ionicons name="trending-up" size={18} color="#48BB78" />
-            <Text style={[styles.summaryFooterText, { color: theme.textSecondary }]}>Bir önceki aya göre %12 artış</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
+    </View>
+  );
 
   if (isLoading) {
     return (
@@ -324,9 +292,7 @@ const HomeScreen = ({ navigation }) => {
         </View>
 
         {renderStatsCards()}
-        {renderMonthlySummary()}
-        {renderPerformanceMetrics()}
-        {renderIssueDistribution()}
+        {renderMonthlyStats()}
         
         <View style={styles.quickAccessSection}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Hızlı Erişim</Text>
@@ -344,7 +310,7 @@ const HomeScreen = ({ navigation }) => {
               onPress={() => navigation.navigate('Scanner')}
             >
               <Ionicons name="qr-code" size={28} color={theme.primary} />
-              <Text style={[styles.quickAccessText, { color: theme.text }]}>QR Tara</Text>
+              <Text style={[styles.quickAccessText, { color: theme.text }]}>Tarayıcı</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 

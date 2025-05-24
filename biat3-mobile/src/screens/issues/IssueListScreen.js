@@ -15,6 +15,8 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import withThemedScreen from '../../components/withThemedScreen';
+import { supabase } from '../../supabaseClient';
+import { Swipeable } from 'react-native-gesture-handler';
 
 // Mock issues data (would come from API/backend in a real app)
 const MOCK_ISSUES = [
@@ -22,7 +24,7 @@ const MOCK_ISSUES = [
     id: '1',
     title: 'Projeksiyon cihazı çalışmıyor',
     description: 'Duruşma salonu 1\'deki projeksiyon cihazı açılmıyor.',
-    status: 'Açık',
+    status: 'Bekleyen',
     priority: 'Yüksek',
     location: 'Duruşma Salonu 1',
     deviceType: 'Projeksiyon',
@@ -58,7 +60,7 @@ const MOCK_ISSUES = [
     id: '4',
     title: 'Kamera görüntüsü bulanık',
     description: 'Duruşma salonundaki kamera görüntüsü bulanık geliyor.',
-    status: 'Kapatıldı',
+    status: 'İptal Edildi',
     priority: 'Kritik',
     location: 'Duruşma Salonu 4',
     deviceType: 'Kamera',
@@ -70,7 +72,7 @@ const MOCK_ISSUES = [
     id: '5',
     title: 'Monitör renk bozukluğu',
     description: 'Yazı işleri monitöründe renk bozukluğu var, ekran kırmızı tonda görünüyor.',
-    status: 'Açık',
+    status: 'Bekleyen',
     priority: 'Orta',
     location: 'Yazı İşleri 2',
     deviceType: 'Monitör',
@@ -84,10 +86,10 @@ const IssueListScreen = ({ route, theme }) => {
   const navigation = useNavigation();
   
   // State tanımları
-  const [issues, setIssues] = useState(MOCK_ISSUES);
+  const [issues, setIssues] = useState([]);
   const [filteredIssues, setFilteredIssues] = useState(MOCK_ISSUES);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('Tümü');
+  const [statusFilter, setStatusFilter] = useState('Bekleyen');
   const [priorityFilter, setPriorityFilter] = useState('Tümü');
   const [loading, setLoading] = useState(false);
   
@@ -121,51 +123,90 @@ const IssueListScreen = ({ route, theme }) => {
     }, [route.params, issues, navigation])
   );
 
+  // Supabase'dan ariza_bildirimleri veya cozulen_arizalar çek
+  useEffect(() => {
+    const fetchIssues = async () => {
+      let data = [], error;
+      if (statusFilter === 'Çözüldü' || statusFilter === 'İptal Edildi') {
+        // Her iki tablodan da ilgili kayıtları çek
+        const { data: arizaData, error: arizaError } = await supabase
+          .from('ariza_bildirimleri')
+          .select('*')
+          .eq('ariza_durumu', statusFilter);
+        const { data: cozulenData, error: cozulenError } = await supabase
+          .from('cozulen_arizalar')
+          .select('*')
+          .eq('ariza_durumu', statusFilter);
+        if (arizaError) console.log('ariza_bildirimleri error:', arizaError);
+        if (cozulenError) console.log('cozulen_arizalar error:', cozulenError);
+        data = [
+          ...(arizaData || []),
+          ...(cozulenData || [])
+        ];
+        error = arizaError || cozulenError;
+      } else {
+        // Diğer filtreler için sadece ariza_bildirimleri
+        const res = await supabase
+          .from('ariza_bildirimleri')
+          .select('*')
+          .in('ariza_durumu', ['Beklemede', 'İşlemde', 'İptal Edildi']);
+        data = res.data;
+        error = res.error;
+      }
+      console.log('Supabase data:', data);
+      if (error) console.log('Supabase error:', error);
+      if (!error && data) {
+        setIssues(data);
+      }
+    };
+    fetchIssues();
+  }, [statusFilter]);
+
   // Apply filters when issues, search query, or filters change
   useEffect(() => {
-    applyFilters();
-  }, [issues, searchQuery, statusFilter, priorityFilter]);
-
-  // Filter issues based on search query and selected filters
-  const applyFilters = () => {
     let filtered = [...issues];
-    
-    // Apply search query filter
+    // Arama filtresi
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(issue => 
-        issue.title.toLowerCase().includes(query) ||
-        issue.description.toLowerCase().includes(query) ||
-        issue.location.toLowerCase().includes(query) ||
-        issue.deviceType.toLowerCase().includes(query) ||
-        issue.deviceId.toLowerCase().includes(query)
+      filtered = filtered.filter(issue =>
+        (issue.ariza_no || '').toLowerCase().includes(query) ||
+        (issue.ariza_aciklamasi || '').toLowerCase().includes(query) ||
+        (issue.arizayi_bildiren_personel || '').toLowerCase().includes(query) ||
+        (issue.gorevli_personel || '').toLowerCase().includes(query) ||
+        (issue.arizayi_cozen_personel || '').toLowerCase().includes(query)
       );
     }
-    
-    // Apply status filter
-    if (statusFilter !== 'Tümü') {
-      filtered = filtered.filter(issue => issue.status === statusFilter);
+    // Durum filtresi
+    if (statusFilter === 'Bekleyen') {
+      filtered = filtered.filter(issue =>
+        issue.ariza_durumu === 'Beklemede' || issue.ariza_durumu === 'İşlemde'
+      );
+    } else if (statusFilter === 'Çözüldü') {
+      filtered = filtered.filter(issue => issue.ariza_durumu === 'Çözüldü');
+    } else if (statusFilter === 'İptal Edildi') {
+      filtered = filtered.filter(issue => issue.ariza_durumu === 'İptal Edildi');
     }
-    
-    // Apply priority filter
-    if (priorityFilter !== 'Tümü') {
-      filtered = filtered.filter(issue => issue.priority === priorityFilter);
-    }
-    
     setFilteredIssues(filtered);
-  };
+  }, [issues, searchQuery, statusFilter]);
+
+  useEffect(() => {
+    console.log('issues state:', issues);
+    console.log('filteredIssues state:', filteredIssues);
+  }, [issues, filteredIssues]);
 
   // Get color based on issue status
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Açık':
-        return '#3b82f6'; // blue
+      case 'Beklemede':
+        return '#3b82f6'; // mavi
+      case 'Bekleyen':
+        return '#3b82f6'; // mavi (eski veri için)
       case 'İşlemde':
         return '#f59e0b'; // amber
       case 'Çözüldü':
-        return '#10b981'; // green
-      case 'Kapatıldı':
-        return '#6b7280'; // gray
+        return '#10b981'; // yeşil
+      case 'İptal Edildi':
+        return '#ef4444'; // kırmızı
       default:
         return '#64748b';
     }
@@ -199,50 +240,99 @@ const IssueListScreen = ({ route, theme }) => {
     });
   };
 
-  // Render a single issue card
-  const renderIssueCard = ({ item }) => (
-    <TouchableOpacity 
-      style={[styles.issueCard, { backgroundColor: theme.card }]}
-      onPress={() => navigation.navigate('IssueReport', { editIssue: item })}
+  const getDisplayStatus = (status) => {
+    if (status === 'Açık') return 'Bekleyen';
+    if (status === 'Kapatıldı') return 'İptal Edildi';
+    return status;
+  };
+
+  // Kartı silme fonksiyonu
+  const handleDelete = async (item) => {
+    try {
+      let error;
+      if (item.ariza_durumu === 'Çözüldü') {
+        ({ error } = await supabase
+          .from('cozulen_arizalar')
+          .delete()
+          .eq('id', item.id));
+      } else {
+        ({ error } = await supabase
+          .from('ariza_bildirimleri')
+          .delete()
+          .eq('id', item.id));
+      }
+      if (!error) {
+        setIssues((prev) => prev.filter((i) => i.id !== item.id));
+        Alert.alert('Başarılı', 'Kayıt silindi.');
+      } else {
+        Alert.alert('Hata', 'Kayıt silinemedi.');
+      }
+    } catch (e) {
+      Alert.alert('Hata', 'Bir hata oluştu.');
+    }
+  };
+
+  // Swipeable silme butonu
+  const renderRightActions = (item) => (
+    <TouchableOpacity
+      style={{ backgroundColor: '#ef4444', justifyContent: 'center', alignItems: 'center', width: 80, height: '100%', borderTopRightRadius: 12, borderBottomRightRadius: 12 }}
+      onPress={() => handleDelete(item)}
     >
-      <View style={styles.issueHeader}>
-        <View style={styles.issueTitle}>
-          <Text style={[styles.issueTitleText, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-        </View>
-        <View style={[styles.issueStatus, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-          <Text style={[styles.issueStatusText, { color: getStatusColor(item.status) }]}>{item.status}</Text>
-        </View>
-      </View>
-      
-      <Text style={[styles.issueDescription, { color: theme.textSecondary }]} numberOfLines={2}>
-        {item.description}
-      </Text>
-      
-      <View style={styles.issueDetails}>
-        <View style={styles.detailItem}>
-          <MaterialCommunityIcons name="map-marker" size={16} color={theme.textSecondary} />
-          <Text style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>{item.location}</Text>
-        </View>
-        
-        <View style={styles.detailItem}>
-          <MaterialCommunityIcons name="laptop" size={16} color={theme.textSecondary} />
-          <Text style={[styles.detailText, { color: theme.textSecondary }]} numberOfLines={1}>{item.deviceType}</Text>
-        </View>
-      </View>
-      
-      <View style={[styles.issueFooter, { borderTopColor: theme.border }]}>
-        <View style={styles.footerLeft}>
-          <View style={[styles.priorityBadge, { backgroundColor: getPriorityColor(item.priority) + '20' }]}>
-            <Text style={[styles.priorityText, { color: getPriorityColor(item.priority) }]}>{item.priority}</Text>
-          </View>
-          <Text style={[styles.dateText, { color: theme.textSecondary }]}>
-            {formatDate(item.reportDate)}
-          </Text>
-        </View>
-        <MaterialCommunityIcons name="chevron-right" size={24} color={theme.textSecondary} />
-      </View>
+      <MaterialCommunityIcons name="trash-can-outline" size={28} color="#fff" />
+      <Text style={{ color: '#fff', fontWeight: 'bold', marginTop: 4 }}>Sil</Text>
     </TouchableOpacity>
   );
+
+  // Render a single issue card
+  const renderIssueCard = ({ item }) => {
+    // Tarih alanı: çözülen arızalarda cozulme_tarihi, diğerlerinde tarih
+    const displayDate = item.cozulme_tarihi || item.tarih;
+    return (
+      <Swipeable renderRightActions={() => renderRightActions(item)}>
+        <TouchableOpacity 
+          style={[styles.issueCard, { backgroundColor: theme.card }]}
+          onPress={() => navigation.navigate('IssueReport', { editIssue: item })}
+        >
+          <View style={styles.issueHeader}>
+            <View style={styles.issueTitle}>
+              <Text style={[styles.issueTitleText, { color: theme.text }]} numberOfLines={1}>{item.ariza_no}</Text>
+            </View>
+            <View style={[styles.issueStatus, { backgroundColor: getStatusColor(item.ariza_durumu) + '20' }]}> 
+              <Text style={[styles.issueStatusText, { color: getStatusColor(item.ariza_durumu) }]}>{item.ariza_durumu}</Text>
+            </View>
+          </View>
+          <Text style={[styles.issueDescription, { color: theme.textSecondary }]} numberOfLines={2}>
+            {item.ariza_aciklamasi && item.ariza_aciklamasi.length > 90
+              ? item.ariza_aciklamasi.slice(0, 90) + '...'
+              : item.ariza_aciklamasi}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <MaterialCommunityIcons name="account" size={18} color={theme.textSecondary} />
+              <Text style={[styles.detailText, { color: theme.textSecondary, marginLeft: 4 }]} numberOfLines={1}>{item.arizayi_bildiren_personel}</Text>
+            </View>
+            {item.ariza_durumu === 'Çözüldü' ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="account-check" size={18} color={theme.textSecondary} />
+                <Text style={[styles.detailText, { color: theme.textSecondary, marginLeft: 4 }]} numberOfLines={1}>{item.arizayi_cozen_personel}</Text>
+              </View>
+            ) : (
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <MaterialCommunityIcons name="account-tie" size={18} color={theme.textSecondary} />
+                <Text style={[styles.detailText, { color: theme.textSecondary, marginLeft: 4 }]} numberOfLines={1}>{item.gorevli_personel}</Text>
+              </View>
+            )}
+          </View>
+          <View style={{ marginTop: 12, flexDirection: 'row', alignItems: 'center' }}>
+            <MaterialCommunityIcons name="calendar" size={16} color={theme.textSecondary} />
+            <Text style={{ color: theme.textSecondary, marginLeft: 6, fontSize: 12 }}>
+              {formatDate(displayDate)}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Swipeable>
+    );
+  };
 
   // Render filter buttons
   const renderFilterButton = (label, currentFilter, setFilter, filterOptions) => (
@@ -292,17 +382,8 @@ const IssueListScreen = ({ route, theme }) => {
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
-      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <View style={styles.headerTitleContainer}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <MaterialCommunityIcons name="arrow-left" size={24} color={theme.text} />
-          </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>Arıza Listesi</Text>
-        </View>
-        
-        <TouchableOpacity onPress={() => navigation.navigate('IssueReport')}>
-          <MaterialCommunityIcons name="plus-circle" size={24} color={theme.primary} />
-        </TouchableOpacity>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border, justifyContent: 'center' }]}> 
+        <Text style={[styles.headerTitle, { color: theme.text, textAlign: 'center', flex: 1, marginLeft: 0 }]}>Arıza Listesi</Text> 
       </View>
       
       <View style={[styles.searchContainer, { backgroundColor: theme.card }]}>
@@ -323,12 +404,65 @@ const IssueListScreen = ({ route, theme }) => {
         </View>
       </View>
       
-      <View style={styles.filtersSection}>
-        <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>Durum:</Text>
-        {renderFilterButton('', statusFilter, setStatusFilter, ['Tümü', 'Açık', 'İşlemde', 'Çözüldü', 'Kapatıldı'])}
-        
-        <Text style={[styles.filterLabel, { color: theme.textSecondary }]}>Öncelik:</Text>
-        {renderFilterButton('', priorityFilter, setPriorityFilter, ['Tümü', 'Düşük', 'Orta', 'Yüksek', 'Kritik'])}
+      {/* Özet kartlar: Bekleyen, Çözülen, İptal Edilen */}
+      <View style={{ height: 12 }} />
+      <View style={{ flexDirection: 'row', justifyContent: 'flex-start', paddingHorizontal: 16, marginBottom: 8 }}>
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#3b82f620',
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginRight: 8,
+            borderWidth: 1,
+            borderColor: 'transparent',
+            minWidth: 0,
+            flex: 1
+          }}
+          onPress={() => { if (statusFilter !== 'Bekleyen') setStatusFilter('Bekleyen'); }}
+        >
+          <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#3b82f6" />
+          <Text style={{ marginLeft: 8, color: theme.text, fontWeight: '500', fontSize: 14 }} numberOfLines={1}>Bekleyen Arızalar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#10b98120',
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            marginRight: 8,
+            borderWidth: 1,
+            borderColor: 'transparent',
+            minWidth: 0,
+            flex: 1
+          }}
+          onPress={() => { if (statusFilter !== 'Çözüldü') setStatusFilter('Çözüldü'); }}
+        >
+          <MaterialCommunityIcons name="check-circle-outline" size={22} color="#10b981" />
+          <Text style={{ marginLeft: 8, color: theme.text, fontWeight: '500', fontSize: 14 }} numberOfLines={1}>Çözülen Arızalar</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: '#6b728020',
+            borderRadius: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 10,
+            borderWidth: 1,
+            borderColor: 'transparent',
+            minWidth: 0,
+            flex: 1
+          }}
+          onPress={() => { if (statusFilter !== 'İptal Edildi') setStatusFilter('İptal Edildi'); }}
+        >
+          <MaterialCommunityIcons name="close-circle-outline" size={22} color="#6b7280" />
+          <Text style={{ marginLeft: 8, color: theme.text, fontWeight: '500', fontSize: 14 }} numberOfLines={1}>İptal Edilen Arızalar</Text>
+        </TouchableOpacity>
       </View>
       
       <FlatList
@@ -340,7 +474,6 @@ const IssueListScreen = ({ route, theme }) => {
         refreshing={loading}
         onRefresh={() => {
           setLoading(true);
-          // Simulating a fetch delay
           setTimeout(() => {
             setLoading(false);
           }, 1000);
@@ -356,19 +489,17 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-  },
-  headerTitleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginLeft: 16,
+    textAlign: 'center',
+    flex: 1,
+    marginLeft: 0,
   },
   searchContainer: {
     padding: 16,
@@ -385,29 +516,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingLeft: 8,
     fontSize: 14,
-  },
-  filtersSection: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-  },
-  filterLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  filterContainer: {
-    paddingBottom: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  filterButtonText: {
-    fontSize: 12,
-    fontWeight: '500',
   },
   issuesList: {
     padding: 16,
@@ -512,7 +620,29 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#fff',
-  }
+  },
+  filtersSection: {
+    padding: 16,
+  },
+  filterLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginRight: 8,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });
 
 export default withThemedScreen(IssueListScreen); 

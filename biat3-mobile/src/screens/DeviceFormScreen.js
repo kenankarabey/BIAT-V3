@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import withThemedScreen from '../components/withThemedScreen';
@@ -8,13 +8,13 @@ import ModalSelector from 'react-native-modal-selector';
 import { supabase } from '../supabaseClient';
 
 const ODA_TIPLERI = {
-  MAHKEME_KALEMLERI: 'Mahkeme Kalemleri',
+  MAHKEME_KALEMI: 'Mahkeme Kalemi',
   HAKIM_ODALARI: 'Hakim Odaları',
   DURUSMA_SALONU: 'Duruşma Salonu'
 };
 
 const UNVANLAR = {
-  [ODA_TIPLERI.MAHKEME_KALEMLERI]: [
+  [ODA_TIPLERI.MAHKEME_KALEMI]: [
     'zabıt katibi',
     'mübaşir',
     'icra katibi',
@@ -52,11 +52,11 @@ const TABLE_MAP = {
 
 // Hangi cihaz hangi odalara eklenebilir?
 const DEVICE_ROOM_RULES = {
-  kasa: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.DURUSMA_SALONU],
-  laptop: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI],
-  monitör: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
-  yazıcı: [ODA_TIPLERI.MAHKEME_KALEMLERI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
-  tarayıcı: [ODA_TIPLERI.MAHKEME_KALEMLERI],
+  kasa: [ODA_TIPLERI.MAHKEME_KALEMI, ODA_TIPLERI.DURUSMA_SALONU],
+  laptop: [ODA_TIPLERI.MAHKEME_KALEMI, ODA_TIPLERI.HAKIM_ODALARI],
+  monitör: [ODA_TIPLERI.MAHKEME_KALEMI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
+  yazıcı: [ODA_TIPLERI.MAHKEME_KALEMI, ODA_TIPLERI.HAKIM_ODALARI, ODA_TIPLERI.DURUSMA_SALONU],
+  tarayıcı: [ODA_TIPLERI.MAHKEME_KALEMI],
   segbis: [ODA_TIPLERI.DURUSMA_SALONU],
   tv: [ODA_TIPLERI.DURUSMA_SALONU],
   mikrofon: [ODA_TIPLERI.DURUSMA_SALONU],
@@ -64,14 +64,20 @@ const DEVICE_ROOM_RULES = {
   edurusma: [ODA_TIPLERI.DURUSMA_SALONU],
 };
 
-// Hangi cihazda kullanıcı bilgisi gösterilecek?
+// Hangi cihazda kullanıcı bilgisi gösterilecek? (KURAL:)
+// - Kasa, Laptop, Monitör: Sadece oda tipi Duruşma Salonu DEĞİLSE göster
+// - Yazıcı: Sadece oda tipi Hakim Odaları ise göster
+// - Diğer cihazlarda gösterme
 const shouldShowUserInfo = (cihazTipi, odaTipi) => {
   if (!cihazTipi || !odaTipi) return false;
   const id = cihazTipi.id;
-  if ((id === 'kasa' || id === 'monitör') && odaTipi === ODA_TIPLERI.DURUSMA_SALONU) return false;
-  if (['kasa', 'laptop', 'monitör'].includes(id)) return true;
-  if (id === 'yazıcı' && odaTipi === ODA_TIPLERI.HAKIM_ODALARI) return true;
-  // Tarayıcı, mikrofon, kamera ve diğer cihazlarda kullanıcı bilgisi gösterilmez
+  if (['kasa', 'laptop', 'monitör'].includes(id)) {
+    return odaTipi !== ODA_TIPLERI.DURUSMA_SALONU;
+  }
+  if (id === 'yazıcı') {
+    return odaTipi === ODA_TIPLERI.HAKIM_ODALARI;
+  }
+  // Diğer cihazlarda kullanıcı bilgisi gösterilmez
   return false;
 };
 
@@ -85,9 +91,37 @@ const isRoomAllowedForDevice = (cihazTipi, odaTipi) => {
 };
 
 const DeviceFormScreen = ({ navigation, route, theme }) => {
-  const { cihazTipi, odaTipi, birim, mahkemeNo } = route.params || {};
+  let { cihazTipi, deviceType, odaTipi: initialOdaTipi, birim: initialBirim, mahkemeNo: initialMahkemeNo, device } = route.params || {};
+  if (!cihazTipi && deviceType) {
+    cihazTipi = deviceType;
+  }
 
-  if (cihazTipi && odaTipi && !isRoomAllowedForDevice(cihazTipi, odaTipi)) {
+  // Her durumda cihazTipi'ni insan okunur hale getir
+  const typeMap = {
+    kasa: { id: 'kasa', name: 'Kasa' },
+    computers: { id: 'kasa', name: 'Kasa' },
+    laptop: { id: 'laptop', name: 'Laptop' },
+    laptops: { id: 'laptop', name: 'Laptop' },
+    monitör: { id: 'monitör', name: 'Monitör' },
+    screens: { id: 'monitör', name: 'Monitör' },
+    yazıcı: { id: 'yazıcı', name: 'Yazıcı' },
+    printers: { id: 'yazıcı', name: 'Yazıcı' },
+    tarayıcı: { id: 'tarayıcı', name: 'Tarayıcı' },
+    scanners: { id: 'tarayıcı', name: 'Tarayıcı' },
+    segbis: { id: 'segbis', name: 'SEGBİS' },
+    tv: { id: 'tv', name: 'TV' },
+    mikrofon: { id: 'mikrofon', name: 'Mikrofon' },
+    kamera: { id: 'kamera', name: 'Kamera' },
+    cameras: { id: 'kamera', name: 'Kamera' },
+    edurusma: { id: 'edurusma', name: 'E-Duruşma' },
+    e_durusmas: { id: 'edurusma', name: 'E-Duruşma' },
+  };
+  if (cihazTipi && (!cihazTipi.name || cihazTipi.name === 'Cihaz')) {
+    const tipKey = (cihazTipi.id || cihazTipi.type || cihazTipi.tip || '').toLowerCase();
+    cihazTipi = typeMap[tipKey] || { id: tipKey, name: cihazTipi.id || cihazTipi.type || cihazTipi.tip || '-' };
+  }
+
+  if (cihazTipi && initialOdaTipi && !isRoomAllowedForDevice(cihazTipi, initialOdaTipi)) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}> 
         <View style={styles.formContainer}>
@@ -134,32 +168,81 @@ const DeviceFormScreen = ({ navigation, route, theme }) => {
     paddingHorizontal: 0,
   };
   const modalOptionContainer = {
-    backgroundColor: isDark ? '#161a4a' : '#fff',
+    backgroundColor: theme.inputBg,
     borderRadius: 12,
   };
   const modalOptionText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontSize: 16,
     paddingVertical: 10,
     paddingHorizontal: 8,
   };
   const modalCancelText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
     paddingVertical: 12,
   };
   const modalOverlay = {
-    backgroundColor: isDark ? 'rgba(22,26,74,0.7)' : 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(22,26,74,0.7)',
   };
-  const unvanData = odaTipi && UNVANLAR[odaTipi] ? UNVANLAR[odaTipi].map((u) => ({ key: u, label: u })) : [];
+
+  // Düzenlenebilir alanlar için state
+  const [odaTipi, setOdaTipi] = useState(initialOdaTipi || device?.oda_tipi || '');
+  const [birim, setBirim] = useState(initialBirim || device?.birim || '');
+  const [mahkemeNo, setMahkemeNo] = useState(initialMahkemeNo || device?.mahkeme_no || '');
+
+  const aktifOdaTipi = odaTipi;
+  // Unvanların baş harfini büyüt (ör: İcra Müdürü)
+  function capitalizeTurkish(str) {
+    return str.split(' ').map(word => word.charAt(0).toLocaleUpperCase('tr-TR') + word.slice(1).toLocaleLowerCase('tr-TR')).join(' ');
+  }
+  const unvanData = aktifOdaTipi && UNVANLAR[aktifOdaTipi]
+    ? UNVANLAR[aktifOdaTipi].map((u) => ({ key: u, label: capitalizeTurkish(u) }))
+    : [];
   const [unvanModalVisible, setUnvanModalVisible] = useState(false);
+
+  // Oda Tipi ModalSelector için state
+  const [odaTipiModalVisible, setOdaTipiModalVisible] = useState(false);
+
+  // Birim ModalSelector için state
+  const [birimModalVisible, setBirimModalVisible] = useState(false);
 
   const formatDate = (date) => {
     if (!date) return null;
     return date.toISOString().split('T')[0]; // "YYYY-MM-DD"
   };
+
+  // Düzenleme modunda, sadece device'da olan alanları doldur
+  useEffect(() => {
+    if (device) {
+      setMarka(device.marka || '');
+      setModel(device.model || '');
+      setSeriNo(device.seri_no || '');
+      setUnvan(device.unvan || '');
+      setIsimSoyisim(device.adi_soyadi || '');
+      setSicilNo(device.sicil_no || device.sicilno || '');
+      if (device.ilk_garanti_tarihi) setIlkGarantiTarihi(new Date(device.ilk_garanti_tarihi));
+      if (device.son_garanti_tarihi) setSonGarantiTarihi(new Date(device.son_garanti_tarihi));
+      if (device.ilk_temizlik_tarihi) setIlkTemizlikTarihi(new Date(device.ilk_temizlik_tarihi));
+      if (device.son_temizlik_tarihi) setSonTemizlikTarihi(new Date(device.son_temizlik_tarihi));
+      if (device.oda_tipi) setOdaTipi(device.oda_tipi);
+      if (device.birim) setBirim(device.birim);
+      if (device.mahkeme_no) setMahkemeNo(device.mahkeme_no);
+    }
+  }, [device]);
+
+  // DEBUG: odaTipi ve unvanData'yı logla
+  useEffect(() => {
+    console.log('ODA_TIPI:', odaTipi);
+    console.log('UNVANLAR anahtarları:', Object.keys(UNVANLAR));
+    console.log('unvanData:', unvanData);
+  }, [odaTipi, unvanData]);
+
+  useEffect(() => {
+    console.log('DeviceFormScreen device param:', device);
+  }, []);
 
   const handleKaydet = async () => {
     const tableConfig = TABLE_MAP[cihazTipi.id];
@@ -189,33 +272,55 @@ const DeviceFormScreen = ({ navigation, route, theme }) => {
 
     // Kullanıcı bilgileri gerekliyse ekle
     if (shouldShowUserInfo(cihazTipi, odaTipi)) {
-      Object.assign(baseFields, {
-        [`${tableConfig.prefix}_adi_soyadi`]: isimSoyisim,
-        [`${tableConfig.prefix}_sicilno`]: sicilNo,
-        [`${tableConfig.prefix}_unvan`]: unvan,
-      });
+      if (cihazTipi.id === 'yazıcı') {
+        Object.assign(baseFields, {
+          adi_soyadi: isimSoyisim,
+          unvan: unvan,
+          sicilno: sicilNo,
+        });
+      } else {
+        Object.assign(baseFields, {
+          adi_soyadi: isimSoyisim,
+          unvan: unvan,
+          sicil_no: sicilNo,
+        });
+      }
     }
 
     // Kasa için temizlik tarihlerini ekle
     if (cihazTipi.id === 'kasa') {
       Object.assign(baseFields, {
-        [`${tableConfig.prefix}_ilk_temizlik_tarihi`]: formatDate(ilkTemizlikTarihi),
-        [`${tableConfig.prefix}_son_temizlik_tarihi`]: formatDate(sonTemizlikTarihi),
+        ilk_temizlik_tarihi: formatDate(ilkTemizlikTarihi),
+        son_temizlik_tarihi: formatDate(sonTemizlikTarihi),
       });
     }
 
     console.log('Kayıt gönderiliyor:', baseFields);
 
-    const { data, error } = await supabase
-      .from(tableConfig.table)
-      .insert([baseFields]);
+    let data, error;
+    if (device && device.id) {
+      console.log('UPDATE branch, id:', device.id);
+      ({ data, error } = await supabase
+        .from(tableConfig.table)
+        .update(baseFields)
+        .eq('id', device.id));
+    } else {
+      console.log('INSERT branch');
+      ({ data, error } = await supabase
+        .from(tableConfig.table)
+        .insert([baseFields]));
+    }
 
     console.log('Supabase yanıtı:', { data, error });
 
     if (error) {
       alert('Kayıt başarısız: ' + error.message);
     } else {
-      alert(`${cihazTipi.name} başarıyla eklendi!`);
+      if (device && device.id) {
+        alert('Cihaz güncellendi!');
+      } else {
+        alert('Yeni cihaz eklendi!');
+      }
       navigation.goBack();
     }
   };
@@ -223,6 +328,13 @@ const DeviceFormScreen = ({ navigation, route, theme }) => {
   // Form alanlarının görünürlüğünü kontrol et
   const showUserInfo = shouldShowUserInfo(cihazTipi, odaTipi);
   const showCleaningDates = shouldShowCleaningDates(cihazTipi);
+
+  const inputBgColor = isDark ? '#23272e' : theme.inputBg;
+  const inputTextColor = isDark ? '#111' : theme.text;
+
+  // Tüm gösterim kutuları için de aynı renkler
+  const displayBgColor = isDark ? '#23272e' : theme.cardBackground;
+  const displayTextColor = isDark ? '#111' : theme.text;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
@@ -236,105 +348,210 @@ const DeviceFormScreen = ({ navigation, route, theme }) => {
 
       <ScrollView style={styles.scrollView}>
         <View style={styles.formContainer}>
-          {showUserInfo && (
+          {/* Oda Tipi alanı */}
+          <Text style={[styles.label, { color: theme.text }]}>Oda Tipi</Text>
+          <TouchableOpacity style={[boxStyle, { backgroundColor: theme.inputBg }]} onPress={() => setOdaTipiModalVisible(true)}>
+            <Text style={inputCustom}>{odaTipi || 'Seçiniz'}</Text>
+          </TouchableOpacity>
+          {odaTipiModalVisible && (
+            <ModalSelector
+              data={
+                cihazTipi && DEVICE_ROOM_RULES[cihazTipi.id]
+                  ? DEVICE_ROOM_RULES[cihazTipi.id].map((tip) => ({ key: tip, label: tip }))
+                  : Object.values(ODA_TIPLERI).map((tip) => ({ key: tip, label: tip }))
+              }
+              visible={odaTipiModalVisible}
+              onModalClose={() => setOdaTipiModalVisible(false)}
+              onChange={option => {
+                setOdaTipi(option.key);
+                setUnvan("");
+                setUnvanModalVisible(false);
+                setOdaTipiModalVisible(false);
+              }}
+              selectedKey={odaTipi}
+              initValue={odaTipi || 'Seçiniz'}
+              optionContainerStyle={modalOptionContainer}
+              optionTextStyle={modalOptionText}
+              cancelText="İptal"
+              cancelTextStyle={modalCancelText}
+              overlayStyle={modalOverlay}
+            />
+          )}
+
+          {/* Mahkeme No */}
+          <Text style={[styles.label, { color: theme.text }]}>Mahkeme No</Text>
+          <View style={[styles.inputContainer, { backgroundColor: inputBgColor, borderColor: inputBgColor, borderWidth: 1 }]}> 
+            <TextInput
+              value={mahkemeNo}
+              onChangeText={setMahkemeNo}
+              placeholder="Mahkeme no giriniz"
+              placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+              style={[styles.input, { color: inputTextColor }]}
+              editable={true}
+            />
+          </View>
+          {/* Birim */}
+          <Text style={[styles.label, { color: theme.text }]}>Birim</Text>
+          <TouchableOpacity
+            style={[boxStyle, { backgroundColor: theme.inputBg }]}
+            onPress={() => odaTipi && setBirimModalVisible(true)}
+            disabled={!odaTipi}
+          >
+            <Text style={[inputCustom, { color: odaTipi ? (isDark ? '#fff' : '#222') : '#888' }]}>{birim || 'Seçiniz'}</Text>
+          </TouchableOpacity>
+          <ModalSelector
+            data={(() => {
+              const BIRIMLER = {
+                [ODA_TIPLERI.MAHKEME_KALEMI]: [
+                  'Sulh Hukuk Mahkemesi', 'Hukuk Ön Büro', 'Hukuk Vezne', 'Asliye Hukuk Mahkemesi',
+                  'Tüketici Mahkemesi', 'Kadastro Mahkemesi', 'İş Mahkemesi', 'Aile Mahkemesi',
+                  'Ağır Ceza Mahkemesi', 'Adalet Komisyonu Başkanlığı', 'Sulh Ceza Hakimliği',
+                  'İnfaz Hakimliği', 'Çocuk Mahkemesi', 'Savcılık İnfaz Bürosu', 'Asliye Ceza Mahkemesi',
+                  'Adli Destek ve Mağdur Hizmetleri Müdürlüğü ve Görüşme Odaları', 'Ceza Ön Büro',
+                  'Ceza Vezne', 'Soruşturma Bürosu', 'İdari İşler Müdürlüğü', 'Müracaat Bürosu',
+                  'Muhabere Bürosu', 'Talimat Bürosu', 'Emanet Bürosu', 'Nöbetçi Sulh Ceza Hakimliği',
+                  'Cumhuriyet Başsavcılığı', 'Bakanlık Muhabere Bürosu', 'CMK', 'Maaş',
+                  'İcra Müdürlüğü', 'Adli Sicil Şefliği', 'İcra Hukuk Mahkemesi', 'İcra Ceza Mahkemesi'
+                ],
+                [ODA_TIPLERI.HAKIM_ODALARI]: [
+                  'Sulh Hukuk Mahkemesi', 'Asliye Hukuk Mahkemesi', 'Tüketici Mahkemesi', 'Kadastro Mahkemesi',
+                  'İş Mahkemesi', 'Aile Mahkemesi', 'Ağır Ceza Mahkemesi', 'Adalet Komisyonu Başkanlığı',
+                  'Sulh Ceza Hakimliği', 'İnfaz Hakimliği', 'Çocuk Mahkemesi', 'Asliye Ceza Mahkemesi',
+                  'Nöbetçi Sulh Ceza Hakimliği', 'Cumhuriyet Başsavcılığı', 'İcra Hukuk Mahkemesi', 'İcra Ceza Mahkemesi'
+                ],
+                [ODA_TIPLERI.DURUSMA_SALONU]: [
+                  'Sulh Hukuk Mahkemesi', 'Asliye Hukuk Mahkemesi', 'Tüketici Mahkemesi', 'Kadastro Mahkemesi',
+                  'İş Mahkemesi', 'Aile Mahkemesi', 'Ağır Ceza Mahkemesi', 'Sulh Ceza Hakimliği',
+                  'İnfaz Hakimliği', 'Çocuk Mahkemesi', 'Asliye Ceza Mahkemesi', 'İdari İşler Müdürlüğü',
+                  'Nöbetçi Sulh Ceza Hakimliği', 'İcra Hukuk Mahkemesi', 'İcra Ceza Mahkemesi'
+                ]
+              };
+              return odaTipi && BIRIMLER[odaTipi]
+                ? BIRIMLER[odaTipi].map((birim) => ({ key: birim, label: birim }))
+                : [];
+            })()}
+            visible={typeof birimModalVisible !== 'undefined' ? birimModalVisible : false}
+            onChange={option => {
+              setBirim(option.key);
+              setBirimModalVisible(false);
+            }}
+            onModalClose={() => setBirimModalVisible(false)}
+            optionContainerStyle={modalOptionContainer}
+            optionTextStyle={modalOptionText}
+            cancelTextStyle={modalCancelText}
+            overlayStyle={modalOverlay}
+            cancelText="Vazgeç"
+            selectedKey={birim}
+            value={birim}
+            style={{ borderWidth: 0, borderColor: 'transparent' }}
+            customSelector={<View />}
+          />
+          {/* Cihaz Tipi (değiştirilemez, sadece gösterim) */}
+          <Text style={[styles.label, { color: theme.text }]}>Cihaz Tipi</Text>
+          <View style={[styles.inputContainer, { backgroundColor: inputBgColor, opacity: 0.7 }]}> 
+            <Text style={[styles.input, { color: inputTextColor }]}>{cihazTipi?.name || cihazTipi?.id || '-'}</Text>
+          </View>
+          {/* Unvan alanı sadece oda tipi seçiliyse ve kullanıcı bilgisi gerekiyorsa gösterilsin */}
+          {odaTipi && showUserInfo && (
             <>
               <Text style={[styles.label, { color: theme.text }]}>Unvan</Text>
-              <TouchableOpacity style={boxStyle} onPress={() => setUnvanModalVisible(true)}>
+              <TouchableOpacity style={[boxStyle, { backgroundColor: theme.inputBg }]} onPress={() => setUnvanModalVisible(true)}>
                 <Text style={inputCustom}>{unvan || 'Seçiniz'}</Text>
               </TouchableOpacity>
-
-              <Text style={[styles.label, { color: theme.text }]}>Sicil No</Text>
-              <View style={[styles.inputContainer, { backgroundColor: theme.cardBackground }]}>
-                <TextInput
-                  value={sicilNo}
-                  onChangeText={setSicilNo}
-                  placeholder="Sicil numarasını giriniz"
-                  placeholderTextColor={theme.textSecondary}
-                  style={[styles.input, { color: theme.text }]}
+              {unvanModalVisible && (
+                <ModalSelector
+                  data={unvanData}
+                  visible={unvanModalVisible}
+                  onModalClose={() => setUnvanModalVisible(false)}
+                  onChange={option => {
+                    setUnvan(option.label);
+                    setUnvanModalVisible(false);
+                  }}
+                  selectedKey={unvan}
+                  initValue={unvan || 'Seçiniz'}
+                  optionContainerStyle={modalOptionContainer}
+                  optionTextStyle={modalOptionText}
+                  cancelText="İptal"
+                  cancelTextStyle={modalCancelText}
+                  overlayStyle={modalOverlay}
                 />
-              </View>
+              )}
 
-              <Text style={[styles.label, { color: theme.text }]}>İsim Soyisim</Text>
-              <View style={[styles.inputContainer, { backgroundColor: theme.cardBackground }]}>
+              {/* Adı Soyadı inputu */}
+              <Text style={[styles.label, { color: theme.text }]}>Adı Soyadı</Text>
+              <View style={[styles.inputContainer, { backgroundColor: inputBgColor }]}> 
                 <TextInput
                   value={isimSoyisim}
                   onChangeText={setIsimSoyisim}
-                  placeholder="İsim soyisim giriniz"
-                  placeholderTextColor={theme.textSecondary}
-                  style={[styles.input, { color: theme.text }]}
+                  placeholder="Adı Soyadı giriniz"
+                  placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+                  style={[styles.input, { color: inputTextColor }]}
+                />
+              </View>
+
+              {/* Sicil No inputu */}
+              <Text style={[styles.label, { color: theme.text }]}>Sicil No</Text>
+              <View style={[styles.inputContainer, { backgroundColor: inputBgColor }]}> 
+                <TextInput
+                  value={sicilNo}
+                  onChangeText={setSicilNo}
+                  placeholder="Sicil no giriniz"
+                  placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+                  style={[styles.input, { color: inputTextColor }]}
+                  keyboardType="numeric"
                 />
               </View>
             </>
           )}
 
           <Text style={[styles.label, { color: theme.text }]}>Marka</Text>
-          <View style={[styles.inputContainer, { backgroundColor: theme.cardBackground }]}>
+          <View style={[styles.inputContainer, { backgroundColor: inputBgColor }]}> 
             <TextInput
               value={marka}
               onChangeText={setMarka}
               placeholder="Marka giriniz"
-              placeholderTextColor={theme.textSecondary}
-              style={[styles.input, { color: theme.text }]}
+              placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+              style={[styles.input, { color: inputTextColor }]}
             />
           </View>
 
           <Text style={[styles.label, { color: theme.text }]}>Model</Text>
-          <View style={[styles.inputContainer, { backgroundColor: theme.cardBackground }]}>
+          <View style={[styles.inputContainer, { backgroundColor: inputBgColor }]}> 
             <TextInput
               value={model}
               onChangeText={setModel}
               placeholder="Model giriniz"
-              placeholderTextColor={theme.textSecondary}
-              style={[styles.input, { color: theme.text }]}
+              placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+              style={[styles.input, { color: inputTextColor }]}
             />
           </View>
 
           <Text style={[styles.label, { color: theme.text }]}>Seri No</Text>
-          <View style={[styles.inputContainer, { backgroundColor: theme.cardBackground }]}>
+          <View style={[styles.inputContainer, { backgroundColor: inputBgColor }]}> 
             <TextInput
               value={seriNo}
               onChangeText={setSeriNo}
               placeholder="Seri no giriniz"
-              placeholderTextColor={theme.textSecondary}
-              style={[styles.input, { color: theme.text }]}
+              placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+              style={[styles.input, { color: inputTextColor }]}
             />
           </View>
 
           <Text style={[styles.label, { color: theme.text }]}>İlk Garanti Tarihi</Text>
           <TouchableOpacity
-            style={[styles.dateButton, { backgroundColor: theme.cardBackground }]}
+            style={[styles.dateButton, { backgroundColor: inputBgColor }]}
             onPress={() => setShowIlkGarantiPicker(true)}
           >
-            <Text style={[styles.dateButtonText, { color: theme.text }]}>{formatDate(ilkGarantiTarihi)}</Text>
+            <Text style={[styles.dateButtonText, { color: inputTextColor }]}>{formatDate(ilkGarantiTarihi)}</Text>
           </TouchableOpacity>
 
           <Text style={[styles.label, { color: theme.text }]}>Son Garanti Tarihi</Text>
           <TouchableOpacity
-            style={[styles.dateButton, { backgroundColor: theme.cardBackground }]}
+            style={[styles.dateButton, { backgroundColor: inputBgColor }]}
             onPress={() => setShowSonGarantiPicker(true)}
           >
-            <Text style={[styles.dateButtonText, { color: theme.text }]}>{formatDate(sonGarantiTarihi)}</Text>
+            <Text style={[styles.dateButtonText, { color: inputTextColor }]}>{formatDate(sonGarantiTarihi)}</Text>
           </TouchableOpacity>
-
-          {showCleaningDates && (
-            <>
-              <Text style={[styles.label, { color: theme.text }]}>İlk Temizlik Tarihi</Text>
-              <TouchableOpacity
-                style={[styles.dateButton, { backgroundColor: theme.cardBackground }]}
-                onPress={() => setShowIlkTemizlikPicker(true)}
-              >
-                <Text style={[styles.dateButtonText, { color: theme.text }]}>{formatDate(ilkTemizlikTarihi)}</Text>
-              </TouchableOpacity>
-
-              <Text style={[styles.label, { color: theme.text }]}>Son Temizlik Tarihi</Text>
-              <TouchableOpacity
-                style={[styles.dateButton, { backgroundColor: theme.cardBackground }]}
-                onPress={() => setShowSonTemizlikPicker(true)}
-              >
-                <Text style={[styles.dateButtonText, { color: theme.text }]}>{formatDate(sonTemizlikTarihi)}</Text>
-              </TouchableOpacity>
-            </>
-          )}
 
           <TouchableOpacity
             style={[styles.kaydetButton, { backgroundColor: theme.primary }]}

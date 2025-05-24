@@ -157,7 +157,7 @@ const JudgeRoomsScreen = ({ route, theme, themedStyles }) => {
     return (
       <Swipeable renderRightActions={() => renderRightActions(item)}>
         <TouchableOpacity 
-          style={[styles.roomCard, { backgroundColor: theme.cardBackground, borderColor: theme.border }]}
+          style={[styles.roomCard, { backgroundColor: '#23272e', borderColor: '#23272e' }]}
           onPress={() => handleRoomDetail(item)}
         >
           <View style={styles.roomInfo}>

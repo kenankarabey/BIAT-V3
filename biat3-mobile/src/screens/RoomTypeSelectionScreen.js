@@ -5,7 +5,7 @@ import ModalSelector from 'react-native-modal-selector';
 import withThemedScreen from '../components/withThemedScreen';
 import { supabase } from '../supabaseClient';
 const ODA_TIPLERI = {
-  MAHKEME_KALEMLERI: 'Mahkeme Kalemleri',
+  MAHKEME_KALEMLERI: 'Mahkeme Kalemi',
   HAKIM_ODALARI: 'Hakim Odaları',
   DURUSMA_SALONU: 'Duruşma Salonu'
 };
@@ -72,7 +72,7 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
   const boxStyle = {
     borderRadius: 12,
     marginBottom: 20,
-    backgroundColor: isDark ? '#60a5fa' : '#161a4a',
+    backgroundColor: isDark ? theme.cardBackground : '#fff',
     paddingHorizontal: 12,
     paddingVertical: 0,
     minHeight: 48,
@@ -83,33 +83,33 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
 
   const modalSelector = boxStyle;
   const modalOptionContainer = {
-    backgroundColor: isDark ? '#161a4a' : '#fff',
+    backgroundColor: theme.inputBg,
     borderRadius: 12,
   };
   const modalOptionText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontSize: 16,
     paddingVertical: 10,
     paddingHorizontal: 8,
   };
   const modalCancelText = {
-    color: isDark ? '#fff' : '#222',
+    color: isDark ? '#fff' : theme.text,
     fontWeight: 'bold',
     fontSize: 16,
     textAlign: 'center',
     paddingVertical: 12,
   };
   const modalOverlay = {
-    backgroundColor: isDark ? 'rgba(22,26,74,0.7)' : 'rgba(0,0,0,0.3)',
+    backgroundColor: 'rgba(22,26,74,0.7)',
   };
   const modalInitValueText = {
-    color: isDark ? '#a3a3a3' : '#6b7280',
+    color: theme.textSecondary,
     fontSize: 16,
     paddingHorizontal: 12,
     paddingVertical: 8,
   };
   const modalSelectText = {
-    color: isDark ? '#fff' : '#222',
+    color: theme.text,
     fontSize: 16,
     fontWeight: '500',
     paddingHorizontal: 12,
@@ -117,7 +117,7 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
   };
   const inputContainerCustom = boxStyle;
   const inputCustom = {
-    color: '#fff',
+    color: theme.text,
     fontSize: 16,
     paddingVertical: 8,
     paddingHorizontal: 0,
@@ -144,6 +144,9 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
     });
   };
 
+  const inputBgColor = isDark ? '#23272e' : theme.inputBg;
+  const inputTextColor = isDark ? '#111' : theme.text;
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}> 
       <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}> 
@@ -156,8 +159,8 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
       <ScrollView style={styles.scrollView}> 
         <View style={styles.formContainer}> 
           <Text style={labelCustom}>Oda Tipi</Text>
-          <TouchableOpacity style={boxStyle} onPress={() => setOdaModalVisible(true)}>
-            <Text style={inputCustom}>{secilenOdaTipi || 'Seçiniz'}</Text>
+          <TouchableOpacity style={[boxStyle, { backgroundColor: inputBgColor }]} onPress={() => setOdaModalVisible(true)}>
+            <Text style={[inputCustom, { backgroundColor: inputBgColor, color: inputTextColor }]}>{secilenOdaTipi || 'Seçiniz'}</Text>
           </TouchableOpacity>
           <ModalSelector
             data={odaTipiData}
@@ -180,8 +183,8 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
           />
 
           <Text style={labelCustom}>Birim</Text>
-          <TouchableOpacity style={boxStyle} onPress={() => secilenOdaTipi && setBirimModalVisible(true)} disabled={!secilenOdaTipi}>
-            <Text style={[inputCustom, { color: secilenOdaTipi ? (isDark ? '#fff' : '#fff') : '#888' }]}>{secilenBirim || 'Seçiniz'}</Text>
+          <TouchableOpacity style={[boxStyle, { backgroundColor: inputBgColor }]} onPress={() => secilenOdaTipi && setBirimModalVisible(true)} disabled={!secilenOdaTipi}>
+            <Text style={[inputCustom, { backgroundColor: inputBgColor, color: inputTextColor }]}>{secilenBirim || 'Seçiniz'}</Text>
           </TouchableOpacity>
           <ModalSelector
             data={birimData}
@@ -203,13 +206,13 @@ const RoomTypeSelectionScreen = ({ navigation, theme }) => {
           />
 
           <Text style={labelCustom}>Mahkeme No</Text>
-          <View style={boxStyle}>
+          <View style={[boxStyle, { backgroundColor: inputBgColor }]}>
             <TextInput
               value={mahkemeNo}
               onChangeText={setMahkemeNo}
               placeholder="Mahkeme numarasını giriniz"
-              placeholderTextColor="#fff"
-              style={inputCustom}
+              placeholderTextColor={isDark ? '#888' : theme.textSecondary}
+              style={[inputCustom, { backgroundColor: inputBgColor, color: inputTextColor }]}
               keyboardType="numeric"
             />
           </View>

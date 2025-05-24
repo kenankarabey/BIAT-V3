@@ -102,11 +102,6 @@ const DevicesScreen = ({ navigation, theme, themedStyles }) => {
       <View style={styles.categoryContent}>
         <View style={styles.categoryHeader}>
           <Text style={[styles.categoryTitle, themedStyles.text]}>{item.title}</Text>
-          {item.count && (
-            <View style={styles.countContainer}>
-              <Text style={styles.countText}>{item.count}</Text>
-            </View>
-          )}
         </View>
         <Text style={[styles.categoryDescription, themedStyles.textSecondary]}>{item.description}</Text>
       </View>
@@ -123,27 +118,7 @@ const DevicesScreen = ({ navigation, theme, themedStyles }) => {
       </View>
 
       <ScrollView style={styles.scrollView}>
-        <View style={[styles.statsContainer, themedStyles.card, themedStyles.shadow, { flexWrap: 'wrap', flexDirection: 'row', justifyContent: 'space-between' }]}>
-          <View style={[styles.statItem, { width: '48%' }]}>
-            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.toplamCihaz}</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Cihaz</Text>
-          </View>
-          <View style={[styles.statItem, { width: '48%' }]}>
-            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.mahkemeKalemi}</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Mahkeme Kalemi</Text>
-          </View>
-          <View style={[styles.statItem, { width: '48%' }]}>
-            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.durusmaSalonu}</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Duruşma Salonu</Text>
-          </View>
-          <View style={[styles.statItem, { width: '48%' }]}>
-            <Text style={[styles.statValue, themedStyles.text]}>{deviceCounts.hakimOdasi}</Text>
-            <Text style={[styles.statLabel, themedStyles.textSecondary]}>Hakim Odası</Text>
-          </View>
-        </View>
-
         <Text style={[styles.sectionTitle, themedStyles.text]}>Kategoriler</Text>
-        
         <View style={styles.categoriesContainer}>
           {categories.map((category) => (
             <CategoryCard key={category.id} item={category} />
@@ -175,28 +150,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 16,
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 12,
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
   },
   sectionTitle: {
     fontSize: 18,
@@ -240,17 +193,6 @@ const styles = StyleSheet.create({
   categoryDescription: {
     fontSize: 14,
   },
-  countContainer: {
-    backgroundColor: '#e2e8f0',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-  },
-  countText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#64748b',
-  }
 });
 
 export default withThemedScreen(DevicesScreen); 

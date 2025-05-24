@@ -57,45 +57,62 @@ const fetchMonitors = async () => {
 
 // SwipeableRow component for swipe actions
 const SwipeableRow = ({ item, onEdit, onDelete, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { width } = useWindowDimensions();
+  const [cardHeight, setCardHeight] = useState(100); // default yükseklik
+
+  // Kartın yüksekliğini ölç
+  const handleCardLayout = (e) => {
+    const h = e.nativeEvent.layout.height;
+    if (h && h !== cardHeight) setCardHeight(h);
+  };
+
   const renderRightActions = (progress, dragX) => {
     const trans = dragX.interpolate({
-      inputRange: [-100, 0],
-      outputRange: [0, 100],
+      inputRange: [-90, 0],
+      outputRange: [0, 90],
       extrapolate: 'clamp',
     });
-    
     return (
-      <View style={styles.swipeActions}>
+      <View style={[styles.swipeActions, { width: 180, height: cardHeight }]}> 
         <Animated.View
           style={[
             styles.editAction,
             {
               transform: [{ translateX: trans }],
+              width: 90,
+              height: cardHeight,
             },
           ]}>
-          <TouchableOpacity onPress={() => onEdit(item)}>
-            <MaterialCommunityIcons name="pencil" size={24} color="#fff" />
+          <TouchableOpacity style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }} onPress={() => onEdit(item)}>
+            <MaterialCommunityIcons name="pencil" size={28} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, marginTop: 4 }}>Düzenle</Text>
           </TouchableOpacity>
         </Animated.View>
-        
         <Animated.View
           style={[
             styles.deleteAction,
             {
               transform: [{ translateX: trans }],
+              width: 90,
+              height: cardHeight,
             },
           ]}>
-          <TouchableOpacity onPress={() => onDelete(item)}>
-            <MaterialCommunityIcons name="delete" size={24} color="#fff" />
+          <TouchableOpacity style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center' }} onPress={() => onDelete(item)}>
+            <MaterialCommunityIcons name="delete" size={28} color="#fff" />
+            <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 16, marginTop: 4 }}>Sil</Text>
           </TouchableOpacity>
         </Animated.View>
       </View>
     );
   };
-
   return (
-    <Swipeable renderRightActions={renderRightActions}>
-      {children}
+    <Swipeable
+      renderRightActions={renderRightActions}
+      onSwipeableOpen={() => setIsOpen(true)}
+      onSwipeableClose={() => setIsOpen(false)}
+    >
+      {React.cloneElement(children, { disabled: isOpen, onLayout: handleCardLayout })}
     </Swipeable>
   );
 };
@@ -108,6 +125,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const isDark = theme.background === '#1e293b';
+  const [selectedCourtroom, setSelectedCourtroom] = useState(null);
  
     // ...diğer kodlar...
     console.log('theme:', theme);
@@ -372,7 +390,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
               alignSelf: 'flex-start',
             }
           ]}>
-            <Text style={{ color: badgeTextColor, fontWeight: 'bold', fontSize: 15 }}>{item.status}</Text>
+            <Text style={{ color: badgeTextColor, fontWeight: 'bold', fontSize: 13 }}>{item.status}</Text>
           </View>
         </View>
         <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', marginTop: 16 }}>
@@ -384,15 +402,15 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
       </LinearGradient>
     );
     return (
-      <TouchableOpacity onPress={() => navigation.navigate('CourtroomDetail', { courtroom: item })} activeOpacity={0.85}>
-        <SwipeableRow 
-          item={item} 
-          onEdit={handleEdit} 
-          onDelete={handleDelete}
+      <SwipeableRow item={item} onEdit={handleEdit} onDelete={handleDelete}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CourtroomDetail', { courtroom: item })}
+          activeOpacity={0.85}
+          style={{ marginBottom: 12 }}
         >
           {card}
-        </SwipeableRow>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      </SwipeableRow>
     );
   };
 
@@ -401,7 +419,17 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
       <StatusBar barStyle={theme.isDark ? "light-content" : "dark-content"} backgroundColor={theme.background} />
       <View style={[styles.container, { backgroundColor: theme.background }]}>
         <View style={[styles.header, { backgroundColor: theme.cardBackground, borderBottomColor: theme.border }]}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={{ padding: 4, marginRight: 8 }}>
+            <MaterialCommunityIcons name="arrow-left" size={28} color={theme.text} />
+          </TouchableOpacity>
           <Text style={[styles.headerTitle, { color: theme.text }]}>Duruşma Salonları</Text>
+          <TouchableOpacity
+            onPress={() => selectedCourtroom && navigation.navigate('CourtroomForm', { courtroom: selectedCourtroom })}
+            style={{ padding: 4, marginLeft: 8 }}
+            disabled={!selectedCourtroom}
+          >
+           
+          </TouchableOpacity>
         </View>
         
         {/* Hızlı İstatistikler */}
@@ -422,7 +450,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
               <MaterialCommunityIcons name="check-circle" size={20} color="#10b981" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Aktif</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 11, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Aktif</Text>
               <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{activeCount}</Text>
             </View>
           </View>
@@ -442,7 +470,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
               <MaterialCommunityIcons name="alert-circle" size={20} color="#ef4444" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Arızalı</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 11, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Arızalı</Text>
               <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{issueCount}</Text>
             </View>
           </View>
@@ -461,7 +489,7 @@ const CourtroomsScreen = ({ route, theme, themedStyles }) => {
               <MaterialCommunityIcons name="wrench" size={20} color="#f59e0b" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 14, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Bakımda</Text>
+              <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 11, marginBottom: 2, textAlign: 'center', alignSelf: 'center' }}>Bakımda</Text>
               <Text style={{ color: theme.text, fontWeight: 'bold', fontSize: 18, textAlign: 'center', alignSelf: 'center' }}>{maintenanceCount}</Text>
             </View>
           </View>
@@ -520,15 +548,20 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     paddingHorizontal: 20,
     paddingVertical: 15,
     borderBottomWidth: 1,
+    position: 'relative',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    textAlign: 'center',
   },
   searchContainer: {
     padding: 16,
@@ -653,22 +686,18 @@ const styles = StyleSheet.create({
   },
   swipeActions: {
     flexDirection: 'row',
-    width: 120,
-    height: '100%',
+    alignItems: 'center',
+    height: 64,
   },
   editAction: {
     backgroundColor: '#4f46e5',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 60,
-    height: '100%',
   },
   deleteAction: {
     backgroundColor: '#ef4444',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 60,
-    height: '100%',
   },
   fab: {
     position: 'absolute',
